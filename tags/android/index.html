@@ -524,20 +524,19 @@
 </footer>
         
     
-	<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
-	<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
-	<script>
-		var gitment = new Gitment({
-			owner: 'QuincyJiang',
-			repo: 'https://github.com/QuincyJiang/comments.git',
-			oauth: {
-				client_id: '7d62ce84028d3cb98cc3',
-				client_secret: 'dd706a971640c51eb81d8ad875b3409a03dd8aa6',
-			},
-		})
-		gitment.render('commentContainer')
-	</script>
-	
+    <script>
+    var disqus_config = function () {
+        
+        this.page.identifier = '';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'https-quincyjiang-github-io' + '.disqus.com/count.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
 
 
 

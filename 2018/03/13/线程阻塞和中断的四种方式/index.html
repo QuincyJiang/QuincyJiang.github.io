@@ -267,7 +267,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjguv5v53000y720caqlr9c07" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjguvtorr000x8m0c3qwd9zbs" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -335,6 +335,8 @@
 
             
     
+        <a href="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/">Comments</a>
+    
 
         </footer>
     </div>
@@ -367,7 +369,9 @@
     
     
         <section id="comments">
-	<div id="commentContainer"></div>
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 </section>
     
 
@@ -549,20 +553,21 @@
 </footer>
         
     
-	<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
-	<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
-	<script>
-		var gitment = new Gitment({
-			owner: 'QuincyJiang',
-			repo: 'https://github.com/QuincyJiang/comments.git',
-			oauth: {
-				client_id: '7d62ce84028d3cb98cc3',
-				client_secret: 'dd706a971640c51eb81d8ad875b3409a03dd8aa6',
-			},
-		})
-		gitment.render('commentContainer')
-	</script>
-	
+    <script>
+    var disqus_config = function () {
+        
+            this.page.url = 'http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/';
+        
+        this.page.identifier = '线程阻塞和中断的四种方式';
+    };
+    (function() { 
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'https-quincyjiang-github-io' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
 
 
 
