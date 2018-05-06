@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>mac搭建Pyqt5环境 | QuincyJiang</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="MQTT相关MQTT官网：http://mqtt.org/ MQTT介绍：http://www.ibm.com MQTT Android github：https://github.com/eclipse/paho.mqtt.android MQTT API：http://www.eclipse.org/paho/files/javadoc/index.html MQTT Android API：">
+<meta name="keywords" content="mqtt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mac搭建Pyqt5环境">
+<meta property="og:url" content="http://yoursite.com/2017/12/11/MQTT相关/index.html">
+<meta property="og:site_name" content="QuincyJiang">
+<meta property="og:description" content="MQTT相关MQTT官网：http://mqtt.org/ MQTT介绍：http://www.ibm.com MQTT Android github：https://github.com/eclipse/paho.mqtt.android MQTT API：http://www.eclipse.org/paho/files/javadoc/index.html MQTT Android API：">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://i.imgur.com/qyuQDHy.png">
+<meta property="og:image" content="https://i.imgur.com/SAh5lfp.png">
+<meta property="og:image" content="https://i.imgur.com/5KZpNcP.png">
+<meta property="og:image" content="https://i.imgur.com/9eB33fT.png">
+<meta property="og:updated_time" content="2018-05-06T13:27:09.801Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mac搭建Pyqt5环境">
+<meta name="twitter:description" content="MQTT相关MQTT官网：http://mqtt.org/ MQTT介绍：http://www.ibm.com MQTT Android github：https://github.com/eclipse/paho.mqtt.android MQTT API：http://www.eclipse.org/paho/files/javadoc/index.html MQTT Android API：">
+<meta name="twitter:image" content="https://i.imgur.com/qyuQDHy.png">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/avatar.png" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">QuincyJiang</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/tags">Tags</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/tags">Tags</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile" class="profile-fixed">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">QuincyJiang</h2>
+            <h3 id="title">Coder &amp; FilmPlayer</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Guangzhou, China</span>
+            <a id="follow" target="_blank" href="https://github.com/QuincyJiang">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                14
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                19
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/QuincyJiang" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://weibo.com/2425393311/" target="_blank" title="weibo" class=tooltip>
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="http://aquencyua11.lofter.com/" target="_blank" title="photo" class=tooltip>
+                            <i class="fa fa-photo"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-MQTT相关" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            mac搭建Pyqt5环境
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/12/11/MQTT相关/">
+            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/MQTT/">MQTT</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/mqtt/">mqtt</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h1 id="MQTT相关"><a href="#MQTT相关" class="headerlink" title="MQTT相关"></a>MQTT相关</h1><p>MQTT官网：<a href="http://mqtt.org/" target="_blank" rel="noopener">http://mqtt.org/</a></p>
+<p>MQTT介绍：<a href="http://www.ibm.com" target="_blank" rel="noopener">http://www.ibm.com</a></p>
+<p>MQTT Android github：<a href="https://github.com/eclipse/paho.mqtt.android" target="_blank" rel="noopener">https://github.com/eclipse/paho.mqtt.android</a></p>
+<p>MQTT API：<a href="http://www.eclipse.org/paho/files/javadoc/index.html" target="_blank" rel="noopener">http://www.eclipse.org/paho/files/javadoc/index.html</a></p>
+<p>MQTT Android API： <a href="http://www.eclipse.org/paho/files/android-javadoc/index.html" target="_blank" rel="noopener">http://www.eclipse.org/paho/files/android-javadoc/index.html</a></p>
+<hr>
+<h2 id="MQTT服务器搭建"><a href="#MQTT服务器搭建" class="headerlink" title="MQTT服务器搭建"></a>MQTT服务器搭建</h2><ul>
+<li>环境：windows7 64位</li>
+<li>JAVA环境:jdk 1.8.0</li>
+<li>下载：<a href="http://activemq.apache.org/apollo/download.html" target="_blank" rel="noopener">Apollo服务器</a></li>
+</ul>
+<p>以下为步骤：</p>
+<ol>
+<li>下载Apollo服务器后，解压安装；</li>
+<li>用命令行进入到安装目录bin目录下</li>
+<li>输入 apollo create xxx (xxx为服务器实例名，eg.apollo create xmaihh)<blockquote>
+<p>执行之后会在bin目录下创建名称为xxx的文件夹，比如我生成的文件夹是 xmaihh<br>xxx文件夹下etc\apollo.xml文件是 配置服务器文件信息<br>etc\users.properties文件包含连接MQTT服务器时用到的用户名和密码，默认为admin=password，即账号为admin，密码为password，可自行更改。</p>
+</blockquote>
+</li>
+<li>用命令行进入到刚创建的xxx\bin目录下，输入apollo-broker.cmd run开启服务器</li>
+<li>在浏览器输入<a href="http://127.0.0.1:61680/，查看是否安装成功" target="_blank" rel="noopener">http://127.0.0.1:61680/，查看是否安装成功</a><br><img src="https://i.imgur.com/qyuQDHy.png" alt=""><br><img src="https://i.imgur.com/SAh5lfp.png" alt=""><br><img src="https://i.imgur.com/5KZpNcP.png" alt=""><h2 id="MQTT-Android客户端"><a href="#MQTT-Android客户端" class="headerlink" title="MQTT Android客户端"></a>MQTT Android客户端</h2></li>
+</ol>
+<ul>
+<li>环境：AndroidStudio 3.0.1</li>
+<li>topic：中文意思是“话题”。在MQTT中订阅了(subscribe)同一话题（topic）的客户端会同时收到消息推送。</li>
+<li>clientId：客户身份唯一标识。</li>
+<li>qos：服务质量。</li>
+<li>retained：要保留最后的断开连接信息。</li>
+<li>MqttAndroidClient#subscribe()：订阅某个话题。</li>
+<li>MqttAndroidClient#publish()： 向某个话题发送消息，之后服务器会推送给所有订阅了此话题的客户。</li>
+<li>userName：连接到MQTT服务器的用户名。</li>
+<li>passWord ：连接到MQTT服务器的密码</li>
+</ul>
+<p>以下为步骤：</p>
+<ol>
+<li><p>添加依赖</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    maven &#123;</span><br><span class="line">        url &quot;https://repo.eclipse.org/content/repositories/paho-snapshots/&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile &apos;org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0&apos;</span><br><span class="line">    compile &apos;org.eclipse.paho:org.eclipse.paho.android.service:1.1.1&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot; /&gt;</span><br><span class="line">&lt;uses-permission android:name=&quot;android.permission.ACCESS_NETWORK_STATE&quot; /&gt;</span><br><span class="line">&lt;uses-permission android:name=&quot;android.permission.WAKE_LOCK&quot; /&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>注册Service</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- Mqtt Service --&gt;</span><br><span class="line">&lt;service android:name=&quot;org.eclipse.paho.android.service.MqttService&quot; /&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>具体实现</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * MQTT长连接服务</span><br><span class="line"> */</span><br><span class="line">public class MQTTService extends Service &#123;</span><br><span class="line">    public static final String TAG = MQTTService.class.getSimpleName();</span><br><span class="line"></span><br><span class="line">    public static MqttAndroidClient client;</span><br><span class="line">    private MqttConnectOptions connectOptions;</span><br><span class="line">        private String host = &quot;tcp://192.168.102.216:61613&quot;;</span><br><span class="line">//        private String host = &quot;tcp://192.168.8.241:61613&quot;;</span><br><span class="line">//        private String host = &quot;tcp://10.0.2.2:61613&quot;;</span><br><span class="line">//    private String host = &quot;tcp://192.168.26.144:1883&quot;;</span><br><span class="line"></span><br><span class="line">    private String username = &quot;admin&quot;;</span><br><span class="line">    private String password = &quot;password&quot;;</span><br><span class="line">    private static String myTopic = &quot;topic&quot;;</span><br><span class="line">    private String clientId = &quot;test123&quot;;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">        init();</span><br><span class="line">        return super.onStartCommand(intent, flags, startId);</span><br><span class="line">    &#125;</span><br><span class="line">    @Nullable</span><br><span class="line">    @Override</span><br><span class="line">    public IBinder onBind(Intent intent) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void publish(String msg) &#123;</span><br><span class="line">        String topic = myTopic;</span><br><span class="line">        Integer qos = 0;</span><br><span class="line">        Boolean retained = false;</span><br><span class="line">        try &#123;</span><br><span class="line">            client.publish(topic, msg.getBytes(), qos.intValue(), retained.booleanValue());</span><br><span class="line">        &#125; catch (MqttException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    /**</span><br><span class="line">     * 初始化方法</span><br><span class="line">     */</span><br><span class="line">    private void init() &#123;</span><br><span class="line">        // 服务器地址 (协议+地址+端口号)</span><br><span class="line">        String url = host;</span><br><span class="line">        client = new MqttAndroidClient(this, url, clientId);</span><br><span class="line">        client.setCallback(mqttCallback);</span><br><span class="line">        connectOptions = new MqttConnectOptions();</span><br><span class="line">        // 清除缓存</span><br><span class="line">        connectOptions.setCleanSession(true);</span><br><span class="line">        // 设置超时时间,单位:秒</span><br><span class="line">        connectOptions.setConnectionTimeout(10);</span><br><span class="line">        // 心跳包发送时间间隔,单位:秒</span><br><span class="line">        connectOptions.setKeepAliveInterval(20);</span><br><span class="line">        // 用户名</span><br><span class="line">        connectOptions.setUserName(username);</span><br><span class="line">        // 密码</span><br><span class="line">        connectOptions.setPassword(password.toCharArray());</span><br><span class="line">        // last will message</span><br><span class="line">        boolean doConnect = true;</span><br><span class="line">        String message = &quot;&#123;\&quot;terminal_uid\&quot;:\&quot;&quot; + clientId + &quot;\&quot;&#125;&quot;;</span><br><span class="line">        String topic = myTopic;</span><br><span class="line">        Integer qos = 0;</span><br><span class="line">        Boolean retained = false;</span><br><span class="line">        if ((!message.equals(&quot;&quot;)) || (!topic.equals(&quot;&quot;))) &#123;</span><br><span class="line">            //最后的遗嘱</span><br><span class="line">            try &#123;</span><br><span class="line">                connectOptions.setWill(topic, message.getBytes(), qos.intValue(), retained.booleanValue());</span><br><span class="line">            &#125; catch (Exception ex) &#123;</span><br><span class="line">                Log.d(TAG, &quot;Exception Occured&quot;, ex);</span><br><span class="line">                doConnect = false;</span><br><span class="line">                iMqttActionListener.onFailure(null, ex);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (doConnect) &#123;</span><br><span class="line">            //连接MQTT服务器</span><br><span class="line">            doClientConnection();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 连接MQTT服务器</span><br><span class="line">     */</span><br><span class="line">    private void doClientConnection() &#123;</span><br><span class="line">        if (!client.isConnected() &amp;&amp; isConnectIsNomarl()) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                client.connect(connectOptions, null, iMqttActionListener);</span><br><span class="line">            &#125; catch (MqttException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 判断网络是否连接</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    private boolean isConnectIsNomarl() &#123;</span><br><span class="line">        ConnectivityManager connectivityManager = (ConnectivityManager)</span><br><span class="line">                this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);</span><br><span class="line">        NetworkInfo info = connectivityManager.getActiveNetworkInfo();</span><br><span class="line">        if (info != null &amp;&amp; info.isAvailable()) &#123;</span><br><span class="line">            String name = info.getTypeName();</span><br><span class="line">            Log.i(TAG, &quot;MQTT当前网络名称：&quot; + name);</span><br><span class="line">            return true;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            Log.i(TAG, &quot;MQTT 没有可用网络&quot;);</span><br><span class="line">            return false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * MQTT监听并且接收消息</span><br><span class="line">     */</span><br><span class="line">    private MqttCallback mqttCallback = new MqttCallback() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void connectionLost(Throwable cause) &#123;</span><br><span class="line">            //失去连接，重连</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void messageArrived(String topic, MqttMessage message) throws Exception &#123;</span><br><span class="line">            EventBus.getDefault().post(message);</span><br><span class="line">            String str2 = topic + &quot;;qos :&quot; + message.getQos() + &quot;;retained:&quot; + message.isRetained();</span><br><span class="line">            Log.d(TAG, &quot;messageArrived: str2&quot; + str2);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void deliveryComplete(IMqttDeliveryToken token) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    /**</span><br><span class="line">     * MQTT是否连接成功</span><br><span class="line">     */</span><br><span class="line">    private IMqttActionListener iMqttActionListener = new IMqttActionListener() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void onSuccess(IMqttToken asyncActionToken) &#123;</span><br><span class="line">            Log.d(TAG, &quot;onSuccess: MQTT连接成功&quot;);</span><br><span class="line">            try &#123;</span><br><span class="line">                //订阅myTopic话题</span><br><span class="line">                client.subscribe(myTopic, 1);</span><br><span class="line">            &#125; catch (MqttException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onFailure(IMqttToken asyncActionToken, Throwable exception) &#123;</span><br><span class="line">            exception.printStackTrace();</span><br><span class="line">            //连接失败，重连</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>初始化各个参数，之后连接服务器。连接成功之后在<a href="http://127.0.0.1:61680/" target="_blank" rel="noopener">http://127.0.0.1:61680/</a> 看到自动创建了名称为”topic”的topic。这里我使用两台真机。<a href="http://127.0.0.1:61680/" target="_blank" rel="noopener">http://127.0.0.1:61680/</a> 服务端看到的是这个样子<br><img src="https://i.imgur.com/9eB33fT.png" alt=""></p>
+<ol>
+<li>模拟器运行的时候host = “tcp://10.0.2.2:61613”，因为10.0.2.2 是模拟器设置的特定ip，是你电脑的别名。真机运行的时候host = “tcp://192.168.102.216:61613”。192.168.102.216是我主机的IPv4地址，查看本机IP的cmd命令为ipconfig/all。 </li>
+<li>两次运行时的clientId不能一样（为了保证客户标识的唯一性）</li>
+</ol>
+</blockquote>
+<hr>
+<h3 id="访问管理界面"><a href="#访问管理界面" class="headerlink" title="访问管理界面"></a>访问管理界面</h3><p>要修改前面创建的xxx文件夹下etc\apollo.xml文件，添加你的host就可以通过host访问管理界面，否则只能通过 <a href="http://127.0.0.1:61680" target="_blank" rel="noopener">http://127.0.0.1:61680</a> 和 <a href="https://127.0.0.1:61681" target="_blank" rel="noopener">https://127.0.0.1:61681</a> 访问<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">... ...</span><br><span class="line"> &lt;virtual_host id=&quot;xmaihh&quot;&gt;</span><br><span class="line">    &lt;!--</span><br><span class="line">      You should add all the host names that this virtual host is known as</span><br><span class="line">      to properly support the STOMP 1.1 virtual host feature.</span><br><span class="line">      --&gt;</span><br><span class="line">    &lt;host_name&gt;xmaihh&lt;/host_name&gt;</span><br><span class="line">    &lt;host_name&gt;localhost&lt;/host_name&gt;</span><br><span class="line">    &lt;host_name&gt;127.0.0.1&lt;/host_name&gt;</span><br><span class="line">	&lt;!--以下为添加内容--&gt;</span><br><span class="line">    &lt;host_name&gt;192.168.102.216&lt;/host_name&gt;</span><br><span class="line">	&lt;!--以上为添加内容--&gt;</span><br><span class="line">    &lt;!-- Uncomment to disable security for the virtual host --&gt;</span><br><span class="line">    &lt;!-- &lt;authentication enabled=&quot;false&quot;/&gt; --&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- Uncomment to disable security for the virtual host --&gt;</span><br><span class="line">    &lt;!-- &lt;authentication enabled=&quot;false&quot;/&gt; --&gt;</span><br><span class="line">    &lt;access_rule allow=&quot;users&quot; action=&quot;connect create destroy send receive consume&quot;/&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &lt;!-- You can delete this element if you want to disable persistence for this virtual host --&gt;</span><br><span class="line">    &lt;leveldb_store directory=&quot;$&#123;apollo.base&#125;/data&quot;/&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  &lt;/virtual_host&gt;</span><br><span class="line"></span><br><span class="line">  &lt;web_admin bind=&quot;http://127.0.0.1:61680&quot;/&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;https://127.0.0.1:61681&quot;/&gt;</span><br><span class="line">  &lt;!--以下为添加内容--&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;http://192.168.102.216:61680&quot;/&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;https://192.168.102.216:61681&quot;/&gt;</span><br><span class="line">  &lt;!--以上为添加内容--&gt;</span><br><span class="line"></span><br><span class="line">  &lt;connector id=&quot;tcp&quot; bind=&quot;tcp://0.0.0.0:61613&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;tls&quot; bind=&quot;tls://0.0.0.0:61614&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;ws&quot;  bind=&quot;ws://0.0.0.0:61623&quot;  connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;wss&quot; bind=&quot;wss://0.0.0.0:61624&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line"></span><br><span class="line">  &lt;key_storage file=&quot;$&#123;apollo.base&#125;/etc/keystore&quot; password=&quot;password&quot; key_password=&quot;password&quot;/&gt;</span><br></pre></td></tr></table></figure></p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2017/12/11/MQTT相关/" data-id="cjguv5v4q0009720c1kmj97mj" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2017/12/11/mac搭建PyQt5环境/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    mac搭建Pyqt5环境
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2017/10/12/view 绘制机制/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">view 绘制机制</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+	<div id="commentContainer"></div>
+</section>
+    
+
+</section>
+            
+                
+<aside id="sidebar">
+   
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">recent</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/04/12/Rxjava2操作符/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
+                            <p class="item-title"><a href="/2018/04/12/Rxjava2操作符/" class="title">Rxjava2操作符</a></p>
+                            <p class="item-date"><time datetime="2018-04-12T12:20:50.000Z" itemprop="datePublished">2018-04-12</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/bug记录/">bug记录</a></p>
+                            <p class="item-title"><a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="title">socket未释放导致句柄泄露</a></p>
+                            <p class="item-date"><time datetime="2018-03-16T11:40:50.000Z" itemprop="datePublished">2018-03-16</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/13/线程阻塞和中断的四种方式/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
+                            <p class="item-title"><a href="/2018/03/13/线程阻塞和中断的四种方式/" class="title">线程阻塞和中断的四种方式</a></p>
+                            <p class="item-date"><time datetime="2018-03-13T12:46:25.000Z" itemprop="datePublished">2018-03-13</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2017/12/11/mac搭建PyQt5环境/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/python/">python</a></p>
+                            <p class="item-title"><a href="/2017/12/11/mac搭建PyQt5环境/" class="title">mac搭建Pyqt5环境</a></p>
+                            <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2017/12/11/MQTT相关/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MQTT/">MQTT</a></p>
+                            <p class="item-title"><a href="/2017/12/11/MQTT相关/" class="title">mac搭建Pyqt5环境</a></p>
+                            <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/Binder/" style="font-size: 10px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/java/" style="font-size: 10px;">java</a> <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://github.com/QuincyJiang">github</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+    
+    <div id="toTop" class="fa fa-angle-up"></div>
+</aside>
+
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2018 QuincyJiang<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+	<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+	<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+	<script>
+		var gitment = new Gitment({
+			owner: 'QuincyJiang',
+			repo: 'https://github.com/QuincyJiang/comments.git',
+			oauth: {
+				client_id: '7d62ce84028d3cb98cc3',
+				client_secret: 'dd706a971640c51eb81d8ad875b3409a03dd8aa6',
+			},
+		})
+		gitment.render('commentContainer')
+	</script>
+	
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

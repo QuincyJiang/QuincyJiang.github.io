@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>Rxjava2操作符 | QuincyJiang</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Rxjava2 操作符 Createcreate操作符，主要用于产生一个 Obserable 被观察者对象，因为Observable主要用于发射事件，Observer主要用于消费时间，所以以后统一把被观察者 Observable 称为发射器（上游事件），观察者 Observer 称为接收器（下游事件）。  1234567891011121314151617181920212223242526272">
+<meta name="keywords" content="android,开源框架,rxjava2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rxjava2操作符">
+<meta property="og:url" content="http://yoursite.com/2018/04/12/Rxjava2操作符/index.html">
+<meta property="og:site_name" content="QuincyJiang">
+<meta property="og:description" content="Rxjava2 操作符 Createcreate操作符，主要用于产生一个 Obserable 被观察者对象，因为Observable主要用于发射事件，Observer主要用于消费时间，所以以后统一把被观察者 Observable 称为发射器（上游事件），观察者 Observer 称为接收器（下游事件）。  1234567891011121314151617181920212223242526272">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/628B12999CCE43C8A9FD5994B01C24CF/2176">
+<meta property="og:image" content="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/5C40758F7CD94BEAA7D939C4663F4FA0/2212">
+<meta property="og:image" content="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/4D0E7ABEF33943A9AC0BBC68A8E1B608/2320">
+<meta property="og:updated_time" content="2018-05-06T13:17:58.015Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Rxjava2操作符">
+<meta name="twitter:description" content="Rxjava2 操作符 Createcreate操作符，主要用于产生一个 Obserable 被观察者对象，因为Observable主要用于发射事件，Observer主要用于消费时间，所以以后统一把被观察者 Observable 称为发射器（上游事件），观察者 Observer 称为接收器（下游事件）。  1234567891011121314151617181920212223242526272">
+<meta name="twitter:image" content="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/628B12999CCE43C8A9FD5994B01C24CF/2176">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/avatar.png" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">QuincyJiang</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/tags">Tags</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/tags">Tags</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile" class="profile-fixed">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">QuincyJiang</h2>
+            <h3 id="title">Coder &amp; FilmPlayer</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Guangzhou, China</span>
+            <a id="follow" target="_blank" href="https://github.com/QuincyJiang">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                14
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                19
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/QuincyJiang" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://weibo.com/2425393311/" target="_blank" title="weibo" class=tooltip>
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="http://aquencyua11.lofter.com/" target="_blank" title="photo" class=tooltip>
+                            <i class="fa fa-photo"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-Rxjava2操作符" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            Rxjava2操作符
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/04/12/Rxjava2操作符/">
+            <time datetime="2018-04-12T12:20:50.000Z" itemprop="datePublished">2018-04-12</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/Android/">Android</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/android/">android</a>, <a class="tag-link" href="/tags/rxjava2/">rxjava2</a>, <a class="tag-link" href="/tags/开源框架/">开源框架</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h2 id="Rxjava2-操作符"><a href="#Rxjava2-操作符" class="headerlink" title="Rxjava2 操作符"></a>Rxjava2 操作符</h2><ul>
+<li><h3 id="Create"><a href="#Create" class="headerlink" title="Create"></a>Create</h3><strong>create</strong>操作符，主要用于产生一个 <strong>Obserable</strong> 被观察者对象，因为<strong>Observable</strong>主要用于发射事件，<strong>Observer</strong>主要用于消费时间，所以以后统一把被观察者 <strong>Observable</strong> 称为发射器（上游事件），观察者 <strong>Observer</strong> 称为接收器（下游事件）。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">Observable.create(new ObservableOnSubscribe&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void subscribe(@NonNull ObservableEmitter&lt;Integer&gt; e) throws Exception &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;Observable emit 1&quot; + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;Observable emit 1&quot; + &quot;\n&quot;);</span><br><span class="line">                e.onNext(1);</span><br><span class="line">                mRxOperatorsText.append(&quot;Observable emit 2&quot; + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;Observable emit 2&quot; + &quot;\n&quot;);</span><br><span class="line">                e.onNext(2);</span><br><span class="line">                mRxOperatorsText.append(&quot;Observable emit 3&quot; + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;Observable emit 3&quot; + &quot;\n&quot;);</span><br><span class="line">                e.onNext(3);</span><br><span class="line">                e.onComplete();</span><br><span class="line">                mRxOperatorsText.append(&quot;Observable emit 4&quot; + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;Observable emit 4&quot; + &quot;\n&quot; );</span><br><span class="line">                e.onNext(4);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).subscribe(new Observer&lt;Integer&gt;() &#123;</span><br><span class="line">            private int i;</span><br><span class="line">            private Disposable mDisposable;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onSubscribe(@NonNull Disposable d) &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;onSubscribe : &quot; + d.isDisposed() + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;onSubscribe : &quot; + d.isDisposed() + &quot;\n&quot; );</span><br><span class="line">                mDisposable = d;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onNext(@NonNull Integer integer) &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;onNext : value : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;onNext : value : &quot; + integer + &quot;\n&quot; );</span><br><span class="line">                i++;</span><br><span class="line">                if (i == 2) &#123;</span><br><span class="line">                    // 在RxJava 2.x 中，新增的Disposable可以做到切断的操作，让Observer观察者不再接收上游事件</span><br><span class="line">                    mDisposable.dispose();</span><br><span class="line">                    mRxOperatorsText.append(&quot;onNext : isDisposable : &quot; + mDisposable.isDisposed() + &quot;\n&quot;);</span><br><span class="line">                    Log.e(TAG, &quot;onNext : isDisposable : &quot; + mDisposable.isDisposed() + &quot;\n&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onError(@NonNull Throwable e) &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;onError : value : &quot; + e.getMessage() + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;onError : value : &quot; + e.getMessage() + &quot;\n&quot; );</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void onComplete() &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;onComplete&quot; + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;onComplete&quot; + &quot;\n&quot; );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h3><strong>Map</strong> 基本算是 RxJava 中一个最简单的操作符了，熟悉 RxJava 1.x 的知道，它的作用是对发射时间发送的每一个事件应用一个函数，是的每一个事件都按照指定的函数去变化，而在 2.x 中它的作用几乎一致。<strong>map</strong> 基本作用就是将一个 <strong>Observable</strong> 通过某种函数关系，转换为另一种 <strong>Observable</strong>，下面例子中就是把我们的 Integer 数据变成了 String 类型。从Log日志显而易见。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">Observable.create(new ObservableOnSubscribe&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void subscribe(@NonNull ObservableEmitter&lt;Integer&gt; e) throws Exception &#123;</span><br><span class="line">                e.onNext(1);</span><br><span class="line">                e.onNext(2);</span><br><span class="line">                e.onNext(3);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).map(new Function&lt;Integer, String&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public String apply(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                return &quot;This is result &quot; + integer;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).subscribe(new Consumer&lt;String&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void accept(@NonNull String s) throws Exception &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;accept : &quot; + s +&quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;accept : &quot; + s +&quot;\n&quot; );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="Zip"><a href="#Zip" class="headerlink" title="Zip"></a>Zip</h3></li>
+</ul>
+<p>zip 专用于合并事件，该合并不是连接（连接操作符后面会说），而是两两配对，也就意味着，最终配对出的 <strong>Observable</strong> 发射事件数目只和少的那个相同。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Observable.zip(getStringObservable(), getIntegerObservable(), new BiFunction&lt;String, Integer, String&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public String apply(@NonNull String s, @NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                return s + integer;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).subscribe(new Consumer&lt;String&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void accept(@NonNull String s) throws Exception &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;zip : accept : &quot; + s + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;zip : accept : &quot; + s + &quot;\n&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        </span><br><span class="line">/**</span><br><span class="line">*注： getStringObservable 返回A B C ，getIntegerObservable返回的是1 2 3 4 5 </span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/628B12999CCE43C8A9FD5994B01C24CF/2176" alt="image"><br><strong>zip</strong> 组合事件的过程就是分别从发射器 A 和发射器 B 各取出一个事件来组合，并且一个事件只能被使用一次，组合的顺序是严格按照事件发送的顺序来进行的，所以上面截图中，可以看到，1 永远是和 A 结合的，2 永远是和 B 结合的。</p>
+<p><strong>最终接收器收到的事件数量是和发送器发送事件最少的那个发送器的发送事件数目相同</strong><br>上面的例子就可以看出 结合后的事件数量是3 </p>
+<hr>
+<ul>
+<li><h4 id="Concat"><a href="#Concat" class="headerlink" title="Concat"></a>Concat</h4></li>
+</ul>
+<p>因为<strong>zip</strong>连接事件有上述两个特点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 分别从两个发射器取一个事件组合成新事件，且事件组合顺序与发射顺序严格相同 </span><br><span class="line">2. 最终接受事件数量与原始发射器数量最小的那个相同</span><br></pre></td></tr></table></figure>
+<p>对于单一的把两个发射器连接成一个发射器，可以尝试<strong>Contact</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Observable.concat(Observable.just(1,2,3), Observable.just(4,5,6))</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;concat : &quot;+ integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;concat : &quot;+ integer + &quot;\n&quot; );</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>**输出结果</p>
+<h2 id="123456"><a href="#123456" class="headerlink" title="123456**"></a>123456**</h2><ul>
+<li><h4 id="FlatMap"><a href="#FlatMap" class="headerlink" title="FlatMap"></a>FlatMap</h4></li>
+</ul>
+<p><strong>FlatMap</strong> ，它可以把一个发射器  <strong>Observable</strong> 通过某种方法转换为多个 <strong>Observables</strong>，然后再把这些分散的 <strong>Observables</strong>装进一个单一的发射器 <strong>Observable</strong>。但有个需要注意的是，<strong>flatMap</strong> ==并不能保证事件的顺序==，如果需要保证，需要用到我们下面要讲的 <strong>ConcatMap</strong>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Observable.create(new ObservableOnSubscribe&lt;Integer&gt;() &#123;</span><br><span class="line">           @Override</span><br><span class="line">           public void subscribe(@NonNull ObservableEmitter&lt;Integer&gt; e) throws Exception &#123;</span><br><span class="line">               e.onNext(1);</span><br><span class="line">               e.onNext(2);</span><br><span class="line">               e.onNext(3);</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;).flatMap(new Function&lt;Integer, ObservableSource&lt;String&gt;&gt;() &#123;</span><br><span class="line">           @Override</span><br><span class="line">           public ObservableSource&lt;String&gt; apply(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">               List&lt;String&gt; list = new ArrayList&lt;&gt;();</span><br><span class="line">               for (int i = 0; i &lt; 3; i++) &#123;</span><br><span class="line">                   list.add(&quot;I am value &quot; + integer);</span><br><span class="line">               &#125;</span><br><span class="line">               int delayTime = (int) (1 + Math.random() * 10);</span><br><span class="line">               return Observable.fromIterable(list).delay(delayTime, TimeUnit.MILLISECONDS);</span><br><span class="line">               // 使用delay操作符，做一个小延时操作，而查看 Log 日志也表明，FlatMap是无序的。</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;).subscribeOn(Schedulers.newThread())</span><br><span class="line">               .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">               .subscribe(new Consumer&lt;String&gt;() &#123;</span><br><span class="line">                   @Override</span><br><span class="line">                   public void accept(@NonNull String s) throws Exception &#123;</span><br><span class="line">                       Log.e(TAG, &quot;flatMap : accept : &quot; + s + &quot;\n&quot;);</span><br><span class="line">                       mRxOperatorsText.append(&quot;flatMap : accept : &quot; + s + &quot;\n&quot;);</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;);</span><br></pre></td></tr></table></figure>
+<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/5C40758F7CD94BEAA7D939C4663F4FA0/2212" alt="image"><br> 输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2,3,3,3,2,2,1,1</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="concatMap"><a href="#concatMap" class="headerlink" title="concatMap"></a>concatMap</h3></li>
+</ul>
+<p>上面其实就说了，<strong>concatMap</strong> 与 <strong>FlatMap</strong> 的唯一区别就是 <strong>concatMap</strong> 保证了顺序，所以，我们就直接把 <strong>flatMap</strong> 替换为 <strong>concatMap</strong> 验证。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">Observable.create(new ObservableOnSubscribe&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void subscribe(@NonNull ObservableEmitter&lt;Integer&gt; e) throws Exception &#123;</span><br><span class="line">                e.onNext(1);</span><br><span class="line">                e.onNext(2);</span><br><span class="line">                e.onNext(3);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).concatMap(new Function&lt;Integer, ObservableSource&lt;String&gt;&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public ObservableSource&lt;String&gt; apply(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                List&lt;String&gt; list = new ArrayList&lt;&gt;();</span><br><span class="line">                for (int i = 0; i &lt; 3; i++) &#123;</span><br><span class="line">                    list.add(&quot;I am value &quot; + integer);</span><br><span class="line">                &#125;</span><br><span class="line">                int delayTime = (int) (1 + Math.random() * 10);</span><br><span class="line">                return Observable.fromIterable(list).delay(delayTime, TimeUnit.MILLISECONDS);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).subscribeOn(Schedulers.newThread())</span><br><span class="line">                .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">                .subscribe(new Consumer&lt;String&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull String s) throws Exception &#123;</span><br><span class="line">                        Log.e(TAG, &quot;flatMap : accept : &quot; + s + &quot;\n&quot;);</span><br><span class="line">                        mRxOperatorsText.append(&quot;flatMap : accept : &quot; + s + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 1 1 2 2 2 3 3 3</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="distinct"><a href="#distinct" class="headerlink" title="distinct"></a>distinct</h3>作用是去重，输入<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 1 2 2 3 4 5</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>输出<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 2 3 4 5</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">Observable.just(1, 1, 1, 2, 2, 3, 4, 5)</span><br><span class="line">                .distinct()</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;distinct : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;distinct : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="Filter"><a href="#Filter" class="headerlink" title="Filter"></a>Filter</h3><strong>Filter</strong> 过滤器，可以接受一个参数，让其过滤掉不符合我们条件的值</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1, 20, 65, -5, 7, 19)</span><br><span class="line">                .filter(new Predicate&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public boolean test(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        return integer &gt;= 10;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;).subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;filter : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;filter : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出<br>大于10的事件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">20 65 19</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="buffer"><a href="#buffer" class="headerlink" title="buffer"></a>buffer</h3></li>
+</ul>
+<p><strong>buffer</strong> 操作符接受两个参数，buffer(count,skip)作用是将 <strong>Observable</strong> 中的数据按 <strong>skip</strong> (步长) 分成最大不超过 <strong>count</strong> 的 <strong>buffer</strong> ，然后生成一个  <strong>Observable</strong> 。也就是说 ==按照步长，将原始事件 分成一组一组  重新发射出去==</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1, 2, 3, 4, 5)</span><br><span class="line">                .buffer(3, 2)</span><br><span class="line">                .subscribe(new Consumer&lt;List&lt;Integer&gt;&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull List&lt;Integer&gt; integers) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;buffer size : &quot; + integers.size() + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;buffer size : &quot; + integers.size() + &quot;\n&quot;);</span><br><span class="line">                        mRxOperatorsText.append(&quot;buffer value : &quot;);</span><br><span class="line">                        Log.e(TAG, &quot;buffer value : &quot; );</span><br><span class="line">                        for (Integer i : integers) &#123;</span><br><span class="line">                            mRxOperatorsText.append(i + &quot;&quot;);</span><br><span class="line">                            Log.e(TAG, i + &quot;&quot;);</span><br><span class="line">                        &#125;</span><br><span class="line">                        mRxOperatorsText.append(&quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">size 3</span><br><span class="line">value 1 2 3 </span><br><span class="line">size 3</span><br><span class="line">value 3 4 5 </span><br><span class="line">size 1 </span><br><span class="line">value 5</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="timer"><a href="#timer" class="headerlink" title="timer"></a>timer</h3></li>
+</ul>
+<p><strong>timer</strong>，相当于一个定时任务。在 1.x 中它还可以执行间隔逻辑，但在 2.x 中此功能被交给了 <strong>interval</strong>。但需要注意的是，<strong>timer</strong> 和 <strong>interval</strong> 均==默认在新线程==。<br>==执行timer方法，将使得接受延时==</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mRxOperatorsText.append(&quot;timer start : &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">        Log.e(TAG, &quot;timer start : &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">        Observable.timer(2, TimeUnit.SECONDS)</span><br><span class="line">                .subscribeOn(Schedulers.io())</span><br><span class="line">                .observeOn(AndroidSchedulers.mainThread()) // timer 默认在新线程，所以需要切换回主线程</span><br><span class="line">                .subscribe(new Consumer&lt;Long&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Long aLong) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;timer :&quot; + aLong + &quot; at &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;timer :&quot; + aLong + &quot; at &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="当我们两次点击按钮触发这个事件的时候，接收被延迟了-2-秒。"><a href="#当我们两次点击按钮触发这个事件的时候，接收被延迟了-2-秒。" class="headerlink" title="当我们两次点击按钮触发这个事件的时候，接收被延迟了 2 秒。"></a>当我们两次点击按钮触发这个事件的时候，接收被延迟了 2 秒。</h2><ul>
+<li><h3 id="interval"><a href="#interval" class="headerlink" title="interval"></a>interval</h3></li>
+</ul>
+<p>如同我们上面可说，<strong>interval</strong> 操作符用于间隔时间执行某个操作，其接受三个参数，分别是<strong>第一次发送延迟</strong>，<strong>间隔时间</strong>，<strong>时间单位</strong>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mRxOperatorsText.append(&quot;interval start : &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">       Log.e(TAG, &quot;interval start : &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">       Observable.interval(3,2, TimeUnit.SECONDS)</span><br><span class="line">               .subscribeOn(Schedulers.io())</span><br><span class="line">               .observeOn(AndroidSchedulers.mainThread()) // 由于interval默认在新线程，所以我们应该切回主线程</span><br><span class="line">               .subscribe(new Consumer&lt;Long&gt;() &#123;</span><br><span class="line">                   @Override</span><br><span class="line">                   public void accept(@NonNull Long aLong) throws Exception &#123;</span><br><span class="line">                       mRxOperatorsText.append(&quot;interval :&quot; + aLong + &quot; at &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">                       Log.e(TAG, &quot;interval :&quot; + aLong + &quot; at &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;);</span><br></pre></td></tr></table></figure>
+<p>执行结果是第一次延迟了 3 秒后接收到，后面每次间隔了 2 秒。<br>然而，由于我们这个是间隔执行，所以当我们的Activity 都销毁的时候，==实际上这个操作还依然在进行==，查看源码发现，我们<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">subscribe(Cousumer&lt;? super T&gt; onNext)</span><br></pre></td></tr></table></figure></p>
+<p>返回的是<strong>Disposable</strong>，<strong>Disposable</strong> 可以用来解除绑定。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">   protected void doSomething() &#123;</span><br><span class="line">       mRxOperatorsText.append(&quot;interval start : &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">       Log.e(TAG, &quot;interval start : &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">       mDisposable = Observable.interval(3, 2, TimeUnit.SECONDS)</span><br><span class="line">               .subscribeOn(Schedulers.io())</span><br><span class="line">               .observeOn(AndroidSchedulers.mainThread()) // 由于interval默认在新线程，所以我们应该切回主线程</span><br><span class="line">               .subscribe(new Consumer&lt;Long&gt;() &#123;</span><br><span class="line">                   @Override</span><br><span class="line">                   public void accept(@NonNull Long aLong) throws Exception &#123;</span><br><span class="line">                       mRxOperatorsText.append(&quot;interval :&quot; + aLong + &quot; at &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">                       Log.e(TAG, &quot;interval :&quot; + aLong + &quot; at &quot; + TimeUtil.getNowStrTime() + &quot;\n&quot;);</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   @Override</span><br><span class="line">   protected void onDestroy() &#123;</span><br><span class="line">       super.onDestroy();</span><br><span class="line">       if (mDisposable != null &amp;&amp; !mDisposable.isDisposed()) &#123;</span><br><span class="line">           mDisposable.dispose();</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="doOnNext"><a href="#doOnNext" class="headerlink" title="doOnNext"></a>doOnNext</h3></li>
+</ul>
+<p><strong>doOnNext</strong> 它的作用是让订阅者在接收到数据之前做一些其他操作。假如我们在获取到数据之前想先保存一下它，无疑我们可以这样实现。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1, 2, 3, 4)</span><br><span class="line">                .doOnNext(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;doOnNext 保存 &quot; + integer + &quot;成功&quot; + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;doOnNext 保存 &quot; + integer + &quot;成功&quot; + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;).subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;doOnNext :&quot; + integer + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;doOnNext :&quot; + integer + &quot;\n&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="skip"><a href="#skip" class="headerlink" title="skip"></a>skip</h3></li>
+</ul>
+<p><strong>skip</strong> ，接受一个 <strong>long</strong> 型参数 <strong>count</strong> ，代表跳过 <strong>count</strong> 个数目开始接收。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1,2,3,4,5)</span><br><span class="line">                .skip(2)</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;skip : &quot;+integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;skip : &quot;+integer + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3 4 5</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="take"><a href="#take" class="headerlink" title="take"></a>take</h3></li>
+</ul>
+<p><strong>take</strong>，接受一个 <strong>long</strong> 型参数 <strong>count</strong> ，代表至多接收 <strong>count</strong> 个数据。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Flowable.fromArray(1,2,3,4,5)</span><br><span class="line">                .take(2)</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;take : &quot;+integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;accept: take : &quot;+integer + &quot;\n&quot; );</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 2</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="just"><a href="#just" class="headerlink" title="just"></a>just</h3></li>
+</ul>
+<p><strong>just</strong>一个简单的发射器依次调用 onNext() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;)</span><br><span class="line">                .subscribeOn(Schedulers.io())</span><br><span class="line">                .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">                .subscribe(new Consumer&lt;String&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull String s) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;accept : onNext : &quot; + s + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG,&quot;accept : onNext : &quot; + s + &quot;\n&quot; );</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 2 3</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="Single"><a href="#Single" class="headerlink" title="Single"></a>Single</h3></li>
+</ul>
+<p>顾名思义，Single 只会接收一个参数，也就是只发射一次事件，他的而 SingleObserver 只会调用 <strong>onError()</strong> 或者 <strong>onSuccess()</strong>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">Single.just(new Random().nextInt())</span><br><span class="line">                .subscribe(new SingleObserver&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void onSubscribe(@NonNull Disposable d) &#123;</span><br><span class="line"></span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    @Override</span><br><span class="line">                    public void onSuccess(@NonNull Integer integer) &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;single : onSuccess : &quot;+integer+&quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;single : onSuccess : &quot;+integer+&quot;\n&quot; );</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    @Override</span><br><span class="line">                    public void onError(@NonNull Throwable e) &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;single : onError : &quot;+e.getMessage()+&quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;single : onError : &quot;+e.getMessage()+&quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">onSuccess</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="distinct-1"><a href="#distinct-1" class="headerlink" title="distinct"></a>distinct</h3></li>
+</ul>
+<p>去重操作符，简单的作用就是去重。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1, 1, 1, 2, 2, 3, 4, 5)</span><br><span class="line">                .distinct()</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;distinct : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;distinct : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 2 3 4 5</span><br></pre></td></tr></table></figure>
+<p>发射器发送的事件，在接收的时候被去重了。</p>
+<hr>
+<ul>
+<li><h3 id="debounce"><a href="#debounce" class="headerlink" title="debounce"></a>debounce</h3></li>
+</ul>
+<p>去除发送频率过快的项，可以用来过滤点击过快的点击事件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">Observable.create(new ObservableOnSubscribe&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void subscribe(@NonNull ObservableEmitter&lt;Integer&gt; emitter) throws Exception &#123;</span><br><span class="line">                // send events with simulated time wait</span><br><span class="line">                emitter.onNext(1); // skip</span><br><span class="line">                Thread.sleep(400);</span><br><span class="line">                emitter.onNext(2); // deliver</span><br><span class="line">                Thread.sleep(505);</span><br><span class="line">                emitter.onNext(3); // skip</span><br><span class="line">                Thread.sleep(100);</span><br><span class="line">                emitter.onNext(4); // deliver</span><br><span class="line">                Thread.sleep(605);</span><br><span class="line">                emitter.onNext(5); // deliver</span><br><span class="line">                Thread.sleep(510);</span><br><span class="line">                emitter.onComplete();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).debounce(500, TimeUnit.MILLISECONDS)</span><br><span class="line">                .subscribeOn(Schedulers.io())</span><br><span class="line">                .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;debounce :&quot; + integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG,&quot;debounce :&quot; + integer + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2 4 5</span><br></pre></td></tr></table></figure>
+<p>代码很清晰，去除发送间隔时间小于 500 毫秒的发射事件，所以 1 和 3 被去掉了。</p>
+<hr>
+<ul>
+<li><h3 id="defer"><a href="#defer" class="headerlink" title="defer"></a>defer</h3></li>
+</ul>
+<p>==直到有订阅，才会创建Observable==<br>具有延时的效果。</p>
+<p>代码对比如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">a = 10;</span><br><span class="line">Observable&lt;String&gt; o1 = Observable.just(&quot;just result: &quot; + a);</span><br><span class="line">a = 12;</span><br><span class="line">o1.subscribe(new Action1&lt;String&gt;() &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void call(String t) &#123;</span><br><span class="line">        System.out.println(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>输出： </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">just result: 10</span><br></pre></td></tr></table></figure>
+<p>可见：<br>在使用<strong>just</strong>的时候，便创建了<strong>Observable</strong>对象，随后改变a的值，并不会改变<strong>Observable</strong>对象中的值。</p>
+<p><strong>使用defer</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">a = 12;</span><br><span class="line">Observable&lt;String&gt; o2 = </span><br><span class="line">    Observable.defer(new Func0&lt;Observable&lt;String&gt;&gt;() &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public Observable&lt;String&gt; call() &#123;</span><br><span class="line">        return Observable.just(&quot;defer result: &quot; + a);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">a = 20;</span><br><span class="line"></span><br><span class="line">o2.subscribe(new Action1&lt;String&gt;() &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void call(String t) &#123;</span><br><span class="line">        System.out.println(t);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出： </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">defer result: 20</span><br></pre></td></tr></table></figure>
+<p>可见：<br><strong>在a=12时，虽然定义了一个Observable，但是并没有创建这个示例，当a=20时，这时候订阅这个Observable，则开始创建，所以对象中的a为20.</strong></p>
+<hr>
+<ul>
+<li><h3 id="last"><a href="#last" class="headerlink" title="last"></a>last</h3></li>
+</ul>
+<p><strong>last</strong> 操作符仅取出可观察到的最后一个值，或者是满足某些条件的最后一项。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1, 2, 3)</span><br><span class="line">                .last()</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;last : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;last : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3</span><br></pre></td></tr></table></figure></p>
+<hr>
+<ul>
+<li><h3 id="merge"><a href="#merge" class="headerlink" title="merge"></a>merge</h3></li>
+</ul>
+<p><strong>merge</strong> 顾名思义 在 Rx 操作符中，<strong>merge</strong> 的作用是把多个 <strong>Observable</strong> 结合起来，接受可变参数，也支持迭代器集合。注意它和 <strong>concat</strong> 的区别在于，==不用等到 发射器 A 发送完所有的事件再进行发射器 B 的发送==。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Observable.merge(Observable.just(1, 2), Observable.just(3, 4, 5))</span><br><span class="line">                .subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                        mRxOperatorsText.append(&quot;merge :&quot; + integer + &quot;\n&quot;);</span><br><span class="line">                        Log.e(TAG, &quot;accept: merge :&quot; + integer + &quot;\n&quot; );</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 2 3 4 5</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="reduce"><a href="#reduce" class="headerlink" title="reduce"></a>reduce</h3></li>
+</ul>
+<p><strong>reduce</strong> 操作符每次用一个方法处理一个值，可以有一个 <strong>seed</strong> 作为初始值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1, 2, 3)</span><br><span class="line">               .reduce(new BiFunction&lt;Integer, Integer, Integer&gt;() &#123;</span><br><span class="line">                   @Override</span><br><span class="line">                   public Integer apply(@NonNull Integer integer, @NonNull Integer integer2) throws Exception &#123;</span><br><span class="line">                       return integer + integer2;</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;).subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">           @Override</span><br><span class="line">           public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">               mRxOperatorsText.append(&quot;reduce : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">               Log.e(TAG, &quot;accept: reduce : &quot; + integer + &quot;\n&quot;);</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">6</span><br></pre></td></tr></table></figure></p>
+<p>可以看到，代码中，我们中间采用 reduce ，支持一个 function 为两数值相加，所以应该最后的值是：1 + 2 = 3 + 3 = 6 ，</p>
+<hr>
+<ul>
+<li><h3 id="scan"><a href="#scan" class="headerlink" title="scan"></a>scan</h3></li>
+</ul>
+<p><strong>scan</strong> 操作符作用和上面的 <strong>reduce</strong> 一致，唯一区别是 <strong>reduce</strong> 是个只追求结果的坏人，而  <strong>scan</strong> 会始终如一地把每一个步骤都输出。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Observable.just(1, 2, 3)</span><br><span class="line">                .scan(new BiFunction&lt;Integer, Integer, Integer&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public Integer apply(@NonNull Integer integer, @NonNull Integer integer2) throws Exception &#123;</span><br><span class="line">                        return integer + integer2;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;).subscribe(new Consumer&lt;Integer&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void accept(@NonNull Integer integer) throws Exception &#123;</span><br><span class="line">                mRxOperatorsText.append(&quot;scan &quot; + integer + &quot;\n&quot;);</span><br><span class="line">                Log.e(TAG, &quot;accept: scan &quot; + integer + &quot;\n&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 3 6</span><br></pre></td></tr></table></figure>
+<hr>
+<ul>
+<li><h3 id="window"><a href="#window" class="headerlink" title="window"></a>window</h3></li>
+</ul>
+<p>按照实际划分窗口，将数据发送给不同的 <strong>Observable</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">mRxOperatorsText.append(&quot;window\n&quot;);</span><br><span class="line">       Log.e(TAG, &quot;window\n&quot;);</span><br><span class="line">       Observable.interval(1, TimeUnit.SECONDS) // 间隔一秒发一次</span><br><span class="line">               .take(15) // 最多接收15个</span><br><span class="line">               .window(3, TimeUnit.SECONDS)</span><br><span class="line">               .subscribeOn(Schedulers.io())</span><br><span class="line">               .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">               .subscribe(new Consumer&lt;Observable&lt;Long&gt;&gt;() &#123;</span><br><span class="line">                   @Override</span><br><span class="line">                   public void accept(@NonNull Observable&lt;Long&gt; longObservable) throws Exception &#123;</span><br><span class="line">                       mRxOperatorsText.append(&quot;Sub Divide begin...\n&quot;);</span><br><span class="line">                       Log.e(TAG, &quot;Sub Divide begin...\n&quot;);</span><br><span class="line">                       longObservable.subscribeOn(Schedulers.io())</span><br><span class="line">                               .observeOn(AndroidSchedulers.mainThread())</span><br><span class="line">                               .subscribe(new Consumer&lt;Long&gt;() &#123;</span><br><span class="line">                                   @Override</span><br><span class="line">                                   public void accept(@NonNull Long aLong) throws Exception &#123;</span><br><span class="line">                                       mRxOperatorsText.append(&quot;Next:&quot; + aLong + &quot;\n&quot;);</span><br><span class="line">                                       Log.e(TAG, &quot;Next:&quot; + aLong + &quot;\n&quot;);</span><br><span class="line">                                   &#125;</span><br><span class="line">                               &#125;);</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;);</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/4D0E7ABEF33943A9AC0BBC68A8E1B608/2320" alt="image"></p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2018/04/12/Rxjava2操作符/" data-id="cjguv5v4s000c720c9eflslfm" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+    
+        <a href="/2018/03/16/Socket未释放导致的句柄泄露/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">socket未释放导致句柄泄露</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+	<div id="commentContainer"></div>
+</section>
+    
+
+</section>
+            
+                
+<aside id="sidebar">
+   
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">recent</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/04/12/Rxjava2操作符/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
+                            <p class="item-title"><a href="/2018/04/12/Rxjava2操作符/" class="title">Rxjava2操作符</a></p>
+                            <p class="item-date"><time datetime="2018-04-12T12:20:50.000Z" itemprop="datePublished">2018-04-12</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/bug记录/">bug记录</a></p>
+                            <p class="item-title"><a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="title">socket未释放导致句柄泄露</a></p>
+                            <p class="item-date"><time datetime="2018-03-16T11:40:50.000Z" itemprop="datePublished">2018-03-16</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/13/线程阻塞和中断的四种方式/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
+                            <p class="item-title"><a href="/2018/03/13/线程阻塞和中断的四种方式/" class="title">线程阻塞和中断的四种方式</a></p>
+                            <p class="item-date"><time datetime="2018-03-13T12:46:25.000Z" itemprop="datePublished">2018-03-13</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2017/12/11/mac搭建PyQt5环境/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/python/">python</a></p>
+                            <p class="item-title"><a href="/2017/12/11/mac搭建PyQt5环境/" class="title">mac搭建Pyqt5环境</a></p>
+                            <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2017/12/11/MQTT相关/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MQTT/">MQTT</a></p>
+                            <p class="item-title"><a href="/2017/12/11/MQTT相关/" class="title">mac搭建Pyqt5环境</a></p>
+                            <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/Binder/" style="font-size: 10px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/java/" style="font-size: 10px;">java</a> <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://github.com/QuincyJiang">github</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+    
+    <div id="toTop" class="fa fa-angle-up"></div>
+</aside>
+
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2018 QuincyJiang<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+	<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+	<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+	<script>
+		var gitment = new Gitment({
+			owner: 'QuincyJiang',
+			repo: 'https://github.com/QuincyJiang/comments.git',
+			oauth: {
+				client_id: '7d62ce84028d3cb98cc3',
+				client_secret: 'dd706a971640c51eb81d8ad875b3409a03dd8aa6',
+			},
+		})
+		gitment.render('commentContainer')
+	</script>
+	
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>

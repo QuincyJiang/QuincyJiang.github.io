@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8">
+    
+    <title>webrtc音频总结 | QuincyJiang</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="webrtc/modules/audio_device/android/audio_record_jni.cc 这个文件，是音频采集jni类文件。 Android Audio Record 和 JNI 通信接口包括： 123// java 调用 c++ 接口nativeCacheDirectBufferAddressnativeDataIsRecorded 123456// c++ 回调 java">
+<meta name="keywords" content="webrtc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="webrtc音频总结">
+<meta property="og:url" content="http://yoursite.com/2017/08/16/webrtc 音频/index.html">
+<meta property="og:site_name" content="QuincyJiang">
+<meta property="og:description" content="webrtc/modules/audio_device/android/audio_record_jni.cc 这个文件，是音频采集jni类文件。 Android Audio Record 和 JNI 通信接口包括： 123// java 调用 c++ 接口nativeCacheDirectBufferAddressnativeDataIsRecorded 123456// c++ 回调 java">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2018-05-06T13:37:22.813Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="webrtc音频总结">
+<meta name="twitter:description" content="webrtc/modules/audio_device/android/audio_record_jni.cc 这个文件，是音频采集jni类文件。 Android Audio Record 和 JNI 通信接口包括： 123// java 调用 c++ 接口nativeCacheDirectBufferAddressnativeDataIsRecorded 123456// c++ 回调 java">
+    
+
+    
+
+    
+        <link rel="icon" href="/css/images/avatar.png" />
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/open-sans/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">QuincyJiang</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/tags">Tags</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/tags">Tags</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile" class="profile-fixed">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">QuincyJiang</h2>
+            <h3 id="title">Coder &amp; FilmPlayer</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Guangzhou, China</span>
+            <a id="follow" target="_blank" href="https://github.com/QuincyJiang">FOLLOW</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                14
+                <span>posts</span>
+            </div>
+            <div class="article-info-block">
+                19
+                <span>tags</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="https://github.com/QuincyJiang" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="https://weibo.com/2425393311/" target="_blank" title="weibo" class=tooltip>
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="http://aquencyua11.lofter.com/" target="_blank" title="photo" class=tooltip>
+                            <i class="fa fa-photo"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-webrtc 音频" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            webrtc音频总结
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/08/16/webrtc 音频/">
+            <time datetime="2017-08-16T13:10:30.000Z" itemprop="datePublished">2017-08-16</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/webrtc/">webrtc</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/webrtc/">webrtc</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <p>webrtc/modules/audio_device/android/audio_record_jni.cc</p>
+<p>这个文件，是音频采集jni类文件。</p>
+<p>Android Audio Record 和 JNI 通信接口包括：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// java 调用 c++ 接口</span><br><span class="line">nativeCacheDirectBufferAddress</span><br><span class="line">nativeDataIsRecorded</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// c++ 回调 java 接口</span><br><span class="line">initRecording</span><br><span class="line">startRecording</span><br><span class="line">stopRecording</span><br><span class="line">enableBuiltInAEC</span><br><span class="line">enableBuiltInNS</span><br></pre></td></tr></table></figure>
+<p>nativeCacheDirectBufferAddress 和 nativeDataIsRecorded 只是为了高效的将 AudioRecord 采集到的音频数据传递给 native。</p>
+<h1 id="WebRtcVoiceEngine"><a href="#WebRtcVoiceEngine" class="headerlink" title="WebRtcVoiceEngine"></a>WebRtcVoiceEngine</h1><p>WebRtcVoiceEngine 初始化</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">WebRtcVoiceEngine::Init()&#123;</span><br><span class="line">    send_codecs_ = CollectCodecs(encoder_factory_-&gt;GetSupportedEncoders());</span><br><span class="line">    recv_codecs_ = CollectCodecs(decoder_factory_-&gt;GetSupportedDecoders());</span><br><span class="line"></span><br><span class="line">    adm_ = webrtc::AudioDeviceModule::Create(</span><br><span class="line">        webrtc::AudioDeviceModule::kPlatformDefaultAudio</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    webrtc::adm_helpers::Init(adm());</span><br><span class="line">    webrtc::apm_helpers::Init(apm());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可知，WebRtcVoiceEngine 里面的 adm_ 就是 AudioDeviceModule ，代码在 /modules/audio_device/audio_device_impl.cc</p>
+<p>在 webrtcvoiceengine.h<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">// WebRtcVoiceEngine</span><br><span class="line"></span><br><span class="line">//public </span><br><span class="line">void Init();</span><br><span class="line">AudioState GetAudioState();</span><br><span class="line">VoiceMediaChannel* CreateChannel(Call call, MediaConfig config, AudioOptions options);</span><br><span class="line">AudioCodec send_codecs();</span><br><span class="line">AudioCodec recv_codecs();</span><br><span class="line">RtpCapabilities GetCapabilities();</span><br><span class="line"></span><br><span class="line">void RegisterChannel(WebRtcVoiceMediaChannel* channel);</span><br><span class="line">void UnregisterChannel(WebRtcVoiceMediaChannel* channel);</span><br><span class="line"></span><br><span class="line">bool StartAecDump();</span><br><span class="line">void StopAecDump();</span><br><span class="line"></span><br><span class="line">//private</span><br><span class="line">AudioDeviceModule adm_;</span><br><span class="line">AudioEncoderFactory encoder_factory_;</span><br><span class="line">AudioDecoderFactory decoder_factory_;</span><br><span class="line">AudioMixer audio_mixer_;</span><br><span class="line">AudioProcessing apm_;</span><br><span class="line">AudioState audio_state_;</span><br><span class="line">AudioCodec send_codecs_;</span><br><span class="line">AudioCodec recv_codecs_;</span><br><span class="line"></span><br><span class="line">WebRtcVoiceMediaChannel channels_;</span><br></pre></td></tr></table></figure></p>
+<h2 id="audio-device"><a href="#audio-device" class="headerlink" title="audio_device"></a>audio_device</h2><p>//webrtc/modules/audio_device/</p>
+<p>audio_device_impl.cc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">AudioDeviceModule::Create()&#123;</span><br><span class="line">    audioDevice(new AudioDeviceModuleImpl(audio_layer));</span><br><span class="line"></span><br><span class="line">    audioDevice-&gt;CheckPlatform();</span><br><span class="line">    audioDevice-&gt;CreatePlatformSpecificObjects();</span><br><span class="line">    audioDevice-&gt;AttachAudioBuffer();</span><br><span class="line"></span><br><span class="line">    return audioDevice;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">AudioDeviceModuleImpl::CreatePlatformSpecificObjects()&#123;</span><br><span class="line">    // WEBRTC_DUMMY_AUDIO_BUILD</span><br><span class="line">    audio_device_.reset(new AudioDeviceDummy());</span><br><span class="line">    // WEBRTC_DUMMY_FILE_DEVICES</span><br><span class="line">    audio_device_.reset(FileAudioFactory::CreateFileAudioDevice());</span><br><span class="line"></span><br><span class="line">    // WEBRTC_WINDOWS_CORE_AUDIO_BUILD</span><br><span class="line">    audio_device_.reset(new AudioDeviceWindowsCore());</span><br><span class="line"></span><br><span class="line">    // WEBRTC_ANDROID</span><br><span class="line">    audio_manager_android_.reset(new AudioManager());</span><br><span class="line">    if(audio_layer == kPlatformDefaultAudio)&#123;</span><br><span class="line">        audio_layer = kAndroidOpenSLESAudio;</span><br><span class="line">    &#125; else if(isLowLatencySupported)&#123;</span><br><span class="line">        audio_layer = kAndroidJavaInputAndroidOpenSLESOutputAudio;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        audio_layer = kAndroidJavaAudio;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if(kAndroidJavaAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceTemplate&lt;AudioRecordJni, AudioTrackJni&gt;())</span><br><span class="line">    &#125; else if(kAndroidOpenSLESAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceTemplate&lt;OpenSLESRecorder, OpenSLESPlayer&gt;());</span><br><span class="line">    &#125; else if(kAndroidJavaInputAndOpenSLESOutputAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceTemplate&lt;AudioRecordJni, OpenSLESPlayer&gt;())</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // WEBRTC_LINUX</span><br><span class="line">    if(kLinuxPulseAudio || kPlatformDefaultAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceLinuxPulse())</span><br><span class="line">    &#125; else if(kLinuxAlsaAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceLinuxALSA())</span><br><span class="line">    &#125;</span><br><span class="line">    // WEBRTC_IOS</span><br><span class="line">    audio_device_.reset(new AudioDeviceIOS())</span><br><span class="line">    // WEBRTC_MAC</span><br><span class="line">    audio_device_.reset(new AudioDeviceMac())</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们以 Android 为例；使用 AudioDeviceTemplate 封装 音频输入（采集）、输出类型（渲染）；<br>目前使用 AudioRecordJni 和 AudioTrackJni。<br>如果直接使用 NDK 的openSLES 开发的化，使用的是 OpenSLESRecorder 和 OpenSLESPlayer。</p>
+<p>audio_manager.h<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// JavaAudioManager</span><br><span class="line">bool Init()</span><br><span class="line">void Close()</span><br><span class="line">bool IsCommunicationModeEnabled()</span><br><span class="line">bool IsDeviceBlacklistedForOpenSLESUsage()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">// private</span><br><span class="line">JNICALL CacheAudioParameters()</span><br><span class="line">void OnCacheAudioParameters()</span><br></pre></td></tr></table></figure></p>
+<p>audio_record_jni.h<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">//JavaAudioRecord</span><br><span class="line">int InitRecording(int sample_reate, size_t channels);</span><br><span class="line">bool StartRecording();</span><br><span class="line">bool StopRecording();</span><br><span class="line">bool EnableBuiltInAEC(bool enable);</span><br><span class="line">bool EnableBuiltInNS(bool enable);</span><br><span class="line"></span><br><span class="line">// public</span><br><span class="line">int32_t Init();</span><br><span class="line">int32_t Terminate();</span><br><span class="line"></span><br><span class="line">int32_t InitRecording();</span><br><span class="line">bool RecordingIsInitialized();</span><br><span class="line"></span><br><span class="line">int32_t StartRecording();</span><br><span class="line">int32_t StopRecording();</span><br><span class="line">bool Recording();</span><br><span class="line"></span><br><span class="line">void AttachAudioBuffer();</span><br><span class="line">int32_t EnableBuiltInAEC(bool enable);</span><br><span class="line">int32_t EnableBuiltInAGC(bool enable);</span><br><span class="line">int32_t EnableBuiltInNS(bool enable);</span><br><span class="line"></span><br><span class="line">// private</span><br><span class="line">JNICALL CacheDirectBufferAddress()</span><br><span class="line">void OnCacheDirectBufferAddress(jobject byte_buffer)</span><br><span class="line"></span><br><span class="line">JNICALL DataIsRecorded();</span><br><span class="line">void OnDataIsRecorded(int length);</span><br></pre></td></tr></table></figure></p>
+<p>audio_track_jni.h</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// JavaAudioTrack</span><br><span class="line">bool InitPlayout(int sample_rate, int channels);</span><br><span class="line">bool StartPlayout();</span><br><span class="line">bool StopPlayout();</span><br><span class="line">bool SetStreamVolume(int volume);</span><br><span class="line">int GetStreamMaxVolume();</span><br><span class="line">int GetStreamVolume();</span><br><span class="line"></span><br><span class="line">// public</span><br><span class="line">Init()</span><br><span class="line">Terminate()</span><br><span class="line">InitPlayout()</span><br><span class="line">PlayoutIsInitialized()</span><br><span class="line">StartPlayout()</span><br><span class="line">StopPlayout()</span><br><span class="line">Playing()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SpeakerVolumeIsAvailable(bool available);</span><br><span class="line">SetSpeakerVolume(volume);</span><br><span class="line">SpeakerVolume(volume);</span><br><span class="line">MaxSpeakerVolume(max_volume);</span><br><span class="line">MinSpeakerVolume(min_volume);</span><br><span class="line">AttachAudioBuffer(audioBuffer);</span><br><span class="line"></span><br><span class="line">// private</span><br><span class="line">JNICALL CacheDirectBufferAddress();</span><br><span class="line">void OnCacheDirectBufferAddress(jobject byte_buffer);</span><br><span class="line"></span><br><span class="line">JNICALL GetPlayoutData();</span><br><span class="line">void OnGetPlayoutData(size_t length);</span><br></pre></td></tr></table></figure>
+<h3 id="AudioRecordJni"><a href="#AudioRecordJni" class="headerlink" title="AudioRecordJni"></a>AudioRecordJni</h3><h4 id="音频采集初始化"><a href="#音频采集初始化" class="headerlink" title="音频采集初始化"></a>音频采集初始化</h4><p>AudioRecordJni 初始化时，在构造方法中初始化 JavaAudioRecord。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">j_audio-record_.reset(</span><br><span class="line">    new JavaAudioRecord()</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>然后在 webrtcvoiceengine 中 AddSendStream 后，SetSend() 配置媒体通道发送。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">//media/engine/webrtcvoiceengine.cc</span><br><span class="line">WebRtcVoiceMediaChannel::SetSend(bool send)&#123;</span><br><span class="line">    ...</span><br><span class="line">    if(send)&#123;</span><br><span class="line">        engine()-&gt;ApplyOptions(options_);</span><br><span class="line">        if(!engine()-&gt;adm()-&gt;RecordingIsInitialized() </span><br><span class="line">        &amp;&amp; !engine()-&gt;adm()-&gt;Recording())&#123;</span><br><span class="line"></span><br><span class="line">            engine()-&gt;adm()-&gt;InitRecording();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里面会初始化 AudioRecord。</p>
+<p>InitRecording() 方法实现，在 Android 中实在 audio_record_jni.cc 的 JavaAudioRecord::InitRecording() ，最终通过 JNI 回调 Java 层的 InitRecording() 方法。</p>
+<h4 id="音频采集"><a href="#音频采集" class="headerlink" title="音频采集"></a>音频采集</h4><p>初始化完成后，就要开始采集音频数据。</p>
+<p>/audio/audio_send_stream.cc<br>音频发送流里面 AudioSendStream::Start() 方法启动音频流发送；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AudioSendSstream::Start()&#123;</span><br><span class="line">    channel_proxy_-&gt;StartSend();</span><br><span class="line">    audio_state()-&gt;AddSendingStream(this, encoder_sample_rate_hz_, encoder_num_channels_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用 /audio/audio_state.cc 的 AudioState::AddSendingStream() 方法；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">AudioState::AddSendingStream()&#123;</span><br><span class="line">    auto* adm = config_.audio_device_module.get();</span><br><span class="line">    ...</span><br><span class="line">    amd-&gt;StartRecording();</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="音频开关"><a href="#音频开关" class="headerlink" title="音频开关"></a>音频开关</h4><p>另外，PeerConnection 提供了 音频采集开关。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//org.webrtc.PeerConnection.java</span><br><span class="line">public void setAudioRecording(boolean recording)&#123;</span><br><span class="line">    nativeSetAudioRecording();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对应的JNI方法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//JNI/pc/peerconnection.cc</span><br><span class="line">void JNI_PeerConnection_SetAudioRecording()&#123;</span><br><span class="line">    ExtractNativePC(jni,j_pc)-&gt;SetAudioRecording(recording);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其实JNI方法也是调用 webrtc 的 peerconnection</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//webrtc/pc/peerconnection.cc</span><br><span class="line">PeerConnection::SetAudioRecording(bool recording)&#123;</span><br><span class="line">    auto audio_state = </span><br><span class="line">        factory_-&gt;channel_manager()-&gt;media_engine()-&gt;GetAudioState();</span><br><span class="line">    // AudioState</span><br><span class="line">    audio_state-&gt;SetRecording(recording);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由上代码可知， 通过 WebRtcVoiceEngine 的 GetAudioState() 方法获取 audio_state。<br>然后通过 audio_state 设置音频采集开关。</p>
+<p>在 AudioState::SetRecording() 方法调用具体设备模块开始或停止音频采集。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//webrtc/audio/audio_state.cc</span><br><span class="line">AudioState::SetRecording(bool enabled)&#123;</span><br><span class="line">    ...</span><br><span class="line">    if(enabled)&#123;</span><br><span class="line">        config_.audio_device_module-&gt;StartRecording();</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        config_.audio_device_module-&gt;StopRecording();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="音频采集具体实现"><a href="#音频采集具体实现" class="headerlink" title="音频采集具体实现"></a>音频采集具体实现</h4><p>这里我们只以Android为例。</p>
+<p>如果使用 opensles ndk 采集音频，采集的具体实现在 opensles_recorder.cc 文件的 StartRecording() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// modules/audio_device/android/opensles_recorder.cc</span><br><span class="line">int OpenSLESRecorder::StartRecording()&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种方法的具体实现我们暂时不深入。</p>
+<p>我们讨论 java 实现方案。</p>
+<p>java 实现的jni类，audio_record_jni.cc<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//modules/audio_device/android/audio_record_jni.cc</span><br><span class="line">AudioRecordJni::StartRecording()&#123;</span><br><span class="line">    ...</span><br><span class="line">    j_audio_record_-&gt;StartRecording()</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>j_audio_record_-&gt;StartRecording() 调用的就是 AudioRecordJni::JavaAudioRecord::StartRecording() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AudioRecordJni::JavaAudioRecord::StartRecording()&#123;</span><br><span class="line">    return audio_record_-&gt;CallBooleanMethod(start_recording_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CallBooleanMethod 就是jni回调java 实现的封装，最终实现回调 WebRtcAudioRecord.java 中的 StartRecording() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//org.webrtc.voiceengine.WebRtcAudioRecord.java </span><br><span class="line">boolean startRecording()&#123;</span><br><span class="line">    audioRecord.startRecording();</span><br><span class="line">    audioThread = new AudioRecordThread(&quot;AudioRecordJavaThread&quot;);</span><br><span class="line">    audioThread.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="音频采集线程"><a href="#音频采集线程" class="headerlink" title="音频采集线程"></a>音频采集线程</h4><p>音频采集线 AudioRecordThread；我们只跟踪 run() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void run()&#123;</span><br><span class="line">    ...</span><br><span class="line">    while(keepAlive)&#123;</span><br><span class="line">        int bytesRead = audioRecord.read(byteBuffer, byteBuffer.capacity());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        // 通知 native 音频数据</span><br><span class="line">        nativeDataIsRecorded(bytesRead, nativeAudioRecord);</span><br><span class="line"></span><br><span class="line">        // 应用音频采集回调</span><br><span class="line">        byte[] data = Arrays.copyOf(byteBuffer.array(), byteBuffer.capacity());</span><br><span class="line">        audioSamplesReadyCallback.onWebRtcAudioRecordSamplesReady(</span><br><span class="line">            new AudioSamples(audioRecord, data)</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2017/08/16/webrtc 音频/" data-id="cjguv5v4z000o720cclw4wvvg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2017/09/07/Linux 用户空间 内核空间/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Newer</strong>
+            <div class="article-nav-title">
+                
+                    linux用户控件、内和空间
+                
+            </div>
+        </a>
+    
+    
+        <a href="/2017/05/07/MK语法规范/" id="article-nav-older" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">Older</strong>
+            <div class="article-nav-title">MK语法规范</div>
+        </a>
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    
+        <section id="comments">
+	<div id="commentContainer"></div>
+</section>
+    
+
+</section>
+            
+                
+<aside id="sidebar">
+   
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">recent</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/04/12/Rxjava2操作符/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
+                            <p class="item-title"><a href="/2018/04/12/Rxjava2操作符/" class="title">Rxjava2操作符</a></p>
+                            <p class="item-date"><time datetime="2018-04-12T12:20:50.000Z" itemprop="datePublished">2018-04-12</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/bug记录/">bug记录</a></p>
+                            <p class="item-title"><a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="title">socket未释放导致句柄泄露</a></p>
+                            <p class="item-date"><time datetime="2018-03-16T11:40:50.000Z" itemprop="datePublished">2018-03-16</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/13/线程阻塞和中断的四种方式/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
+                            <p class="item-title"><a href="/2018/03/13/线程阻塞和中断的四种方式/" class="title">线程阻塞和中断的四种方式</a></p>
+                            <p class="item-date"><time datetime="2018-03-13T12:46:25.000Z" itemprop="datePublished">2018-03-13</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2017/12/11/mac搭建PyQt5环境/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/python/">python</a></p>
+                            <p class="item-title"><a href="/2017/12/11/mac搭建PyQt5环境/" class="title">mac搭建Pyqt5环境</a></p>
+                            <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2017/12/11/MQTT相关/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MQTT/">MQTT</a></p>
+                            <p class="item-title"><a href="/2017/12/11/MQTT相关/" class="title">mac搭建Pyqt5环境</a></p>
+                            <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/Binder/" style="font-size: 10px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/java/" style="font-size: 10px;">java</a> <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://github.com/QuincyJiang">github</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+    
+    <div id="toTop" class="fa fa-angle-up"></div>
+</aside>
+
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2018 QuincyJiang<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+	<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+	<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+	<script>
+		var gitment = new Gitment({
+			owner: 'QuincyJiang',
+			repo: 'https://github.com/QuincyJiang/comments.git',
+			oauth: {
+				client_id: '7d62ce84028d3cb98cc3',
+				client_secret: 'dd706a971640c51eb81d8ad875b3409a03dd8aa6',
+			},
+		})
+		gitment.render('commentContainer')
+	</script>
+	
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>
