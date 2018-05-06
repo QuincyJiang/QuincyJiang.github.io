@@ -3,18 +3,18 @@
 <head>
     <meta charset="utf-8">
     
-    <title>QuincyJiang</title>
+    <title>线程阻塞和中断的四种方式 | QuincyJiang</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta name="description" content="1、线程阻塞一个线程进入阻塞状态可能的原因： 通过调用sleep(millseconds)使任务进入休眠状态；123456789101112class Demo1 implements Runnable throws InterruptedException&amp;#123;     public void run()&amp;#123;           Thread.sleep(1000);     &amp;#">
 <meta property="og:type" content="article">
-<meta property="og:title" content="QuincyJiang">
-<meta property="og:url" content="http://yoursite.com/2018/05/05/线程阻塞和中断的四种方式/index.html">
+<meta property="og:title" content="线程阻塞和中断的四种方式">
+<meta property="og:url" content="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/index.html">
 <meta property="og:site_name" content="QuincyJiang">
 <meta property="og:description" content="1、线程阻塞一个线程进入阻塞状态可能的原因： 通过调用sleep(millseconds)使任务进入休眠状态；123456789101112class Demo1 implements Runnable throws InterruptedException&amp;#123;     public void run()&amp;#123;           Thread.sleep(1000);     &amp;#">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2018-05-05T15:29:07.433Z">
+<meta property="og:updated_time" content="2018-05-06T06:41:37.515Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="QuincyJiang">
+<meta name="twitter:title" content="线程阻塞和中断的四种方式">
 <meta name="twitter:description" content="1、线程阻塞一个线程进入阻塞状态可能的原因： 通过调用sleep(millseconds)使任务进入休眠状态；123456789101112class Demo1 implements Runnable throws InterruptedException&amp;#123;     public void run()&amp;#123;           Thread.sleep(1000);     &amp;#">
     
 
@@ -202,6 +202,36 @@
     <div class="article-inner">
         
         
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            线程阻塞和中断的四种方式
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/03/13/线程阻塞和中断的四种方式/">
+            <time datetime="2018-03-13T12:46:25.000Z" itemprop="datePublished">2018-03-13</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/java基础/">java基础</a>
+    </div>
+
+                        
+                    </div>
+                
+            </header>
+        
         
         <div class="article-entry" itemprop="articleBody">
         
@@ -231,7 +261,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2018/05/05/线程阻塞和中断的四种方式/" data-id="cjgufisqh0001uv0chsfaavp4" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjguga2fa0000130cmr3mggu9" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -330,7 +360,7 @@
                     <li>
                         
                         <div class="item-thumbnail">
-                            <a href="/2018/05/05/线程阻塞和中断的四种方式/" class="thumbnail">
+                            <a href="/2018/03/13/线程阻塞和中断的四种方式/" class="thumbnail">
     
     
         <span class="thumbnail-image thumbnail-none"></span>
@@ -340,9 +370,9 @@
                         </div>
                         
                         <div class="item-inner">
-                            <p class="item-category"></p>
-                            <p class="item-title"><a href="/2018/05/05/线程阻塞和中断的四种方式/" class="title"></a></p>
-                            <p class="item-date"><time datetime="2018-05-05T15:29:07.327Z" itemprop="datePublished">2018-05-05</time></p>
+                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
+                            <p class="item-title"><a href="/2018/03/13/线程阻塞和中断的四种方式/" class="title">线程阻塞和中断的四种方式</a></p>
+                            <p class="item-date"><time datetime="2018-03-13T12:46:25.000Z" itemprop="datePublished">2018-03-13</time></p>
                         </div>
                     </li>
                 
@@ -352,12 +382,19 @@
 
     
         
+    <div class="widget-wrap">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
     
         
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
