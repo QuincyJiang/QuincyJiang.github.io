@@ -241,7 +241,7 @@
             <p>我们在更新Android N之后 可能会注意到状态栏上的快捷方式 当我们点击的时候，从开启到关闭状态，会有一个顺滑自然的过渡动画，在学习完AnimatinVectorDrawable的api用法之后，你就会知道该怎么实现这些类似的效果了。</p>
 <h2 id="Vector"><a href="#Vector" class="headerlink" title="Vector"></a>Vector</h2><p>在开始之前，想先说明一下安卓中的矢量图标文件<strong>Vector</strong><br>，我们经常会用到矢量图，将一张SVG的图片通过AS自动生成一个以vector为根节点的xml文件，可以直接通过<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">R.drawable.xx</span><br></pre></td></tr></table></figure></p>
 <p>的格式引用它。矢量图形不管我们如何拉伸都不会模糊，因此广受开发者青睐。<br>看一下一个典型的<strong>vector</strong>文件结构</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;vector android:height=&quot;24dp&quot; </span><br><span class="line">android:viewportHeight=&quot;24dp&quot;</span><br><span class="line">    android:viewportWidth=&quot;24&quot; </span><br><span class="line">    android:width=&quot;24&quot; </span><br><span class="line">    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;</span><br><span class="line">    &lt;path </span><br><span class="line">        android:fillColor=&quot;#36ab60&quot; </span><br><span class="line">        android:pathData=&quot;M6.4,6.4 L17.6,17.6 M6.4,17.6 L17.6 ,6.4&quot;</span><br><span class="line">        android:strokeWidth=&quot;2&quot;</span><br><span class="line">        android:strokeColor=&quot;#999&quot;</span><br><span class="line">        android:trimPathStart=&quot;0.1&quot;</span><br><span class="line">        android:trimPathEnd=&quot;0.9&quot;/&gt;</span><br><span class="line">&lt;/vector&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">vector</span> <span class="attr">android:height</span>=<span class="string">"24dp"</span> </span></span><br><span class="line"><span class="tag"><span class="attr">android:viewportHeight</span>=<span class="string">"24dp"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:viewportWidth</span>=<span class="string">"24"</span> </span></span><br><span class="line"><span class="tag">    <span class="attr">android:width</span>=<span class="string">"24"</span> </span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">path</span> </span></span><br><span class="line"><span class="tag">        <span class="attr">android:fillColor</span>=<span class="string">"#36ab60"</span> </span></span><br><span class="line"><span class="tag">        <span class="attr">android:pathData</span>=<span class="string">"M6.4,6.4 L17.6,17.6 M6.4,17.6 L17.6 ,6.4"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:strokeWidth</span>=<span class="string">"2"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:strokeColor</span>=<span class="string">"#999"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:trimPathStart</span>=<span class="string">"0.1"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:trimPathEnd</span>=<span class="string">"0.9"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">vector</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <ul>
 <li>heigit/width: 图片的宽高</li>
 <li>viewportWidth/viewportHeight: 画布宽高，也是必填的，定义Path路径的时候就必须在这个画布大小里去绘制，超出画布就显示不出来了。</li>
@@ -253,11 +253,11 @@
 <li>trimPathStart: 绘制线段起始点偏移的百分比 </li>
 <li>这么说起来其实有点抽象，用一张图来解释会更加直观一些<br><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/A201CE3001F34F0E93FA08F8F18FB8D9/3433" alt="image"></li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart=&quot;0&quot;</span><br><span class="line">android:trimPathEnd=&quot;1&quot;/&gt;</span><br></pre></td></tr></table></figure>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/437E587CB9704EDF953BFE1F60CDD79F/3436" alt="image"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart=&quot;0&quot;</span><br><span class="line">android:trimPathEnd=&quot;0.75&quot;/&gt;</span><br></pre></td></tr></table></figure></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/073C2DBFC90C4B959DE5BB2CA7343E7F/3434" alt="image"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart=&quot;0.5&quot;</span><br><span class="line">android:trimPathEnd=&quot;0.75&quot;/&gt;</span><br></pre></td></tr></table></figure></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/FA0FF500CEAD4F5EA9B19DFC8430BF14/3435" alt="image"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart=&quot;0.25&quot;</span><br><span class="line">android:trimPathEnd=&quot;0.75&quot;</span><br><span class="line">android:trimPathOffset=&quot;0.25&quot;/&gt;</span><br></pre></td></tr></table></figure></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/58466D2A0A82463C8BB0AA3C7FCF715C/3438" alt="image"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart=&quot;0.25&quot;</span><br><span class="line">android:trimPathEnd=&quot;0.75&quot;</span><br><span class="line">android:trimPathOffset=&quot;0.375&quot;/&gt;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0"</span><br><span class="line">android:trimPathEnd="1"/&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/437E587CB9704EDF953BFE1F60CDD79F/3436" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0"</span><br><span class="line">android:trimPathEnd="0.75"/&gt;</span><br></pre></td></tr></table></figure></p>
+<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/073C2DBFC90C4B959DE5BB2CA7343E7F/3434" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.5"</span><br><span class="line">android:trimPathEnd="0.75"/&gt;</span><br></pre></td></tr></table></figure></p>
+<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/FA0FF500CEAD4F5EA9B19DFC8430BF14/3435" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.25"</span><br><span class="line">android:trimPathEnd="0.75"</span><br><span class="line">android:trimPathOffset="0.25"/&gt;</span><br></pre></td></tr></table></figure></p>
+<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/58466D2A0A82463C8BB0AA3C7FCF715C/3438" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.25"</span><br><span class="line">android:trimPathEnd="0.75"</span><br><span class="line">android:trimPathOffset="0.375"/&gt;</span><br></pre></td></tr></table></figure></p>
 <p>其实这几张图片连在一起看，你会发现只要将这几个数值重复循环，这就成了一个进度条动画了。<br>下面正式讲解文章主角 </p>
 <h2 id="AnimatedVectorDrawable"><a href="#AnimatedVectorDrawable" class="headerlink" title="AnimatedVectorDrawable"></a>AnimatedVectorDrawable</h2><p>听名字其实可以猜到，它主要是靠两个东西来实现的</p>
 <ul>
@@ -270,8 +270,8 @@
 </blockquote>
 </li>
 </ul>
-<h4 id="创建一个AnimatedVectorDrawable"><a href="#创建一个AnimatedVectorDrawable" class="headerlink" title="创建一个AnimatedVectorDrawable"></a>创建一个AnimatedVectorDrawable</h4><h5 id="定义一个vectorDrawable"><a href="#定义一个vectorDrawable" class="headerlink" title="定义一个vectorDrawable"></a>定义一个vectorDrawable</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">android:drawable=&quot;@drawable/foo&quot;</span><br></pre></td></tr></table></figure>
-<h4 id="创建一个animation"><a href="#创建一个animation" class="headerlink" title="创建一个animation"></a>创建一个animation</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;ObjectAnimator</span><br><span class="line">    android:propertyName=&quot;rotation&quot;</span><br><span class="line">    android:valueFrom=&quot;0&quot;</span><br><span class="line">    android:valueTo=&quot;180&quot;</span><br><span class="line">    android:duration=&quot;200&quot;</span><br><span class="line">    android:interpolator=&quot;@interpolator/...&quot;</span><br><span class="line">    android:valueType=&quot;floatVaule&quot;</span><br></pre></td></tr></table></figure>
+<h4 id="创建一个AnimatedVectorDrawable"><a href="#创建一个AnimatedVectorDrawable" class="headerlink" title="创建一个AnimatedVectorDrawable"></a>创建一个AnimatedVectorDrawable</h4><h5 id="定义一个vectorDrawable"><a href="#定义一个vectorDrawable" class="headerlink" title="定义一个vectorDrawable"></a>定义一个vectorDrawable</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">android:drawable="@drawable/foo"</span><br></pre></td></tr></table></figure>
+<h4 id="创建一个animation"><a href="#创建一个animation" class="headerlink" title="创建一个animation"></a>创建一个animation</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ObjectAnimator</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:propertyName</span>=<span class="string">"rotation"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueFrom</span>=<span class="string">"0"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueTo</span>=<span class="string">"180"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:duration</span>=<span class="string">"200"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:interpolator</span>=<span class="string">"@interpolator/..."</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueType</span>=<span class="string">"floatVaule"</span></span></span><br></pre></td></tr></table></figure>
 <ul>
 <li>valueFrom</li>
 <li>valueTo </li>
@@ -289,7 +289,7 @@
 <h3 id="动画2"><a href="#动画2" class="headerlink" title="动画2"></a>动画2</h3><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/AA8F9653DD2E477EAA021A2FCC4098A9/3577" alt="image"></p>
 <p>本质是将碎裂的心分为两组图片，心的填充颜色默认为白色，点击填充是更改了透明度opacity，裂开的动画是使用groups中的rotation动画</p>
 <h2 id="Path-Morphing"><a href="#Path-Morphing" class="headerlink" title="Path Morphing"></a>Path Morphing</h2><p>我们还可以直接对path元数据进行变换 </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;ObjectAnimator</span><br><span class="line">    android:propertyName=&quot;pathData&quot;</span><br><span class="line">    android:valueFrom=&quot;M6.4,6.4 L17.6,17.6 M6.4,17.6 L17.6 ,6.4&quot;</span><br><span class="line">    android:valueTo=&quot;M6,10 L4,10 ...&quot;</span><br><span class="line">    android:duration=&quot;200&quot;</span><br><span class="line">    android:valueType=&quot;pathType&quot;</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ObjectAnimator</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:propertyName</span>=<span class="string">"pathData"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueFrom</span>=<span class="string">"M6.4,6.4 L17.6,17.6 M6.4,17.6 L17.6 ,6.4"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueTo</span>=<span class="string">"M6,10 L4,10 ..."</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:duration</span>=<span class="string">"200"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueType</span>=<span class="string">"pathType"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">...</span></span></span><br></pre></td></tr></table></figure>
 <p><strong>但进行path变换的前提是</strong><br><strong>前后两条path路径 他们的绘制点数量和绘制命令必须是相同的<br>就比如上面代码中 变换前是4个点 变换后也必须是四个点 而且 m l m l 的顺序不可以改变</strong></p>
 <p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/BFFB93AAA87E44B8A9B4A5CA7208BBA6/3579" alt="image"></p>
 <p>上面这种 两个正方形 大小变了 形状没变，我们可以选定点的四个点作为变换参考点，只需要改变下四个点的前后坐标就可以了，绘制流程是不变的，符合要求，但如果变换前后是这样的呢？<br><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/61824E98C71D434E922CF7AEE414E4C1/3581" alt="image"></p>
@@ -322,7 +322,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjgzcn7pl00016x0c9y0b5mvs" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjgzcr94u0000890colsh9ze4" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -641,7 +641,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2018/04/12/Rxjava2操作符/" data-id="cjgzcn7q1000f6x0ch1uf46fk" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2018/04/12/Rxjava2操作符/" data-id="cjgzcr95a000c890cdrvieq94" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -786,7 +786,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjgzcn7pz000b6x0c343w8vkx" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjgzcr95c000g890c9eylfq4u" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -932,7 +932,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjgzcn7qg000z6x0cor890u4r" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjgzcr95n000y890cbym7j5h0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1001,151 +1001,6 @@
             
     
         <a href="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://yoursite.com/2018/03/13/线程阻塞和中断的四种方式/">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
-    <article id="post-mac搭建PyQt5环境" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2017/12/11/mac搭建PyQt5环境/">mac搭建Pyqt5环境</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2017/12/11/mac搭建PyQt5环境/">
-            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/python/">python</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/python/">python</a>, <a class="tag-link" href="/tags/qt/">qt</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <h3 id="1-首先基于virtualenv-搭建一个python3的运行环境"><a href="#1-首先基于virtualenv-搭建一个python3的运行环境" class="headerlink" title="1.首先基于virtualenv 搭建一个python3的运行环境"></a>1.首先基于virtualenv 搭建一个python3的运行环境</h3><p>virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。</p>
-<h5 id="1-首先，我们用pip安装virtualenv："><a href="#1-首先，我们用pip安装virtualenv：" class="headerlink" title="1. 首先，我们用pip安装virtualenv："></a>1. 首先，我们用pip安装virtualenv：</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install virtualenv</span><br></pre></td></tr></table></figure>
-<h5 id="2-创建一个pyhton3的运行环境"><a href="#2-创建一个pyhton3的运行环境" class="headerlink" title="2.创建一个pyhton3的运行环境"></a>2.创建一个pyhton3的运行环境</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3</span><br></pre></td></tr></table></figure>
-<p>可以通过<strong>python=python3</strong>来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者python3.6</p>
-<h4 id="3-激活该运行环境"><a href="#3-激活该运行环境" class="headerlink" title="3. 激活该运行环境"></a>3. 激活该运行环境</h4><p>执行</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ source ~/py3/bin/activate</span><br><span class="line">(py3) jiangxqdeMBP:~ jiangxq$</span><br></pre></td></tr></table></figure>
-<p>当用户名前出现该运行环境的名称时，表示环境已经激活了</p>
-<h3 id="2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行"><a href="#2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行" class="headerlink" title="2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行"></a>2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install --upgrade pip</span><br></pre></td></tr></table></figure>
-<p>这里有个窍门是如果mac的默认python运行环境为python2.7，但是不想修改注册文件，可以直接打<strong>pip3</strong>，<strong>pip3</strong>是<br>是python3的pip工具，<strong>pip</strong>是python2的pip工具。</p>
-<h3 id="3-使用pip工具安装PyQt5"><a href="#3-使用pip工具安装PyQt5" class="headerlink" title="3. 使用pip工具安装PyQt5"></a>3. 使用pip工具安装PyQt5</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install PyQt5</span><br></pre></td></tr></table></figure>
-<p>当PyQt5安装完成之后，其实Qt的组件此时已经可用了，如果要测试是否安装成功，可以新建一个Python项目，然后倒入PyQt5的包看看。<br><img src="https://note.youdao.com/yws/api/personal/file/WEBa771a15d091f47d6ebb57e09a1c5eff4?method=download&amp;shareKey=c7c7e8069597b7ab8e8f58d4df01e4af" alt="image"></p>
-<h3 id="4-在pycharm上安装QtDesign工具包"><a href="#4-在pycharm上安装QtDesign工具包" class="headerlink" title="4.在pycharm上安装QtDesign工具包"></a>4.在pycharm上安装QtDesign工具包</h3><p>QtDesign是Pycharm上的可视化uI设计工具，可以拖动控件来达到实现设计界面的功能<br>安装Qtdesign 需要先安装QT</p>
-<h4 id="1-下载QT安装包"><a href="#1-下载QT安装包" class="headerlink" title="1. 下载QT安装包"></a>1. 下载QT安装包</h4><p>下载地址：<a href="http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg" target="_blank" rel="noopener">http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg</a><br>下载完成后直接安装</p>
-<h4 id="2-打开pycharm-点击preference-点击Tools-新建一个插件"><a href="#2-打开pycharm-点击preference-点击Tools-新建一个插件" class="headerlink" title="2.打开pycharm 点击preference 点击Tools 新建一个插件"></a>2.打开pycharm 点击preference 点击Tools 新建一个插件</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE9bf5498a9bb100d2b67bf988c494f1be/1941" alt="image"><br> 注意插件地址不要写错了，是qt5的安装路径</p>
-<h4 id="3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）"><a href="#3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）" class="headerlink" title="3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）"></a>3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）</h4>
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://yoursite.com/2017/12/11/mac搭建PyQt5环境/" data-id="cjgzcn7q4000h6x0ct9zfsv0n" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://yoursite.com/2017/12/11/mac搭建PyQt5环境/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://yoursite.com/2017/12/11/mac搭建PyQt5环境/">Comments</a>
     
 
         </footer>
@@ -1265,7 +1120,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/12/11/MQTT相关/" data-id="cjgzcn7py000a6x0cn3x63scc" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/12/11/MQTT相关/" data-id="cjgzcr959000b890cynvhevxr" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1334,6 +1189,151 @@
             
     
         <a href="http://yoursite.com/2017/12/11/MQTT相关/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://yoursite.com/2017/12/11/MQTT相关/">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
+    <article id="post-mac搭建PyQt5环境" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2017/12/11/mac搭建PyQt5环境/">mac搭建Pyqt5环境</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/12/11/mac搭建PyQt5环境/">
+            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/python/">python</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/python/">python</a>, <a class="tag-link" href="/tags/qt/">qt</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h3 id="1-首先基于virtualenv-搭建一个python3的运行环境"><a href="#1-首先基于virtualenv-搭建一个python3的运行环境" class="headerlink" title="1.首先基于virtualenv 搭建一个python3的运行环境"></a>1.首先基于virtualenv 搭建一个python3的运行环境</h3><p>virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。</p>
+<h5 id="1-首先，我们用pip安装virtualenv："><a href="#1-首先，我们用pip安装virtualenv：" class="headerlink" title="1. 首先，我们用pip安装virtualenv："></a>1. 首先，我们用pip安装virtualenv：</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install virtualenv</span><br></pre></td></tr></table></figure>
+<h5 id="2-创建一个pyhton3的运行环境"><a href="#2-创建一个pyhton3的运行环境" class="headerlink" title="2.创建一个pyhton3的运行环境"></a>2.创建一个pyhton3的运行环境</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3</span><br></pre></td></tr></table></figure>
+<p>可以通过<strong>python=python3</strong>来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者python3.6</p>
+<h4 id="3-激活该运行环境"><a href="#3-激活该运行环境" class="headerlink" title="3. 激活该运行环境"></a>3. 激活该运行环境</h4><p>执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ source ~/py3/bin/activate</span><br><span class="line">(py3) jiangxqdeMBP:~ jiangxq$</span><br></pre></td></tr></table></figure>
+<p>当用户名前出现该运行环境的名称时，表示环境已经激活了</p>
+<h3 id="2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行"><a href="#2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行" class="headerlink" title="2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行"></a>2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install --upgrade pip</span><br></pre></td></tr></table></figure>
+<p>这里有个窍门是如果mac的默认python运行环境为python2.7，但是不想修改注册文件，可以直接打<strong>pip3</strong>，<strong>pip3</strong>是<br>是python3的pip工具，<strong>pip</strong>是python2的pip工具。</p>
+<h3 id="3-使用pip工具安装PyQt5"><a href="#3-使用pip工具安装PyQt5" class="headerlink" title="3. 使用pip工具安装PyQt5"></a>3. 使用pip工具安装PyQt5</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install PyQt5</span><br></pre></td></tr></table></figure>
+<p>当PyQt5安装完成之后，其实Qt的组件此时已经可用了，如果要测试是否安装成功，可以新建一个Python项目，然后倒入PyQt5的包看看。<br><img src="https://note.youdao.com/yws/api/personal/file/WEBa771a15d091f47d6ebb57e09a1c5eff4?method=download&amp;shareKey=c7c7e8069597b7ab8e8f58d4df01e4af" alt="image"></p>
+<h3 id="4-在pycharm上安装QtDesign工具包"><a href="#4-在pycharm上安装QtDesign工具包" class="headerlink" title="4.在pycharm上安装QtDesign工具包"></a>4.在pycharm上安装QtDesign工具包</h3><p>QtDesign是Pycharm上的可视化uI设计工具，可以拖动控件来达到实现设计界面的功能<br>安装Qtdesign 需要先安装QT</p>
+<h4 id="1-下载QT安装包"><a href="#1-下载QT安装包" class="headerlink" title="1. 下载QT安装包"></a>1. 下载QT安装包</h4><p>下载地址：<a href="http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg" target="_blank" rel="noopener">http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg</a><br>下载完成后直接安装</p>
+<h4 id="2-打开pycharm-点击preference-点击Tools-新建一个插件"><a href="#2-打开pycharm-点击preference-点击Tools-新建一个插件" class="headerlink" title="2.打开pycharm 点击preference 点击Tools 新建一个插件"></a>2.打开pycharm 点击preference 点击Tools 新建一个插件</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE9bf5498a9bb100d2b67bf988c494f1be/1941" alt="image"><br> 注意插件地址不要写错了，是qt5的安装路径</p>
+<h4 id="3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）"><a href="#3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）" class="headerlink" title="3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）"></a>3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）</h4>
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2017/12/11/mac搭建PyQt5环境/" data-id="cjgzcr95e000i890cbux5zebg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://yoursite.com/2017/12/11/mac搭建PyQt5环境/#comments" class="article-comment-link disqus-comment-count" data-disqus-url="http://yoursite.com/2017/12/11/mac搭建PyQt5环境/">Comments</a>
     
 
         </footer>
@@ -1537,7 +1537,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/10/12/view 绘制机制/" data-id="cjgzcn7q7000m6x0ca747nteq" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/10/12/view 绘制机制/" data-id="cjgzcr95j000p890c1dswg7gw" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1686,7 +1686,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/09/07/Linux 用户空间 内核空间/" data-id="cjgzcn7pt00066x0c13p8x843" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/09/07/Linux 用户空间 内核空间/" data-id="cjgzcr9560007890cdzz3nqlo" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1866,7 +1866,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/08/16/webrtc 音频/" data-id="cjgzcn7q8000n6x0c2hyb5ils" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/08/16/webrtc 音频/" data-id="cjgzcr95k000t890c2scwgyzs" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2197,7 +2197,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/05/07/MK语法规范/" data-id="cjgzcn7pw00076x0cp2rwe2e0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/05/07/MK语法规范/" data-id="cjgzcr9570008890cyn1a6e7a" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2368,7 +2368,7 @@ TARGET_PRELINK_MODULES := false
                     <li>
                         
                         <div class="item-thumbnail">
-                            <a href="/2017/12/11/mac搭建PyQt5环境/" class="thumbnail">
+                            <a href="/2017/12/11/MQTT相关/" class="thumbnail">
     
     
         <span class="thumbnail-image thumbnail-none"></span>
@@ -2378,8 +2378,8 @@ TARGET_PRELINK_MODULES := false
                         </div>
                         
                         <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/python/">python</a></p>
-                            <p class="item-title"><a href="/2017/12/11/mac搭建PyQt5环境/" class="title">mac搭建Pyqt5环境</a></p>
+                            <p class="item-category"><a class="article-category-link" href="/categories/MQTT/">MQTT</a></p>
+                            <p class="item-title"><a href="/2017/12/11/MQTT相关/" class="title">MQTT相关总结</a></p>
                             <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
                         </div>
                     </li>
