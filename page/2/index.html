@@ -154,11 +154,11 @@
         </div>
         <div class="article-info profile-block">
             <div class="article-info-block">
-                15
+                18
                 <span>posts</span>
             </div>
             <div class="article-info-block">
-                21
+                24
                 <span>tags</span>
             </div>
         </div>
@@ -195,6 +195,666 @@
 
             
             <section id="main">
+    <article id="post-Linux 用户空间 内核空间" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2017/09/07/Linux 用户空间 内核空间/">linux用户控件、内和空间</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/09/07/Linux 用户空间 内核空间/">
+            <time datetime="2017-09-07T12:30:15.000Z" itemprop="datePublished">2017-09-07</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/linux/">linux</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <p>用户空间就是用户进程所在的内存区域，相对的，系统空间就是操作系统占据的内存区域。</p>
+<p>用户进程和系统进程的所有数据都在内存中。<br>  是谁来划分内存空间的呢？</p>
+<p>  在电脑开机之前，内存就是一块原始的物理内存。什么也没有。开机加电，系统启动后，就对物理内存进行了划分。当然，这是系统的规定，物理内存条上并没有划分好的地址和空间范围。这些划分都是操作系统在逻辑上的划分。不同版本的操作系统划分的结果都是不一样的。<br>  为什么要划分用户空间和系统空间呢？当然是有必要的。操作系统的数据都是存放于系统空间的，用户进程的数据是存放于用户空间的。这是第一点，不同的身份，数据放置的位置必然不一样，否则大混战就会导致系统的数据和用户的数据混在一起，系统就不能很好的运行了。分开来存放，就让系统的数据和用户的数据互不干扰，保证系统的稳定性。分开存放，管理上很方便，而更重要的是，将用户的数据和系统的数据隔离开，就可以对两部分的数据的访问进行控制。这样就可以确保用户程序不能随便操作系统的数据，这样防止用户程序误操作或者是恶意破坏系统。</p>
+<p>处于用户态的程序只能访问用户空间，而处于内核态的程序可以访问用户空间和内核空间。那么用户态和内核态有什么区别呢？</p>
+<p>当一个任务（进程）执行系统调用而陷入内核代码中执行时，我们就称进程处于内核运行态（或简称为内核态）。此时处理器处于特权级最高的（0级）内核代码中执行。当进程处于内核态时，执行的内核代码会使用当前进程的内核栈。每个进程都有自己的内核栈。当进程在执行用户自己的代码时，则称其处于用户运行态（用户态）。即此时处理器在特权级最低的（3级）用户代码中运行。</p>
+<p>内核态与用户态是操作系统的两种运行级别,Intel x86架构提供Ring0-Ring3四种级别的运行模式，Ring0级别最高，Ring3最低。Linux使用了Ring3级别运行用户态，Ring0作为 内核态，没有使用Ring1和Ring2。Ring3状态不能访问Ring0的地址空间，包括代码和数据。程序特权级别的不同，其所拥有的权力也不同。如下图所示。</p>
+<p><img src="https://img-blog.csdn.net/20170610171008637?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzQyMjg1NzA=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"></p>
+<p>用户态切换到内核态的3种方式</p>
+<h4 id="a-系统调用"><a href="#a-系统调用" class="headerlink" title="a. 系统调用"></a>a. 系统调用</h4><blockquote>
+<p>这是用户态进程主动要求切换到内核态的一种方式，用户态进程通过系统调用申请使用操作系统提供的服务程序完成工作，比如fork()实际上就是执行了一个创建新进程的系统调用。而系统调用的机制其核心还是使用了操作系统为用户特别开放的一个中断来实现，例如Linux的int 80h中断。</p>
+</blockquote>
+<h4 id="b-异常"><a href="#b-异常" class="headerlink" title="b. 异常"></a>b. 异常</h4><blockquote>
+<p>当CPU在执行运行在用户态下的程序时，发生了某些事先不可知的异常，这时会触发由当前运行进程切换到处理此异常的内核相关程序中，也就转到了内核态，比如缺页异常。</p>
+</blockquote>
+<h4 id="c-外围设备的中断"><a href="#c-外围设备的中断" class="headerlink" title="c. 外围设备的中断"></a>c. 外围设备的中断</h4><blockquote>
+<p>当外围设备完成用户请求的操作后，会向CPU发出相应的中断信号，这时CPU会暂停执行下一条即将要执行的指令转而去执行与中断信号对应的处理程序，如果先前执行的指令是用户态下的程序，那么这个转换的过程自然也就发生了由用户态到内核态的切换。比如硬盘读写操作完成，系统会切换到硬盘读写的中断处理程序中执行后续操作等。</p>
+</blockquote>
+<p>这3种方式是系统在运行时由用户态转到内核态的最主要方式，其中系统调用可以认为是用户进程主动发起的，异常和外围设备中断则是被动的。</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2017/09/07/Linux 用户空间 内核空间/" data-id="cjh9cm6tf0006st0cxhp8k491" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://yoursite.com/2017/09/07/Linux 用户空间 内核空间/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
+    <article id="post-webrtc 音频" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2017/08/16/webrtc 音频/">webrtc音频总结</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/08/16/webrtc 音频/">
+            <time datetime="2017-08-16T13:10:30.000Z" itemprop="datePublished">2017-08-16</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/webrtc/">webrtc</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/webrtc/">webrtc</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <p>webrtc/modules/audio_device/android/audio_record_jni.cc</p>
+<p>这个文件，是音频采集jni类文件。</p>
+<p>Android Audio Record 和 JNI 通信接口包括：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// java 调用 c++ 接口</span><br><span class="line">nativeCacheDirectBufferAddress</span><br><span class="line">nativeDataIsRecorded</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// c++ 回调 java 接口</span><br><span class="line">initRecording</span><br><span class="line">startRecording</span><br><span class="line">stopRecording</span><br><span class="line">enableBuiltInAEC</span><br><span class="line">enableBuiltInNS</span><br></pre></td></tr></table></figure>
+<p>nativeCacheDirectBufferAddress 和 nativeDataIsRecorded 只是为了高效的将 AudioRecord 采集到的音频数据传递给 native。</p>
+<h1 id="WebRtcVoiceEngine"><a href="#WebRtcVoiceEngine" class="headerlink" title="WebRtcVoiceEngine"></a>WebRtcVoiceEngine</h1><p>WebRtcVoiceEngine 初始化</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">WebRtcVoiceEngine::Init()&#123;</span><br><span class="line">    send_codecs_ = CollectCodecs(encoder_factory_-&gt;GetSupportedEncoders());</span><br><span class="line">    recv_codecs_ = CollectCodecs(decoder_factory_-&gt;GetSupportedDecoders());</span><br><span class="line"></span><br><span class="line">    adm_ = webrtc::AudioDeviceModule::Create(</span><br><span class="line">        webrtc::AudioDeviceModule::kPlatformDefaultAudio</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    webrtc::adm_helpers::Init(adm());</span><br><span class="line">    webrtc::apm_helpers::Init(apm());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可知，WebRtcVoiceEngine 里面的 adm_ 就是 AudioDeviceModule ，代码在 /modules/audio_device/audio_device_impl.cc</p>
+<p>在 webrtcvoiceengine.h<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">// WebRtcVoiceEngine</span><br><span class="line"></span><br><span class="line">//public </span><br><span class="line">void Init();</span><br><span class="line">AudioState GetAudioState();</span><br><span class="line">VoiceMediaChannel* CreateChannel(Call call, MediaConfig config, AudioOptions options);</span><br><span class="line">AudioCodec send_codecs();</span><br><span class="line">AudioCodec recv_codecs();</span><br><span class="line">RtpCapabilities GetCapabilities();</span><br><span class="line"></span><br><span class="line">void RegisterChannel(WebRtcVoiceMediaChannel* channel);</span><br><span class="line">void UnregisterChannel(WebRtcVoiceMediaChannel* channel);</span><br><span class="line"></span><br><span class="line">bool StartAecDump();</span><br><span class="line">void StopAecDump();</span><br><span class="line"></span><br><span class="line">//private</span><br><span class="line">AudioDeviceModule adm_;</span><br><span class="line">AudioEncoderFactory encoder_factory_;</span><br><span class="line">AudioDecoderFactory decoder_factory_;</span><br><span class="line">AudioMixer audio_mixer_;</span><br><span class="line">AudioProcessing apm_;</span><br><span class="line">AudioState audio_state_;</span><br><span class="line">AudioCodec send_codecs_;</span><br><span class="line">AudioCodec recv_codecs_;</span><br><span class="line"></span><br><span class="line">WebRtcVoiceMediaChannel channels_;</span><br></pre></td></tr></table></figure></p>
+<h2 id="audio-device"><a href="#audio-device" class="headerlink" title="audio_device"></a>audio_device</h2><p>//webrtc/modules/audio_device/</p>
+<p>audio_device_impl.cc</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">AudioDeviceModule::Create()&#123;</span><br><span class="line">    audioDevice(new AudioDeviceModuleImpl(audio_layer));</span><br><span class="line"></span><br><span class="line">    audioDevice-&gt;CheckPlatform();</span><br><span class="line">    audioDevice-&gt;CreatePlatformSpecificObjects();</span><br><span class="line">    audioDevice-&gt;AttachAudioBuffer();</span><br><span class="line"></span><br><span class="line">    return audioDevice;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">AudioDeviceModuleImpl::CreatePlatformSpecificObjects()&#123;</span><br><span class="line">    // WEBRTC_DUMMY_AUDIO_BUILD</span><br><span class="line">    audio_device_.reset(new AudioDeviceDummy());</span><br><span class="line">    // WEBRTC_DUMMY_FILE_DEVICES</span><br><span class="line">    audio_device_.reset(FileAudioFactory::CreateFileAudioDevice());</span><br><span class="line"></span><br><span class="line">    // WEBRTC_WINDOWS_CORE_AUDIO_BUILD</span><br><span class="line">    audio_device_.reset(new AudioDeviceWindowsCore());</span><br><span class="line"></span><br><span class="line">    // WEBRTC_ANDROID</span><br><span class="line">    audio_manager_android_.reset(new AudioManager());</span><br><span class="line">    if(audio_layer == kPlatformDefaultAudio)&#123;</span><br><span class="line">        audio_layer = kAndroidOpenSLESAudio;</span><br><span class="line">    &#125; else if(isLowLatencySupported)&#123;</span><br><span class="line">        audio_layer = kAndroidJavaInputAndroidOpenSLESOutputAudio;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        audio_layer = kAndroidJavaAudio;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if(kAndroidJavaAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceTemplate&lt;AudioRecordJni, AudioTrackJni&gt;())</span><br><span class="line">    &#125; else if(kAndroidOpenSLESAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceTemplate&lt;OpenSLESRecorder, OpenSLESPlayer&gt;());</span><br><span class="line">    &#125; else if(kAndroidJavaInputAndOpenSLESOutputAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceTemplate&lt;AudioRecordJni, OpenSLESPlayer&gt;())</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // WEBRTC_LINUX</span><br><span class="line">    if(kLinuxPulseAudio || kPlatformDefaultAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceLinuxPulse())</span><br><span class="line">    &#125; else if(kLinuxAlsaAudio)&#123;</span><br><span class="line">        audio_device_.reset(new AudioDeviceLinuxALSA())</span><br><span class="line">    &#125;</span><br><span class="line">    // WEBRTC_IOS</span><br><span class="line">    audio_device_.reset(new AudioDeviceIOS())</span><br><span class="line">    // WEBRTC_MAC</span><br><span class="line">    audio_device_.reset(new AudioDeviceMac())</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们以 Android 为例；使用 AudioDeviceTemplate 封装 音频输入（采集）、输出类型（渲染）；<br>目前使用 AudioRecordJni 和 AudioTrackJni。<br>如果直接使用 NDK 的openSLES 开发的化，使用的是 OpenSLESRecorder 和 OpenSLESPlayer。</p>
+<p>audio_manager.h<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// JavaAudioManager</span><br><span class="line">bool Init()</span><br><span class="line">void Close()</span><br><span class="line">bool IsCommunicationModeEnabled()</span><br><span class="line">bool IsDeviceBlacklistedForOpenSLESUsage()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">// private</span><br><span class="line">JNICALL CacheAudioParameters()</span><br><span class="line">void OnCacheAudioParameters()</span><br></pre></td></tr></table></figure></p>
+<p>audio_record_jni.h<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">//JavaAudioRecord</span><br><span class="line">int InitRecording(int sample_reate, size_t channels);</span><br><span class="line">bool StartRecording();</span><br><span class="line">bool StopRecording();</span><br><span class="line">bool EnableBuiltInAEC(bool enable);</span><br><span class="line">bool EnableBuiltInNS(bool enable);</span><br><span class="line"></span><br><span class="line">// public</span><br><span class="line">int32_t Init();</span><br><span class="line">int32_t Terminate();</span><br><span class="line"></span><br><span class="line">int32_t InitRecording();</span><br><span class="line">bool RecordingIsInitialized();</span><br><span class="line"></span><br><span class="line">int32_t StartRecording();</span><br><span class="line">int32_t StopRecording();</span><br><span class="line">bool Recording();</span><br><span class="line"></span><br><span class="line">void AttachAudioBuffer();</span><br><span class="line">int32_t EnableBuiltInAEC(bool enable);</span><br><span class="line">int32_t EnableBuiltInAGC(bool enable);</span><br><span class="line">int32_t EnableBuiltInNS(bool enable);</span><br><span class="line"></span><br><span class="line">// private</span><br><span class="line">JNICALL CacheDirectBufferAddress()</span><br><span class="line">void OnCacheDirectBufferAddress(jobject byte_buffer)</span><br><span class="line"></span><br><span class="line">JNICALL DataIsRecorded();</span><br><span class="line">void OnDataIsRecorded(int length);</span><br></pre></td></tr></table></figure></p>
+<p>audio_track_jni.h</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// JavaAudioTrack</span><br><span class="line">bool InitPlayout(int sample_rate, int channels);</span><br><span class="line">bool StartPlayout();</span><br><span class="line">bool StopPlayout();</span><br><span class="line">bool SetStreamVolume(int volume);</span><br><span class="line">int GetStreamMaxVolume();</span><br><span class="line">int GetStreamVolume();</span><br><span class="line"></span><br><span class="line">// public</span><br><span class="line">Init()</span><br><span class="line">Terminate()</span><br><span class="line">InitPlayout()</span><br><span class="line">PlayoutIsInitialized()</span><br><span class="line">StartPlayout()</span><br><span class="line">StopPlayout()</span><br><span class="line">Playing()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SpeakerVolumeIsAvailable(bool available);</span><br><span class="line">SetSpeakerVolume(volume);</span><br><span class="line">SpeakerVolume(volume);</span><br><span class="line">MaxSpeakerVolume(max_volume);</span><br><span class="line">MinSpeakerVolume(min_volume);</span><br><span class="line">AttachAudioBuffer(audioBuffer);</span><br><span class="line"></span><br><span class="line">// private</span><br><span class="line">JNICALL CacheDirectBufferAddress();</span><br><span class="line">void OnCacheDirectBufferAddress(jobject byte_buffer);</span><br><span class="line"></span><br><span class="line">JNICALL GetPlayoutData();</span><br><span class="line">void OnGetPlayoutData(size_t length);</span><br></pre></td></tr></table></figure>
+<h3 id="AudioRecordJni"><a href="#AudioRecordJni" class="headerlink" title="AudioRecordJni"></a>AudioRecordJni</h3><h4 id="音频采集初始化"><a href="#音频采集初始化" class="headerlink" title="音频采集初始化"></a>音频采集初始化</h4><p>AudioRecordJni 初始化时，在构造方法中初始化 JavaAudioRecord。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">j_audio-record_.reset(</span><br><span class="line">    new JavaAudioRecord()</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>然后在 webrtcvoiceengine 中 AddSendStream 后，SetSend() 配置媒体通道发送。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">//media/engine/webrtcvoiceengine.cc</span><br><span class="line">WebRtcVoiceMediaChannel::SetSend(bool send)&#123;</span><br><span class="line">    ...</span><br><span class="line">    if(send)&#123;</span><br><span class="line">        engine()-&gt;ApplyOptions(options_);</span><br><span class="line">        if(!engine()-&gt;adm()-&gt;RecordingIsInitialized() </span><br><span class="line">        &amp;&amp; !engine()-&gt;adm()-&gt;Recording())&#123;</span><br><span class="line"></span><br><span class="line">            engine()-&gt;adm()-&gt;InitRecording();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里面会初始化 AudioRecord。</p>
+<p>InitRecording() 方法实现，在 Android 中实在 audio_record_jni.cc 的 JavaAudioRecord::InitRecording() ，最终通过 JNI 回调 Java 层的 InitRecording() 方法。</p>
+<h4 id="音频采集"><a href="#音频采集" class="headerlink" title="音频采集"></a>音频采集</h4><p>初始化完成后，就要开始采集音频数据。</p>
+<p>/audio/audio_send_stream.cc<br>音频发送流里面 AudioSendStream::Start() 方法启动音频流发送；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AudioSendSstream::Start()&#123;</span><br><span class="line">    channel_proxy_-&gt;StartSend();</span><br><span class="line">    audio_state()-&gt;AddSendingStream(this, encoder_sample_rate_hz_, encoder_num_channels_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用 /audio/audio_state.cc 的 AudioState::AddSendingStream() 方法；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">AudioState::AddSendingStream()&#123;</span><br><span class="line">    auto* adm = config_.audio_device_module.get();</span><br><span class="line">    ...</span><br><span class="line">    amd-&gt;StartRecording();</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="音频开关"><a href="#音频开关" class="headerlink" title="音频开关"></a>音频开关</h4><p>另外，PeerConnection 提供了 音频采集开关。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//org.webrtc.PeerConnection.java</span><br><span class="line">public void setAudioRecording(boolean recording)&#123;</span><br><span class="line">    nativeSetAudioRecording();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对应的JNI方法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//JNI/pc/peerconnection.cc</span><br><span class="line">void JNI_PeerConnection_SetAudioRecording()&#123;</span><br><span class="line">    ExtractNativePC(jni,j_pc)-&gt;SetAudioRecording(recording);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其实JNI方法也是调用 webrtc 的 peerconnection</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//webrtc/pc/peerconnection.cc</span><br><span class="line">PeerConnection::SetAudioRecording(bool recording)&#123;</span><br><span class="line">    auto audio_state = </span><br><span class="line">        factory_-&gt;channel_manager()-&gt;media_engine()-&gt;GetAudioState();</span><br><span class="line">    // AudioState</span><br><span class="line">    audio_state-&gt;SetRecording(recording);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由上代码可知， 通过 WebRtcVoiceEngine 的 GetAudioState() 方法获取 audio_state。<br>然后通过 audio_state 设置音频采集开关。</p>
+<p>在 AudioState::SetRecording() 方法调用具体设备模块开始或停止音频采集。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//webrtc/audio/audio_state.cc</span><br><span class="line">AudioState::SetRecording(bool enabled)&#123;</span><br><span class="line">    ...</span><br><span class="line">    if(enabled)&#123;</span><br><span class="line">        config_.audio_device_module-&gt;StartRecording();</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        config_.audio_device_module-&gt;StopRecording();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="音频采集具体实现"><a href="#音频采集具体实现" class="headerlink" title="音频采集具体实现"></a>音频采集具体实现</h4><p>这里我们只以Android为例。</p>
+<p>如果使用 opensles ndk 采集音频，采集的具体实现在 opensles_recorder.cc 文件的 StartRecording() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// modules/audio_device/android/opensles_recorder.cc</span><br><span class="line">int OpenSLESRecorder::StartRecording()&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种方法的具体实现我们暂时不深入。</p>
+<p>我们讨论 java 实现方案。</p>
+<p>java 实现的jni类，audio_record_jni.cc<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//modules/audio_device/android/audio_record_jni.cc</span><br><span class="line">AudioRecordJni::StartRecording()&#123;</span><br><span class="line">    ...</span><br><span class="line">    j_audio_record_-&gt;StartRecording()</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>j_audio_record_-&gt;StartRecording() 调用的就是 AudioRecordJni::JavaAudioRecord::StartRecording() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AudioRecordJni::JavaAudioRecord::StartRecording()&#123;</span><br><span class="line">    return audio_record_-&gt;CallBooleanMethod(start_recording_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CallBooleanMethod 就是jni回调java 实现的封装，最终实现回调 WebRtcAudioRecord.java 中的 StartRecording() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//org.webrtc.voiceengine.WebRtcAudioRecord.java </span><br><span class="line">boolean startRecording()&#123;</span><br><span class="line">    audioRecord.startRecording();</span><br><span class="line">    audioThread = new AudioRecordThread(&quot;AudioRecordJavaThread&quot;);</span><br><span class="line">    audioThread.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="音频采集线程"><a href="#音频采集线程" class="headerlink" title="音频采集线程"></a>音频采集线程</h4><p>音频采集线 AudioRecordThread；我们只跟踪 run() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void run()&#123;</span><br><span class="line">    ...</span><br><span class="line">    while(keepAlive)&#123;</span><br><span class="line">        int bytesRead = audioRecord.read(byteBuffer, byteBuffer.capacity());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        // 通知 native 音频数据</span><br><span class="line">        nativeDataIsRecorded(bytesRead, nativeAudioRecord);</span><br><span class="line"></span><br><span class="line">        // 应用音频采集回调</span><br><span class="line">        byte[] data = Arrays.copyOf(byteBuffer.array(), byteBuffer.capacity());</span><br><span class="line">        audioSamplesReadyCallback.onWebRtcAudioRecordSamplesReady(</span><br><span class="line">            new AudioSamples(audioRecord, data)</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2017/08/16/webrtc 音频/" data-id="cjh9cm6tw000tst0c6xnwa4ri" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://yoursite.com/2017/08/16/webrtc 音频/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
+    <article id="post-MK语法规范" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2017/05/07/MK语法规范/">MK语法规范</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/05/07/MK语法规范/">
+            <time datetime="2017-05-07T12:11:15.000Z" itemprop="datePublished">2017-05-07</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/AOSP/">AOSP</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/mk/">mk</a>, <a class="tag-link" href="/tags/编译/">编译</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h1 id="Android-mk文件语法规范及使用模板"><a href="#Android-mk文件语法规范及使用模板" class="headerlink" title="Android.mk文件语法规范及使用模板"></a>Android.mk文件语法规范及使用模板</h1><hr>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction:"></a>Introduction:</h2><p>Android.mk编译文件是用来向Android NDK描述你的C,C++源代码文件的， 这篇文档描述了它的语法。在阅读下面的内容之前，假定你已经阅读了docs/OVERVIEW.TXT文件，了解了它们的用途。</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述:"></a>概述:</h2><p>一个 Android.mk file用来向编译系统描述你的源代码。具体来说：-该文件是GNU Makefile的一小部分，会被编译系统解析一次或更多次的build系统。因此，您应尽量减少您声明的变量，不要认为某些变量在解析过程中不会被定义。-这个文件的语法允许把你的源代码组织成模块，一个模块属下列类型之一：  静态库  、共享库</p>
+<p>只有共享库将被安装/复制到您的应用软件包。虽然静态库能被用于生成共享库。</p>
+<p>你可以在每一个Android.mk file中定义一个或多个模块，你也可以在几个模块中使用同一个源代码文件。</p>
+<hr>
+<p>-编译系统为你处理许多细节问题。例如，你不需要在你的Android.mk中列出头文件和依赖文件。NDK编译系统将会为你自动处理这些问题。这也意味着，在升级NDK后，你应该得到新的toolchain/platform支持，而且不需要改变你的Android.mk文件。</p>
+<p>注意，这个语法同公开发布的Android平台的开源代码很接近，然而编译系统实现他们的方式却是不同的，这是故意这样设计的，可以让程序开发人员重用外部库的源代码更容易。</p>
+<h3 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子:"></a>简单的例子:</h3><hr>
+<p>在描述语法细节之前，咱们来看一个简单的”hello world”的例子，比如，下面的文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sources/helloworld/helloworld.c</span><br><span class="line"></span><br><span class="line">sources/helloworld/Android.mk</span><br></pre></td></tr></table></figure>
+<p>‘helloworld.c’是一个JNI共享库，实现返回”hello world”字符串的原生方法。</p>
+<p>相应的Android.mk文件会象下面这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">---------- cut here ------------------</span><br><span class="line"></span><br><span class="line">LOCAL_PATH := $(call my-dir)</span><br><span class="line"></span><br><span class="line">include $(CLEAR_VARS)</span><br><span class="line"></span><br><span class="line">LOCAL_MODULE:= helloworld</span><br><span class="line"></span><br><span class="line">LOCAL_SRC_FILES := helloworld.c</span><br><span class="line"></span><br><span class="line">include $(BUILD_SHARED_LIBRARY)</span><br><span class="line"></span><br><span class="line">---------- cut here ------------------</span><br></pre></td></tr></table></figure>
+<p>好，我们来解释一下这几行代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_PATH := $(call my-dir)</span><br></pre></td></tr></table></figure>
+<p>一个Android.mk file首先必须定义好LOCAL_PATH变量。它用于在开发树中查找源文件。在这个例子中，宏函数’my-dir’, 由编译系统提供，用于返回当前路径（即包含Android.mk file文件的目录）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include $( CLEAR_VARS)</span><br></pre></td></tr></table></figure>
+<p>CLEAR_VARS由编译系统提供，指定让GNU MAKEFILE为你清除许多LOCAL_XXX变量（例如 LOCAL_MODULE, LOCAL_SRC_FILES, LOCAL_STATIC_LIBRARIES, 等等…),</p>
+<p>除LOCAL_PATH 。这是必要的，因为所有的编译控制文件都在同一个GNU MAKE执行环境中，所有的变量都是全局的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_MODULE := helloworld</span><br></pre></td></tr></table></figure>
+<p>LOCAL_MODULE变量必须定义，以标识你在Android.mk文件中描述的每个模块。名称必须是唯一的，而且不包含任何空格。注意编译系统会自动产生合适的前缀和后缀，换句话说，一个被命名为’foo’的共享库模块，将会生成’libfoo.so’文件。</p>
+<p>重要注意事项</p>
+<p>如果你把库命名为‘libhelloworld’，编译系统将不会添加任何的lib前缀，也会生成libhelloworld.so，这是为了支持来源于Android平台的源代码的Android.mk文件，如果你确实需要这么做的话。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_SRC_FILES := helloworld.c</span><br></pre></td></tr></table></figure>
+<p>LOCAL_SRC_FILES变量必须包含将要编译打包进模块中的C或C++源代码文件。注意，你不用在这里列出头文件和包含文件，因为编译系统将会自动为你找出依赖型的文件；仅仅列出直接传递给编译器的源代码文件就好。【注意，默认的C++源码文件的扩展名是’.cpp’. 指定一个不同的扩展名也是可能的，只要定义LOCAL_DEFAULT_CPP_EXTENSION变量，不要忘记开始的小圆点（也就是定义为‘.cxx’,而不是‘cxx’）（当然这一步我们一般不会去改它）】</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include $(BUILD_SHARED_LIBRARY)</span><br></pre></td></tr></table></figure>
+<p>BUILD_SHARED_LIBRARY是编译系统提供的变量，指向一个GNU Makefile脚本（应该就是在build/core目录下的shared_library.mk），负责收集自从上次调用’include $(CLEAR_VARS)’以来，定义在LOCAL_XXX变量中的所有信息，并且决定编译什么，如何正确地去做。并根据其规则生成静态库。同理对于静态库。</p>
+<hr>
+<p>在sources/samples目录下有更复杂一点的例子，写有注释的Android.mk文件，你可以看看。</p>
+<p>参考:</p>
+<p>这是一份你应该在Android.mk中依赖或定义的变量列表，您可以定义其他变量为自己使用，</p>
+<p>但是NDK编译系统保留下列变量名：</p>
+<p>-以LOCAL_开头的名字（例如 LOCAL_MODULE）</p>
+<p>-以PRIVATE_, NDK_ or APP_开头的名字（内部使用）</p>
+<p>-小写名字（内部使用，例如’my-dir’）</p>
+<p>如果您为了方便在Android.mk中定义自己的变量，我们建议使用MY_前缀，一个小例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">---------- cut here ------------------</span><br><span class="line"></span><br><span class="line">MY_SOURCES := foo.c</span><br><span class="line"></span><br><span class="line">ifneq ($(MY_CONFIG_BAR),)</span><br><span class="line"></span><br><span class="line">MY_SOURCES += bar.c</span><br><span class="line"></span><br><span class="line">endif</span><br><span class="line"></span><br><span class="line">LOCAL_SRC_FILES += $(MY_SOURCES)</span><br><span class="line"></span><br><span class="line">---------- cut here ------------------</span><br></pre></td></tr></table></figure>
+<hr>
+<p>这些GNU Make 变量在你的Android.mk文件解析之前，就由编译系统定义好了。</p>
+<p>注意在某些情况下，NDK可能分析Android.mk几次，每一次某些变量的定义会有不同。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CLEAR_VARS</span><br></pre></td></tr></table></figure>
+<p>指向一个编译脚本，几乎所有未定义的LOCAL_XXX变量都在”Module-description”节中列出。</p>
+<p>你必须在开始一个新模块之前包含这个脚本。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include $(CLEAR_VARS)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BUILD_SHARED_LIBRARY</span><br></pre></td></tr></table></figure>
+<p>指向编译脚本，收集所有的你在LOCAL_XXX变量中提供的信息，并且决定如何把你列出的源代码文件编译成一个共享库。注意，你必须至少在包含这个文件之前定义LOCAL_MODULE和LOCAL_SRC_FILES，使用例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include $(BUILD_SHARED_LIBRARY)</span><br></pre></td></tr></table></figure>
+<p>注意这将生成一个名为lib$(LOCAL_MODULE).so的文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BUILD_STATIC_LIBRARY</span><br></pre></td></tr></table></figure>
+<p>一个BUILD_SHARED_LIBRARY变量用于编译一个静态库。静态库不会复制到你的project/packages中，诞生能够用于编译共享库，（看下面描述的LOCAL_STATIC_LIBRARIES and LOCAL_STATIC_WHOLE_LIBRARIES）</p>
+<p>使用例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include $(BUILD_STATIC_LIBRARY)</span><br></pre></td></tr></table></figure>
+<p>注意，这将会生成一个名为lib$(LOCAL_MODULE).a的文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TARGET_ARCH</span><br></pre></td></tr></table></figure>
+<p>目标CPU平台的名字，如同在android开放源码中指定的那样。如果是’arm’，表示要生成ARM兼容的指令，与CPU架构的修订版无关。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TARGET_PLATFORM</span><br></pre></td></tr></table></figure>
+<p>Android.mk解析的时候，目标Android平台的名字.详情可参考/development/ndk/docs/stable-apis.txt.</p>
+<pre><code>android-3      -&gt; Official Android 1.5 system images
+
+android-4      -&gt; Official Android 1.6 system images
+
+android-5      -&gt; Official Android 2.0 system images
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TARGET_ARCH_ABI</span><br></pre></td></tr></table></figure>
+<p>暂时只支持两个value，armeabi和armeabi-v7a。在现在的版本中一般把这两个值简单的定义为arm，通过android 平台内部对它重定义来获得更好的匹配。</p>
+<p>其他的ＡＢＩ将在以后的ＮＤＫ版本中介绍，它们会有不同的名字。注意所有基于ＡＲＭ的ＡＢＩ都会把’TARGET_ARCH’定义成‘ａｒｍ’，但是会有不同的‘TARGET_ARCH_ABI’</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TARGET_ABI</span><br></pre></td></tr></table></figure>
+<p>　　目标平台和ABI的组合，它事实上被定义成$(TARGET_PLATFORM)-$(TARGET_ARCH_ABI) 在你想要在真实的设备中针对一个特别的目标系统进行测试时，会有用。在默认的情况下，它会是’android-3-arm’。</p>
+<p>/<strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong>*</strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong>/</p>
+<p>下面是GNU Make　‘功能’宏，必须通过使用’$(call <function>)’来求值，他们返回文本化的信息。</function></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">my-dir</span><br></pre></td></tr></table></figure>
+<p>返回当前Android.mk所在的目录路径，相对于ＮＤＫ编译系统的顶层。这是有用的，在Android.mk文件的开头如此定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_PATH := $(call my-dir)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">all-subdir-makefiles</span><br></pre></td></tr></table></figure>
+<p>　　　返回一个位于当前’my-dir’路径的子目录列表。例如，看下面的目录层次：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sources/foo/Android.mk</span><br><span class="line"></span><br><span class="line">sources/foo/lib1/Android.mk</span><br><span class="line"></span><br><span class="line">sources/foo/lib2/Android.mk</span><br></pre></td></tr></table></figure>
+<p>如果sources/foo/Android.mk包含一行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include $(call all-subdir-makefiles)</span><br></pre></td></tr></table></figure>
+<p>那么它就会自动包含sources/foo/lib1/Android.mk 和sources/foo/lib2/Android.mk</p>
+<p>这项功能用于向编译系统提供深层次嵌套的代码目录层次。注意，在默认情况下，ＮＤＫ将会只搜索在sources/*/Android.mk中的文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">this-makefile</span><br></pre></td></tr></table></figure>
+<p>返回当前Makefile的路径（即这个函数调用的地方）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">parent-makefile</span><br></pre></td></tr></table></figure>
+<p>　　返回调用树中父Makefile路径。即包含当前Makefile的Makefile路径。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grand-parent-makefile</span><br></pre></td></tr></table></figure>
+<p>猜猜看…</p>
+<p>/<strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong>*</strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong>/</p>
+<h3 id="模块描述变量"><a href="#模块描述变量" class="headerlink" title="模块描述变量:"></a>模块描述变量:</h3><p>下面的变量用于向编译系统描述你的模块。你应该定义在’include $(CLEAR_VARS)’和’include $(BUILD_XXXXX)’之间定义。正如前面描写的那样，$(CLEAR_VARS是一个脚本，清除所有这些变量，除非在描述中显式注明。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_PATH</span><br></pre></td></tr></table></figure>
+<p>　　这个变量用于给出当前文件的路径。你必须在Android.mk的开头定义，可以这样使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_PATH := $(call my-dir)</span><br></pre></td></tr></table></figure>
+<p>这个变量不会被$(CLEAR_VARS)清除，因此每个Android.mk只需要定义一次（即使你在一个文件中定义了几个模块的情况下）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_MODULE</span><br></pre></td></tr></table></figure>
+<p>这是你模块的名字，它必须是唯一的，而且不能包含空格。你必须在包含任一的$(BUILD_XXXX)脚本之前定义它。模块的名字决定了生成文件的名字，例如，如果一个一个共享库模块的名字是<foo>，那么生成文件的名字就是lib<foo>.so。但是，在你的NDK生成文件中（或者Android.mk或者Application.mk），你应该只涉及(引用)有正常名字的其他模块。</foo></foo></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_SRC_FILES</span><br></pre></td></tr></table></figure>
+<p>这是要编译的源代码文件列表。只要列出要传递给编译器的文件，因为编译系统自动为你计算依赖。</p>
+<p>注意源代码文件名称都是相对于LOCAL_PATH的，你可以使用路径部分，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_SRC_FILES := foo.c \</span><br></pre></td></tr></table></figure>
+<p>toto/bar.c<br>注意：在生成文件中都要使用UNIX风格的斜杠(/).windows风格的反斜杠不会被正确的处理。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_CPP_EXTENSION</span><br></pre></td></tr></table></figure>
+<p>这是一个可选变量，用来指定C++代码文件的扩展名，默认是’.cpp’,但是你可以改变它，比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_CPP_EXTENSION := .cxx</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_C_INCLUDES</span><br></pre></td></tr></table></figure>
+<p>路径的可选配置，是从根目录开始的，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">all sources (C, C++ and Assembly). For example:</span><br><span class="line"></span><br><span class="line">        LOCAL_C_INCLUDES := sources/foo</span><br><span class="line"></span><br><span class="line">    Or even:</span><br><span class="line"></span><br><span class="line">        LOCAL_C_INCLUDES := $(LOCAL_PATH)/../foo</span><br><span class="line"></span><br><span class="line">       需要在任何包含LOCAL_CFLAGS / LOCAL_CPPFLAGS标志之前。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_CFLAGS</span><br></pre></td></tr></table></figure>
+<p>可选的编译器选项，在编译C代码文件的时候使用。</p>
+<p>这可能是有用的，指定一个附加的包含路径（相对于NDK的顶层目录），宏定义，或者编译选项。</p>
+<p>　重要信息：不要在Android.mk中改变optimization/debugging级别，只要在Application.mk中指定合适的信息，就会自动地为你处理这个问题，在调试期间，会让ＮＤＫ自动生成有用的数据文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_CXXFLAGS</span><br><span class="line"></span><br><span class="line">Same as LOCAL_CFLAGS for C++ source files</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_CPPFLAGS</span><br></pre></td></tr></table></figure>
+<p>与LOCAL_CFLAGS相同，但是对C 和　C++ source files都适用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_STATIC_LIBRARIES</span><br></pre></td></tr></table></figure>
+<p>应该链接到这个模块的静态库列表（使用BUILD_STATIC_LIBRARY生成），这仅仅对共享库模块才有意义。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_SHARED_LIBRARIES</span><br></pre></td></tr></table></figure>
+<p>这个模块在运行时要依赖的共享库模块列表，在链接时需要，在生成文件时嵌入的相应的信息。注意：这不会附加列出的模块到编译图，也就是，你仍然需要在Application.mk中把它们添加到程序要求的模块中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_LDLIBS</span><br></pre></td></tr></table></figure>
+<p>编译你的模块要使用的附加的链接器选项。这对于使用”-l”前缀传递指定库的名字是有用的。例如，下面将告诉链接器生成的模块要在加载时刻链接到/system/lib/libz.so</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_LDLIBS := -lz</span><br></pre></td></tr></table></figure>
+<p>看docs/STABLE-APIS.TXT获取你使用NDK发行版能链接到的开放的系统库列表。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_ALLOW_UNDEFINED_SYMBOLS</span><br></pre></td></tr></table></figure>
+<p>　　默认情况下，在试图编译一个共享库时，任何未定义的引用将导致一个“未定义的符号”错误。这对于在你的源代码文件中捕捉错误会有很大的帮助。</p>
+<p>然而，如果你因为某些原因，需要不启动这项检查，把这个变量设为‘ｔｒｕｅ’。注意相应的共享库可能在运行时加载失败。（这个一般尽量不要去设为true）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_ARM_MODE</span><br></pre></td></tr></table></figure>
+<p>默认情况下，arm目标二进制会以thumb的形式生成（16位），你可以通过设置这个变量为arm如果你希望你的module是以32位指令的形式。</p>
+<pre><code>&apos;arm&apos; (32-bit instructions) mode. E.g.:
+
+  LOCAL_ARM_MODE := arm
+</code></pre><p>注意你同样可以在编译的时候告诉系统编译特定的类型，比如</p>
+<pre><code>LOCAL_SRC_FILES := foo.c bar.c.arm
+</code></pre><p>这样就告诉系统总是将bar.c以arm的模式编译，</p>
+<h3 id="Android-mk使用模板"><a href="#Android-mk使用模板" class="headerlink" title="Android.mk使用模板"></a>Android.mk使用模板</h3><p>在一个Android.mk中可以生成多个可执行程序、动态库和静态库。</p>
+<h4 id="1，编译应用程序的模板："><a href="#1，编译应用程序的模板：" class="headerlink" title="1，编译应用程序的模板："></a>1，编译应用程序的模板：</h4><pre><code>#Test Exe
+
+LOCAL_PATH := $(call my-dir)
+
+#include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES:= main.c
+
+LOCAL_MODULE:= test_exe
+
+#LOCAL_C_INCLUDES :=
+
+#LOCAL_STATIC_LIBRARIES :=
+
+#LOCAL_SHARED_LIBRARIES :=
+
+include $(BUILD_EXECUTABLE)
+</code></pre><p>（菜鸟级别解释：:=是赋值的意思，$是引用某变量的值）LOCAL_SRC_FILES中加入源文件路径，LOCAL_C_INCLUDES 中加入所需要包含的头文件路径，LOCAL_STATIC_LIBRARIES加入所需要链接的静态库（<em>.a）的名称，LOCAL_SHARED_LIBRARIES中加入所需要链接的动态库（</em>.so）的名称，LOCAL_MODULE表示模块最终的名称，BUILD_EXECUTABLE表示以一个可执行程序的方式进行编译。</p>
+<h4 id="2，编译静态库的模板："><a href="#2，编译静态库的模板：" class="headerlink" title="2，编译静态库的模板："></a>2，编译静态库的模板：</h4><pre><code>#Test Static Lib
+
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES:= \
+
+          helloworld.c
+
+LOCAL_MODULE:= libtest_static
+
+#LOCAL_C_INCLUDES :=
+
+#LOCAL_STATIC_LIBRARIES :=
+
+#LOCAL_SHARED_LIBRARIES :=
+
+include $(BUILD_STATIC_LIBRARY)
+</code></pre><p>一般的和上面相似，BUILD_STATIC_LIBRARY表示编译一个静态库。</p>
+<h4 id="3，编译动态库的模板："><a href="#3，编译动态库的模板：" class="headerlink" title="3，编译动态库的模板："></a>3，编译动态库的模板：</h4><pre><code>#Test Shared Lib
+
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES:= \
+
+          helloworld.c
+
+LOCAL_MODULE:= libtest_shared
+
+TARGET_PRELINK_MODULES := false
+
+#LOCAL_C_INCLUDES :=
+
+#LOCAL_STATIC_LIBRARIES :=
+
+#LOCAL_SHARED_LIBRARIES :=
+
+ include $(BUILD_SHARED_LIBRARY)
+</code></pre><p>一般的和上面相似，BUILD_SHARED_LIBRARY表示编译一个共享库。</p>
+<p>以上三者的生成结果分别在如下，generic依具体target会变：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">out/target/product/generic/obj/EXECUTABLE</span><br><span class="line"></span><br><span class="line">out/target/product/generic/obj/STATIC_LIBRARY</span><br><span class="line"></span><br><span class="line">out/target/product/generic/obj/SHARED_LIBRARY</span><br></pre></td></tr></table></figure>
+<p>每个模块的目标文件夹分别为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">可执行程序：XXX_intermediates</span><br><span class="line"></span><br><span class="line">静态库：      XXX_static_intermediates</span><br><span class="line"></span><br><span class="line">动态库：      XXX_shared_intermediates</span><br></pre></td></tr></table></figure>
+<p>另外，在Android.mk文件中，还可以指定最后的目标安装路径，用LOCAL_MODULE_PATH和LOCAL_UNSTRIPPED_PATH来指定。不同的文件系统路径用以下的宏进行选择：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">TARGET_ROOT_OUT：表示根文件系统。</span><br><span class="line"></span><br><span class="line">TARGET_OUT：表示system文件系统。</span><br><span class="line"></span><br><span class="line">TARGET_OUT_DATA：表示data文件系统。</span><br></pre></td></tr></table></figure>
+<p>用法如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_MODULE_PATH:=$(TARGET_ROOT_OUT)</span><br></pre></td></tr></table></figure>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2017/05/07/MK语法规范/" data-id="cjh9cm6tg0009st0c1gcgfokk" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://yoursite.com/2017/05/07/MK语法规范/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
     <article id="post-Binder 进程间通讯机制" class="article article-type-post" itemscope itemprop="blogPost">
     <div class="article-inner">
         
@@ -334,7 +994,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/04/11/Binder 进程间通讯机制/" data-id="cjh99mj2w0001p10c0w9vzp6p" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/04/11/Binder 进程间通讯机制/" data-id="cjh9cm6t30000st0c1ek8kv90" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -540,7 +1200,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/04/05/编译系统环境初始化过程/" data-id="cjh99mj480026p10ck2y8esl6" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/04/05/编译系统环境初始化过程/" data-id="cjh9cm6vm002sst0c6jdc4435" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -703,7 +1363,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2017/03/15/添加SE安全策略/" data-id="cjh99mj3b000mp10cmvn5kova" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2017/03/15/添加SE安全策略/" data-id="cjh9cm6tx000xst0cpzw4pj8w" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -866,7 +1526,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/" data-id="cjh99mj3d000qp10ch2bkjut0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/" data-id="cjh9cm6u00012st0c8mr3wmy0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1000,7 +1660,7 @@
 
 </div>
 
-    <a data-url="http://yoursite.com/2016/07/04/Linux vi命令使用方法/" data-id="cjh99mj2z0004p10cb1dhlx0k" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://yoursite.com/2016/07/04/Linux vi命令使用方法/" data-id="cjh9cm6td0005st0clz6c9pdc" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1095,6 +1755,63 @@
                     <li>
                         
                         <div class="item-thumbnail">
+                            <a href="/2018/05/17/JAVA的垃圾回收策略/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
+                            <p class="item-title"><a href="/2018/05/17/JAVA的垃圾回收策略/" class="title">JAVA的垃圾回收策略</a></p>
+                            <p class="item-date"><time datetime="2018-05-16T16:56:50.000Z" itemprop="datePublished">2018-05-17</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/05/14/hexo+icarus/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/备忘录/">备忘录</a></p>
+                            <p class="item-title"><a href="/2018/05/14/hexo+icarus/" class="title">hexo+icarus</a></p>
+                            <p class="item-date"><time datetime="2018-05-13T16:15:50.000Z" itemprop="datePublished">2018-05-14</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/05/13/六大设计模式/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
+                            <p class="item-title"><a href="/2018/05/13/六大设计模式/" class="title">六大设计模式</a></p>
+                            <p class="item-date"><time datetime="2018-05-12T16:51:50.000Z" itemprop="datePublished">2018-05-13</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
                             <a href="/2018/05/10/AnimatedVectorDrawable 总结/" class="thumbnail">
     
     
@@ -1130,63 +1847,6 @@
                         </div>
                     </li>
                 
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/bug记录/">bug记录</a></p>
-                            <p class="item-title"><a href="/2018/03/16/Socket未释放导致的句柄泄露/" class="title">socket未释放导致句柄泄露</a></p>
-                            <p class="item-date"><time datetime="2018-03-16T11:40:50.000Z" itemprop="datePublished">2018-03-16</time></p>
-                        </div>
-                    </li>
-                
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/03/13/线程阻塞和中断的四种方式/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
-                            <p class="item-title"><a href="/2018/03/13/线程阻塞和中断的四种方式/" class="title">线程阻塞和中断的四种方式</a></p>
-                            <p class="item-date"><time datetime="2018-03-13T12:46:25.000Z" itemprop="datePublished">2018-03-13</time></p>
-                        </div>
-                    </li>
-                
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2017/12/11/MQTT相关/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/MQTT/">MQTT</a></p>
-                            <p class="item-title"><a href="/2017/12/11/MQTT相关/" class="title">MQTT相关总结</a></p>
-                            <p class="item-date"><time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time></p>
-                        </div>
-                    </li>
-                
             </ul>
         </div>
     </div>
@@ -1196,7 +1856,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">categories</h3>
         <div class="widget">
-            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li></ul>
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -1205,7 +1865,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -1214,7 +1874,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">tags</h3>
         <div class="widget">
-            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li></ul>
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -1223,7 +1883,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">tag cloud</h3>
         <div class="widget tagcloud">
-            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 10px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/java/" style="font-size: 10px;">java</a> <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a>
+            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 10px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 15px;">java</a> <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 10px;">垃圾回收</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a>
         </div>
     </div>
 
