@@ -25,7 +25,7 @@
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/966283-058c5a6ce57b3125.png">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/966283-55810a48922ac8fe.png">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/966283-b089fd286ca7fc05.png">
-<meta property="og:updated_time" content="2018-05-06T14:19:38.260Z">
+<meta property="og:updated_time" content="2018-05-23T15:31:29.728Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="view 绘制机制">
 <meta name="twitter:description" content="View的绘制和事件处理是两个重要的主题，上一篇《图解 Android事件分发机制》已经把事件的分发机制讲得比较详细了，这一篇是针对View的绘制，View的绘制如果你有所了解，基本分为measure、layout、draw 过程，其中比较难理解就是measure过程，所以本篇文章大幅笔地分析measure过程，相对讲得比较详细，文章也比较长，如果你对View的绘制还不是很懂，对measure过程">
@@ -307,7 +307,6 @@
 <li><p>3、如果如果子View 的layout_xxxx是确定的值（200dp），同上，写多少就是多少，改变不了的（记住，只有设置的确切的值，那么无论怎么测量，大小都是不变的，都是你写的那个值）</p>
 </li>
 </ul>
-<p>到此为止，你是否对MeasureSpec 和三种模式、还有WRAP_CONTENT和MATCH_PARENT有一定的了解了，如果还有任何问题，欢迎在我简书（用户名：Kelin）评论里留言。</p>
 <h2 id="2、View的测量过程主要是在onMeasure-方法"><a href="#2、View的测量过程主要是在onMeasure-方法" class="headerlink" title="2、View的测量过程主要是在onMeasure()方法"></a>2、View的测量过程主要是在onMeasure()方法</h2><p>打开View的源码，找到measure方法，这个方法代码不少，但是测量工作都是在onMeasure()做的，measure方法是final的所以这个方法也不可重写，如果想自定义View的测量，你应该去重写onMeasure()方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">measure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>&#123;</span><br><span class="line">  ......</span><br><span class="line">  onMeasure(widthMeasureSpec,heightMeasureSpec);</span><br><span class="line">  .....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="3、View的onMeasure-的默认实现"><a href="#3、View的onMeasure-的默认实现" class="headerlink" title="3、View的onMeasure 的默认实现"></a>3、View的onMeasure 的默认实现</h2><p>打开View.java 的源码来看下onMeasure的实现</p>
@@ -367,7 +366,7 @@
 <p>最终算出id/view的mMeasureWidth=1440px,mMeasureHeight=600px。</p>
 <p>id/linear 的子View的高度都计算完毕了，接下来id/linear就通过所有子View的测量结果计算自己的高宽，id/linear是LinearLayout，所有它的高度计算简单理解就是子View的高度的累积+自己的Padding.<br><img src="https://upload-images.jianshu.io/upload_images/966283-b089fd286ca7fc05.png" alt="image"></p>
 <p>最终算出id/linear的mMeasureWidth=1440px,mMeasureHeight=987px。</p>
-<p>最终算出id/linear出来后，id/content 就要根据它唯一的子View id/linear 的测量结果和自己的之前算出的MeasureSpec一起来测量自己的结果，具体计算的逻辑去看FrameLayout onMeasure 函数的计算过程。以此类推，接下来测量ViewRoot,然后再测量id/statusBarBackground,虽然不知道id/statusBarBackground 是什么，但是调试的过程中，测出的它的高度=100px, 和 id/content 的paddingTop 刚好相等。在最后测量DecorView 的高宽，最终整个测量过程结束。所有的View的大小测量完毕。所有的getMeasureWidth 和 getMeasureWidth 都已经有值了。Measure 分析到此为止，如有不懂，评论留言（简书：kelin）</p>
+<p>最终算出id/linear出来后，id/content 就要根据它唯一的子View id/linear 的测量结果和自己的之前算出的MeasureSpec一起来测量自己的结果，具体计算的逻辑去看FrameLayout onMeasure 函数的计算过程。以此类推，接下来测量ViewRoot,然后再测量id/statusBarBackground,虽然不知道id/statusBarBackground 是什么，但是调试的过程中，测出的它的高度=100px, 和 id/content 的paddingTop 刚好相等。在最后测量DecorView 的高宽，最终整个测量过程结束。所有的View的大小测量完毕。所有的getMeasureWidth 和 getMeasureWidth 都已经有值了。Measure 分析到此为止</p>
 <h1 id="layout过程"><a href="#layout过程" class="headerlink" title="layout过程"></a>layout过程</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mView.measure(childWidthMeasureSpec, childHeightMeasureSpec); </span><br><span class="line">......</span><br><span class="line">mView.layout(0, 0, mView.getMeasuredWidth(), mView.getMeasuredHeight());</span><br></pre></td></tr></table></figure>
 <p>performTraversals 方法执行完mView.measure 计算出mMeasuredXXX后就开始执行layout 函数来确定View具体放在哪个位置，我们计算出来的View目前只知道view矩阵的大小，具体这个矩阵放在哪里，这就是layout 的工作了。layout的主要作用 ：根据子视图的大小以及布局参数将View树放到合适的位置上。</p>
 <p>既然是通过mView.layout(0, 0, mView.getMeasuredWidth(), mView.getMeasuredHeight()); 那我们来看下layout 函数做了什么，mView肯定是个ViewGroup，不会是View,我们直接看下ViewGroup 的layout函数</p>
@@ -406,7 +405,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjhiul1t4000y89y2t1iir8ee" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjhj9obfy000tft0cys1ecgim" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
