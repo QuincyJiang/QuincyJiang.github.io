@@ -277,17 +277,19 @@
 <h5 id="1-标记清除算法"><a href="#1-标记清除算法" class="headerlink" title="1. 标记清除算法"></a>1. 标记清除算法</h5><p>两步走</p>
 <ul>
 <li>标记 标记出无用的对象</li>
-<li>清除 清除掉对象的空间<br><img src="https://upload-images.jianshu.io/upload_images/715464-fc0e522c2f77c4ab.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/540" alt="image"><br>可以看到 优缺点很明显</li>
+<li>清除 清除掉对象的空间</li>
 </ul>
+<p>可以看到 优缺点很明显</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">缺点：容易造成内存碎片，当下次申请大内存的时候，可能找不到连续的内存给其使用，会频繁出发gc，</span><br><span class="line"></span><br><span class="line">优点：是算法比较简单。</span><br></pre></td></tr></table></figure>
+<p><img src="/media/1.png" alt="1"></p>
 <p>因为标记无用对象耗时，可以看出 标记清除算法比较适合于 垃圾少，存活对象多的情况，可以减少标记次数。在分代回收算法中，它一般应用在老年代（对象存活率高，需要回收的少）</p>
-<h5 id="2-复制算法（也被成为拷贝回收算法）"><a href="#2-复制算法（也被成为拷贝回收算法）" class="headerlink" title="2. 复制算法（也被成为拷贝回收算法）"></a>2. 复制算法（也被成为拷贝回收算法）</h5><p>此方法将内存按容量分为两块，例如A、B两块，每次只使用其中的一块，当要进行回收操作时，将A中还存活的对象复制到B块中（假设上次使用A），然后对A中所有对象清空就又构成一个完整的内存块。这种方法就避免了标记清除的内存碎片问题。<br><img src="https://upload-images.jianshu.io/upload_images/715464-dc608f70f2c1decd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/511" alt="image"></p>
+<h5 id="2-复制算法（也被成为拷贝回收算法）"><a href="#2-复制算法（也被成为拷贝回收算法）" class="headerlink" title="2. 复制算法（也被成为拷贝回收算法）"></a>2. 复制算法（也被成为拷贝回收算法）</h5><p>此方法将内存按容量分为两块，例如A、B两块，每次只使用其中的一块，当要进行回收操作时，将A中还存活的对象复制到B块中（假设上次使用A），然后对A中所有对象清空就又构成一个完整的内存块。这种方法就避免了标记清除的内存碎片问题。<br><img src="/media/2.png" alt="2"></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">优点：不会产生内存碎片</span><br><span class="line"></span><br><span class="line">缺点： 会浪费内存，因为不管A块中有多少存活对象，都只能使用内存的一半，AB块中始终有一块为空，属于用空间换时间。 分代回收法中新生代的部分，使用的是该算法。</span><br></pre></td></tr></table></figure>
 <p>适合存活对象少 回收对象多的情况，因为存活对象多复制的过程就长一些，算法效率会受影响。</p>
 <h5 id="3-标记整理算法"><a href="#3-标记整理算法" class="headerlink" title="3. 标记整理算法"></a>3. 标记整理算法</h5><p>解决了上述两种算法的缺点，但也带来了新的缺点，就是算法效率不够高。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 标记存活对象</span><br><span class="line">2. 移动对象到左上角</span><br><span class="line">3. 将其他空间全部回收</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">优点： 不会产生内存碎片 不会造成空间使用浪费</span><br><span class="line"></span><br><span class="line">缺点：标记的过程导致其效率不如复制算法，移动的过程，导致其效率不如标记算法。</span><br></pre></td></tr></table></figure>
-<p><img src="https://upload-images.jianshu.io/upload_images/715464-59e3d36bee590be1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/679" alt="image"></p>
+<p><img src="/media/3.png" alt="3"></p>
 <p>适合存活对象多</p>
 <h5 id="4-分代回收算法"><a href="#4-分代回收算法" class="headerlink" title="4. 分代回收算法"></a>4. 分代回收算法</h5><p>该算法其实是上述三种算法的组合，因为上述三种算法都有其适用的适用情景，不可能适用所有情况，分代回收算法就是根据jvm里不同对象的存活特性来组合使用上述三种算法。</p>
 <p>jvm按照对象生命周期将内存划分为两个区域。</p>
@@ -300,18 +302,20 @@
 </ul>
 <p>一般是生命周期长的对象，回收频率很低，只有当老年代内存占满了之后，才会触发一次full gc，或称之为（major gc）。</p>
 <p>内存的具体划分</p>
-<p><img src="https://pic4.zhimg.com/80/v2-2a4b12f1a7633839bd1c5bdae358f9ba_hd.jpg" alt="image"></p>
+<p><img src="/media/4.jpg" alt="4"></p>
 <p>可以看到 </p>
 <p>新生代又被分为Eden 区 和 s1，s2区。s1 s2是为了拷贝算法划分的乒乓区域。他们大小是相同的。</p>
 <h5 id="2-分代回收算法的具体回收过程"><a href="#2-分代回收算法的具体回收过程" class="headerlink" title="2. 分代回收算法的具体回收过程"></a>2. 分代回收算法的具体回收过程</h5><ol>
-<li>新生对象全部在Eden区域活动，当Eden区域满了之后，会触发一次minor gc  将Eden区域中还能用的的对象拷贝到From区域。<br><img src="https://img-blog.csdn.net/20161101200530361" alt="image"><br>此时 Eden区域的空间被清空，存活对象在From区。</li>
-<li>当From区域满了之后，会再次触发monor gc，将Eden和From区域中还可用的对象拷贝到To区域中。<br><img src="https://img-blog.csdn.net/20161101200709299" alt="image"><br>此时 Eden 和From区的空间被清空。</li>
+<li>新生对象全部在Eden区域活动，当Eden区域满了之后，会触发一次minor gc  将Eden区域中还能用的的对象拷贝到From区域。<br><img src="/media/5.png" alt="5"></li>
 </ol>
+<p>此时 Eden区域的空间被清空，存活对象在From区。</p>
+<ol start="2">
+<li>当From区域满了之后，会再次触发monor gc，将Eden和From区域中还可用的对象拷贝到To区域中。<br><img src="/media/6.png" alt="6"></li>
+</ol>
+<p>此时 Eden 和From区的空间被清空。</p>
 <ol start="3">
-<li><p>当To的空间满了之后，会再次触发minor gc，此时会将Eden 和To 空间中还存活的对象拷贝到From区。Eden 和To space被清空。<br><img src="https://img-blog.csdn.net/20161101200920951" alt="image"></p>
-</li>
-<li><p>在多次minor gc之后，有些对象会一直在from和to 区域之间来回拷贝，此时会被算法标注为老年代对象，gc会将该对象从新生代直接拷贝到老年代。<br>JVM虚拟机默认的反复拷贝次数为==15次==。如果对象在From 到 to区域中反复拷贝了15次，就会被划分为老年代。<br><img src="https://img-blog.csdn.net/20161101201239084" alt="image"></p>
-</li>
+<li>当To的空间满了之后，会再次触发minor gc，此时会将Eden 和To 空间中还存活的对象拷贝到From区。Eden 和To space被清空。<br><img src="/media/7.png" alt="7"></li>
+<li>在多次minor gc之后，有些对象会一直在from和to 区域之间来回拷贝，此时会被算法标注为老年代对象，gc会将该对象从新生代直接拷贝到老年代。<br>JVM虚拟机默认的反复拷贝次数为==15次==。如果对象在From 到 to区域中反复拷贝了15次，就会被划分为老年代。<br><img src="/media/8.png" alt="8"></li>
 <li>对象进入老年代之后，当老年代内存区域也满了，便会触发一次Full gc， 此时使用的算法是标记算法和标记整理算法。</li>
 <li>为什么老年代的gc 不使用拷贝算法，因为老年代中的对象大多是存活率高的对象，使用拷贝算法要创建一个很大的新内存空间来做拷贝，这样很浪费资源。为什么不只使用标记算法，因为这样会导致内存碎片。使用标记清除算法，会将存活对象做地址移动，都集中在一块连续地址空间中，防止产生内存碎片。</li>
 <li>所monor gc的时候，是用空间换时间，因为该gc发生频繁，效率是首要考虑的问题。 而full gc的时候，腾出空间更重要，所以选择用时间（使用标注整理算法）换空间。</li>
@@ -324,7 +328,8 @@
 <li>必须存活</li>
 <li>必须有其他引用（因为要以它自己去遍历引用关系）</li>
 </ol>
-<p><img src="https://images2015.cnblogs.com/blog/975131/201607/975131-20160715211141123-1331326167.png" alt="image"><br>jvm 运行时内存</p>
+<p>jvm 运行时内存</p>
+<p><img src="/media/9.png" alt="9"></p>
 <p>所以“GC roots”，或者说tracing GC的“根集合”，就是一组必须==活跃==的==引用==。<br>具体包括以下几种：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. Class 由System Class Loader/Boot Class Loader加载的类，类似于java.util.*包下的类，因为它</span><br><span class="line">一定是贯穿于整个生命周期的，可以以此为根遍历出去找到其他引用的类。被引用到的就一定是存活的。</span><br><span class="line"><span class="number">2</span>. Thread 对象，已激活但是未结束的线程对象；</span><br><span class="line"><span class="number">3</span>. Stack Local 栈中的对象。每个线程都会分配一个栈，栈中的局部变量或者参数的引用都是GC root，因为仍在栈中，表明方法还没执行完，对象仍存活，（执行后的方法会出栈，就不满足存活条件了），同时是引用对象。</span><br><span class="line"><span class="number">4</span>.JNI Local JNI中的局部变量和参数引用的对象；可能在JNI中定义的，也可能在虚拟机中定义</span><br><span class="line"><span class="number">5</span>. JNI Global JNI中的全局变量引用的对象；同上</span><br><span class="line"><span class="number">6</span>. Monitor Used 用于保证同步的对象，例如wait()，notify()中使用的对象、锁等。</span><br><span class="line"><span class="number">7</span>. Held by JVM JVM持有的对象。JVM为了特殊用途保留的对象，它与JVM的具体实现有关。比如有System Class Loader, 一些Exceptions对象，和一些其它的ClassLoader。对于这些类，JVM也没有过多的信息。</span><br><span class="line"><span class="number">8</span>. 静态数据结构指向对象堆的引用。</span><br></pre></td></tr></table></figure>
 <p>关于1 2 我举几个具体例子来说明一下：</p>
@@ -389,7 +394,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhj9obfg0005ft0c60fcglky" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhk0ablg0006s3y2pbi8z12s" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -564,7 +569,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjhj9obff0004ft0co4dst5xl" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjhk0abll000cs3y2nyc1keeu" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -736,6 +741,11 @@
 <h4 id="a-清除第三方主题的远程仓库"><a href="#a-清除第三方主题的远程仓库" class="headerlink" title="a 清除第三方主题的远程仓库"></a>a 清除第三方主题的远程仓库</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd themes/icarus/</span><br><span class="line">rm -rf .git</span><br></pre></td></tr></table></figure>
 <h4 id="b-修改主题目录下的gitignore文件"><a href="#b-修改主题目录下的gitignore文件" class="headerlink" title="b 修改主题目录下的gitignore文件"></a>b 修改主题目录下的gitignore文件</h4><p>因为主题的config配置文件我们也要托管起来，对博客的自定义配置主要都是在这里修改的。<br>修改很简单 删除忽略文件中的config.yml就好了</p>
 <h4 id="c-创建版本库并与远程仓库链接"><a href="#c-创建版本库并与远程仓库链接" class="headerlink" title="c 创建版本库并与远程仓库链接"></a>c 创建版本库并与远程仓库链接</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cd ../../</span><br><span class="line">git init</span><br><span class="line">git add . </span><br><span class="line">git remote add origin https://github/com/QuincyJiang/blog.git</span><br><span class="line">git commit -m &quot;init commit&quot;</span><br><span class="line">git push -u origin master</span><br></pre></td></tr></table></figure>
+<h1 id="关于博客贴图"><a href="#关于博客贴图" class="headerlink" title="关于博客贴图"></a>关于博客贴图</h1><p>一般使用md文件写博客的时候，贴图是最痛苦的事情，一般是现将图片上传到图床之后，再获取图片链接。<br>这边安利一个软件 Mweb md文件编辑器，它可以用拖拽的方式来贴图，图片可以直接上传到github上。<a href="http://zh.mweb.im/" target="_blank" rel="noopener">官网地址了解一下</a></p>
+<p>用法非常简单</p>
+<h3 id="下载安装"><a href="#下载安装" class="headerlink" title="下载安装"></a>下载安装</h3><h3 id="选择外部模式"><a href="#选择外部模式" class="headerlink" title="选择外部模式"></a>选择外部模式</h3><p><img src="/media/15271330198211.jpg" alt=""></p>
+<h3 id="点击右下角的加号-将hexo-博客的source文件夹添加进去"><a href="#点击右下角的加号-将hexo-博客的source文件夹添加进去" class="headerlink" title="点击右下角的加号 将hexo 博客的source文件夹添加进去"></a>点击右下角的加号 将hexo 博客的source文件夹添加进去</h3><h3 id="编辑该folders，右键点击folder"><a href="#编辑该folders，右键点击folder" class="headerlink" title="编辑该folders，右键点击folder"></a>编辑该folders，右键点击folder</h3><p><img src="/media/15271331311378.jpg" alt=""></p>
+<h3 id="选择图片保存路径以及路径类型"><a href="#选择图片保存路径以及路径类型" class="headerlink" title="选择图片保存路径以及路径类型"></a>选择图片保存路径以及路径类型</h3><p><img src="/media/15271331832680.jpg" alt=""></p>
 <h1 id="切换电脑后重新恢复博客环境"><a href="#切换电脑后重新恢复博客环境" class="headerlink" title="切换电脑后重新恢复博客环境"></a>切换电脑后重新恢复博客环境</h1><h3 id="克隆博客源码"><a href="#克隆博客源码" class="headerlink" title="克隆博客源码"></a>克隆博客源码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github/com/QuincyJiang/blog.git</span><br></pre></td></tr></table></figure>
 <h3 id="配置基础环境"><a href="#配置基础环境" class="headerlink" title="配置基础环境"></a>配置基础环境</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">安装node</span><br><span class="line">安装git</span><br><span class="line">配置公钥到github</span><br></pre></td></tr></table></figure>
 <h3 id="安装hexo-1"><a href="#安装hexo-1" class="headerlink" title="安装hexo"></a>安装hexo</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo</span><br><span class="line">npm install hexo --save</span><br><span class="line">npm install hexo-server</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
@@ -750,7 +760,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjhj9obfv000mft0c2q16fthn" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjhk0ablo000hs3y2lcz39mlj" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1013,7 +1023,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjhj9obg10010ft0c24p7xa7b" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjhk0abm10019s3y250u6a2g5" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1147,13 +1157,18 @@
 <ul>
 <li>strokeWidth: 线的粗细</li>
 <li>trimPathStart: 绘制线段起始点偏移的百分比 </li>
-<li>这么说起来其实有点抽象，用一张图来解释会更加直观一些<br><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/A201CE3001F34F0E93FA08F8F18FB8D9/3433" alt="image"></li>
+<li>这么说起来其实有点抽象，用一张图来解释会更加直观一些</li>
 </ul>
+<p><img src="/media/1-1.png" alt="1"></p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0"</span><br><span class="line">android:trimPathEnd="1"/&gt;</span><br></pre></td></tr></table></figure>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/437E587CB9704EDF953BFE1F60CDD79F/3436" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0"</span><br><span class="line">android:trimPathEnd="0.75"/&gt;</span><br></pre></td></tr></table></figure></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/073C2DBFC90C4B959DE5BB2CA7343E7F/3434" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.5"</span><br><span class="line">android:trimPathEnd="0.75"/&gt;</span><br></pre></td></tr></table></figure></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/FA0FF500CEAD4F5EA9B19DFC8430BF14/3435" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.25"</span><br><span class="line">android:trimPathEnd="0.75"</span><br><span class="line">android:trimPathOffset="0.25"/&gt;</span><br></pre></td></tr></table></figure></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/58466D2A0A82463C8BB0AA3C7FCF715C/3438" alt="image"><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.25"</span><br><span class="line">android:trimPathEnd="0.75"</span><br><span class="line">android:trimPathOffset="0.375"/&gt;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/media/2-1.png" alt="2"></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0"</span><br><span class="line">android:trimPathEnd="0.75"/&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/media/3-1.png" alt="3"></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.5"</span><br><span class="line">android:trimPathEnd="0.75"/&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/media/4.png" alt="4"></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.25"</span><br><span class="line">android:trimPathEnd="0.75"</span><br><span class="line">android:trimPathOffset="0.25"/&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/media/5-1.png" alt="5"></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">android:trimPathStart="0.25"</span><br><span class="line">android:trimPathEnd="0.75"</span><br><span class="line">android:trimPathOffset="0.375"/&gt;</span><br></pre></td></tr></table></figure>
 <p>其实这几张图片连在一起看，你会发现只要将这几个数值重复循环，这就成了一个进度条动画了。<br>下面正式讲解文章主角 </p>
 <h2 id="AnimatedVectorDrawable"><a href="#AnimatedVectorDrawable" class="headerlink" title="AnimatedVectorDrawable"></a>AnimatedVectorDrawable</h2><p>听名字其实可以猜到，它主要是靠两个东西来实现的</p>
 <ul>
@@ -1175,34 +1190,35 @@
 </ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Paths:(support-library 25.3以上 支持变换path数据)</span><br><span class="line">Color:</span><br><span class="line">Opacity:</span><br><span class="line">Trim start /end /offset</span><br><span class="line">Path:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Groups:</span><br><span class="line">Translate:</span><br><span class="line">Scale:</span><br><span class="line">Rotate:</span><br></pre></td></tr></table></figure>
 <h3 id="paths分组下"><a href="#paths分组下" class="headerlink" title="paths分组下"></a>paths分组下</h3><p>我们可以对颜色 不透明度 起始点偏移量 还有path元数据进行变换</p>
-<h4 id="动画1"><a href="#动画1" class="headerlink" title="动画1"></a>动画1</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/36520B59B24E40309D3F34AA4925F3A1/3505" alt="image"></p>
+<h4 id="动画1"><a href="#动画1" class="headerlink" title="动画1"></a>动画1</h4><p><img src="/media/6.gif" alt="6"></p>
 <p>这是通过动态变换paths分组下的start end的偏移位置，做到x变为对号，同时通过groups分组下的<br>translate 来动态改变位置图像在变化前后还保持中心位置</p>
 <p>其实通过trim属性，我们可以做到更多炫酷的动画效果，可以先看下面这个动画</p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/1AD156AC9EFE4D7BAA9CB4E3EF8D04E4/3520" alt="image"></p>
-<p>它的完整路径其实是这样的</p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/D1E2710E1D8146ECBBE830E7A12B6FF1/3523" alt="image"></p>
+<p><img src="/media/7.gif" alt="7"></p>
+<p>它的完整路径其实是这样的<br><img src="/media/8.gif" alt="8"></p>
 <p>只是通过变换trim的值，让其部分不可见便实现了上述效果</p>
-<h3 id="动画2"><a href="#动画2" class="headerlink" title="动画2"></a>动画2</h3><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/AA8F9653DD2E477EAA021A2FCC4098A9/3577" alt="image"></p>
+<h3 id="动画2"><a href="#动画2" class="headerlink" title="动画2"></a>动画2</h3><p><img src="/media/9.gif" alt="9"></p>
 <p>本质是将碎裂的心分为两组图片，心的填充颜色默认为白色，点击填充是更改了透明度opacity，裂开的动画是使用groups中的rotation动画</p>
 <h2 id="Path-Morphing"><a href="#Path-Morphing" class="headerlink" title="Path Morphing"></a>Path Morphing</h2><p>我们还可以直接对path元数据进行变换 </p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ObjectAnimator</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:propertyName</span>=<span class="string">"pathData"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueFrom</span>=<span class="string">"M6.4,6.4 L17.6,17.6 M6.4,17.6 L17.6 ,6.4"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueTo</span>=<span class="string">"M6,10 L4,10 ..."</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:duration</span>=<span class="string">"200"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:valueType</span>=<span class="string">"pathType"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">...</span></span></span><br></pre></td></tr></table></figure>
 <p><strong>但进行path变换的前提是</strong><br><strong>前后两条path路径 他们的绘制点数量和绘制命令必须是相同的<br>就比如上面代码中 变换前是4个点 变换后也必须是四个点 而且 m l m l 的顺序不可以改变</strong></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/BFFB93AAA87E44B8A9B4A5CA7208BBA6/3579" alt="image"></p>
-<p>上面这种 两个正方形 大小变了 形状没变，我们可以选定点的四个点作为变换参考点，只需要改变下四个点的前后坐标就可以了，绘制流程是不变的，符合要求，但如果变换前后是这样的呢？<br><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/61824E98C71D434E922CF7AEE414E4C1/3581" alt="image"></p>
+<p><img src="/media/10.gif" alt="10"></p>
+<p>上面这种 两个正方形 大小变了 形状没变，我们可以选定点的四个点作为变换参考点，只需要改变下四个点的前后坐标就可以了，绘制流程是不变的，符合要求，但如果变换前后是这样的呢？</p>
+<p><img src="/media/11.gif" alt="11"></p>
 <p>圆是没有顶点的，这时候只能变通一下，这样来选择四个点，同时要将连接点与点之间的命令由L （直线）改为C（曲线），这样可以通过控制贝塞尔曲线的控制点坐标，达到绘制圆弧和直线的效果。<br>你可以通过设置更多的控制点 来达到更顺滑的变换效果</p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/A2A9FA92731B4B9CA42B965207475945/3583" alt="image"></p>
+<p><img src="/media/12.gif" alt="12"></p>
 <p>进行path变换 因为要操作控制点坐标，也带来了下面几个问题</p>
 <h4 id="1-无法精确获取点的坐标"><a href="#1-无法精确获取点的坐标" class="headerlink" title="1.无法精确获取点的坐标"></a>1.无法精确获取点的坐标</h4><p>我们绘制的矢量图 一般用的是sketch之类的软件，<br>它并不能让我们直接选择变换的点，比如上面的圆，只能得到一个半径和圆心坐标，无法精准的获取四个或者更多控制点的坐标</p>
 <h4 id="2-点与点之间无法重叠"><a href="#2-点与点之间无法重叠" class="headerlink" title="2.点与点之间无法重叠"></a>2.点与点之间无法重叠</h4><h4 id="3-不能直观的看到动画中间状态的样子"><a href="#3-不能直观的看到动画中间状态的样子" class="headerlink" title="3.不能直观的看到动画中间状态的样子"></a>3.不能直观的看到动画中间状态的样子</h4><p>有时候点选择的不合理，会导致变换中间产生一些非常奇怪的形状，类似sketch之类的设计工具并不能直观看到变化中间态的样子</p>
 <p>幸运的是 有个工具可以很好解决上述的三个问题</p>
 <p>是一个在线预览工具，<a href="https://shapeshifter.design/" target="_blank" rel="noopener">shapeshafter</a></p>
 <p>官方的详细介绍 <a href="http://www.androiddesignpatterns.com/2016/11/introduction-to-icon-animation-techniques.html" target="_blank" rel="noopener">在这里</a><br>我这边以创建一个-号到+号的变换动画为例，简单介绍下用法</p>
-<h5 id="1-上传两张svg图片"><a href="#1-上传两张svg图片" class="headerlink" title="1. 上传两张svg图片"></a>1. 上传两张svg图片</h5><p>分别表示的是变换前，变换后<br><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE3158c893d5e0815abb83b97b2b4def10/3588" alt="image"></p>
-<h4 id="2-复制第二个涂层的pathdata后，删除该图层"><a href="#2-复制第二个涂层的pathdata后，删除该图层" class="headerlink" title="2.复制第二个涂层的pathdata后，删除该图层"></a>2.复制第二个涂层的pathdata后，删除该图层</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE060f9ae7adf7ce1c99f4c524c29d86fd/3589" alt="image"></p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE61d5eb6a60bea13e3c6a8aef6bc538e2/3590" alt="image"></p>
-<h4 id="3-调整第一张图，选择要变换的数据是pathdata，并将变化后-也即第二张图的pathdata-粘贴进去"><a href="#3-调整第一张图，选择要变换的数据是pathdata，并将变化后-也即第二张图的pathdata-粘贴进去" class="headerlink" title="3. 调整第一张图，选择要变换的数据是pathdata，并将变化后 也即第二张图的pathdata 粘贴进去"></a>3. 调整第一张图，选择要变换的数据是pathdata，并将变化后 也即第二张图的pathdata 粘贴进去</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCEb4fda6557ac02bfd5d6ac837eb1fe426/3593" alt="image"></p>
+<h5 id="1-上传两张svg图片"><a href="#1-上传两张svg图片" class="headerlink" title="1. 上传两张svg图片"></a>1. 上传两张svg图片</h5><p>分别表示的是变换前，变换后</p>
+<p><img src="/media/13.jpg" alt="13"></p>
+<h4 id="2-复制第二个涂层的pathdata后，删除该图层"><a href="#2-复制第二个涂层的pathdata后，删除该图层" class="headerlink" title="2.复制第二个涂层的pathdata后，删除该图层"></a>2.复制第二个涂层的pathdata后，删除该图层</h4><p><img src="/media/14.jpg" alt="14"></p>
+<p><img src="/media/15-1.jpg" alt="15"></p>
+<h4 id="3-调整第一张图，选择要变换的数据是pathdata，并将变化后-也即第二张图的pathdata-粘贴进去"><a href="#3-调整第一张图，选择要变换的数据是pathdata，并将变化后-也即第二张图的pathdata-粘贴进去" class="headerlink" title="3. 调整第一张图，选择要变换的数据是pathdata，并将变化后 也即第二张图的pathdata 粘贴进去"></a>3. 调整第一张图，选择要变换的数据是pathdata，并将变化后 也即第二张图的pathdata 粘贴进去</h4><p><img src="/media/16.jpg" alt="16"></p>
 <p>这时候因为“+”和“-”的节点数不一致，会报错提示，可以点击修改pathdata 按钮去手动删减增加一些节点数据</p>
-<p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE72cbd215442bfa5a09c6f4dedffa16d8/3596" alt="image"></p>
+<p><img src="/media/17.jpg" alt="17"></p>
 <h4 id="4-妥善选择好前后的节点位置，就可以点击下方播放按钮直观查看变化效果了，不满意可以修改节点，知道达到预期目标。"><a href="#4-妥善选择好前后的节点位置，就可以点击下方播放按钮直观查看变化效果了，不满意可以修改节点，知道达到预期目标。" class="headerlink" title="4.妥善选择好前后的节点位置，就可以点击下方播放按钮直观查看变化效果了，不满意可以修改节点，知道达到预期目标。"></a>4.妥善选择好前后的节点位置，就可以点击下方播放按钮直观查看变化效果了，不满意可以修改节点，知道达到预期目标。</h4><hr>
 <blockquote>
 <p>待续</p>
@@ -1218,7 +1234,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjhj9obf70000ft0c3uya624w" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjhk0abl90002s3y2bf0q168p" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1537,7 +1553,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjhj9obfn000gft0c4s6dlitf" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjhk0ablw000ys3y2e447nhip" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1682,7 +1698,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjhj9obfu000lft0ca77fi3jq" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjhk0abln000ds3y2he00pbo8" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1828,7 +1844,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjhj9obg40019ft0cemdq12gp" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjhk0abm2001cs3y21eiqk2mh" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2016,7 +2032,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjhj9obfl000eft0cxe4rplkb" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjhk0ablt000ps3y2mza7qn6h" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2161,7 +2177,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjhj9obfx000qft0czzu8cog7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjhk0ablq000js3y2dvra1ev0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding

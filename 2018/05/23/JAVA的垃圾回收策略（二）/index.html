@@ -13,20 +13,20 @@
 <meta property="og:site_name" content="瘟疫青年">
 <meta property="og:description" content="上文说到了一个java对象的生命周期以及生存位置本文主要讲 jvm虚拟机如何判定一个对象是否是垃圾，以及以何种算法回收垃圾。 GC的工作流程1. 判定那些对象已成为垃圾jvm一般有两种方法判断对象是否成为垃圾 1. 引用标记算法1.流程 给每一个对象都增加一个引用计数器 每次对象新增一个引用的时候，该计数器+1 当该引用对象失效（比如超出了作用域）==【注1】==，该引用计数器-1 当该对象的引用">
 <meta property="og:locale" content="en">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/715464-fc0e522c2f77c4ab.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/540">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/715464-dc608f70f2c1decd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/511">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/715464-59e3d36bee590be1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/679">
-<meta property="og:image" content="https://pic4.zhimg.com/80/v2-2a4b12f1a7633839bd1c5bdae358f9ba_hd.jpg">
-<meta property="og:image" content="https://img-blog.csdn.net/20161101200530361">
-<meta property="og:image" content="https://img-blog.csdn.net/20161101200709299">
-<meta property="og:image" content="https://img-blog.csdn.net/20161101200920951">
-<meta property="og:image" content="https://img-blog.csdn.net/20161101201239084">
-<meta property="og:image" content="https://images2015.cnblogs.com/blog/975131/201607/975131-20160715211141123-1331326167.png">
-<meta property="og:updated_time" content="2018-05-23T08:29:26.156Z">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/1.png">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/2.png">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/3.png">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/4.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/5.png">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/6.png">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/7.png">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/8.png">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/9.png">
+<meta property="og:updated_time" content="2018-05-24T03:46:18.907Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JAVA的垃圾回收策略（二）">
 <meta name="twitter:description" content="上文说到了一个java对象的生命周期以及生存位置本文主要讲 jvm虚拟机如何判定一个对象是否是垃圾，以及以何种算法回收垃圾。 GC的工作流程1. 判定那些对象已成为垃圾jvm一般有两种方法判断对象是否成为垃圾 1. 引用标记算法1.流程 给每一个对象都增加一个引用计数器 每次对象新增一个引用的时候，该计数器+1 当该引用对象失效（比如超出了作用域）==【注1】==，该引用计数器-1 当该对象的引用">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/715464-fc0e522c2f77c4ab.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/540">
+<meta name="twitter:image" content="http://wenyiqingnian.xyz/media/1.png">
     
 
     
@@ -291,17 +291,19 @@
 <h5 id="1-标记清除算法"><a href="#1-标记清除算法" class="headerlink" title="1. 标记清除算法"></a>1. 标记清除算法</h5><p>两步走</p>
 <ul>
 <li>标记 标记出无用的对象</li>
-<li>清除 清除掉对象的空间<br><img src="https://upload-images.jianshu.io/upload_images/715464-fc0e522c2f77c4ab.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/540" alt="image"><br>可以看到 优缺点很明显</li>
+<li>清除 清除掉对象的空间</li>
 </ul>
+<p>可以看到 优缺点很明显</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">缺点：容易造成内存碎片，当下次申请大内存的时候，可能找不到连续的内存给其使用，会频繁出发gc，</span><br><span class="line"></span><br><span class="line">优点：是算法比较简单。</span><br></pre></td></tr></table></figure>
+<p><img src="/media/1.png" alt="1"></p>
 <p>因为标记无用对象耗时，可以看出 标记清除算法比较适合于 垃圾少，存活对象多的情况，可以减少标记次数。在分代回收算法中，它一般应用在老年代（对象存活率高，需要回收的少）</p>
-<h5 id="2-复制算法（也被成为拷贝回收算法）"><a href="#2-复制算法（也被成为拷贝回收算法）" class="headerlink" title="2. 复制算法（也被成为拷贝回收算法）"></a>2. 复制算法（也被成为拷贝回收算法）</h5><p>此方法将内存按容量分为两块，例如A、B两块，每次只使用其中的一块，当要进行回收操作时，将A中还存活的对象复制到B块中（假设上次使用A），然后对A中所有对象清空就又构成一个完整的内存块。这种方法就避免了标记清除的内存碎片问题。<br><img src="https://upload-images.jianshu.io/upload_images/715464-dc608f70f2c1decd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/511" alt="image"></p>
+<h5 id="2-复制算法（也被成为拷贝回收算法）"><a href="#2-复制算法（也被成为拷贝回收算法）" class="headerlink" title="2. 复制算法（也被成为拷贝回收算法）"></a>2. 复制算法（也被成为拷贝回收算法）</h5><p>此方法将内存按容量分为两块，例如A、B两块，每次只使用其中的一块，当要进行回收操作时，将A中还存活的对象复制到B块中（假设上次使用A），然后对A中所有对象清空就又构成一个完整的内存块。这种方法就避免了标记清除的内存碎片问题。<br><img src="/media/2.png" alt="2"></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">优点：不会产生内存碎片</span><br><span class="line"></span><br><span class="line">缺点： 会浪费内存，因为不管A块中有多少存活对象，都只能使用内存的一半，AB块中始终有一块为空，属于用空间换时间。 分代回收法中新生代的部分，使用的是该算法。</span><br></pre></td></tr></table></figure>
 <p>适合存活对象少 回收对象多的情况，因为存活对象多复制的过程就长一些，算法效率会受影响。</p>
 <h5 id="3-标记整理算法"><a href="#3-标记整理算法" class="headerlink" title="3. 标记整理算法"></a>3. 标记整理算法</h5><p>解决了上述两种算法的缺点，但也带来了新的缺点，就是算法效率不够高。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 标记存活对象</span><br><span class="line">2. 移动对象到左上角</span><br><span class="line">3. 将其他空间全部回收</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">优点： 不会产生内存碎片 不会造成空间使用浪费</span><br><span class="line"></span><br><span class="line">缺点：标记的过程导致其效率不如复制算法，移动的过程，导致其效率不如标记算法。</span><br></pre></td></tr></table></figure>
-<p><img src="https://upload-images.jianshu.io/upload_images/715464-59e3d36bee590be1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/679" alt="image"></p>
+<p><img src="/media/3.png" alt="3"></p>
 <p>适合存活对象多</p>
 <h5 id="4-分代回收算法"><a href="#4-分代回收算法" class="headerlink" title="4. 分代回收算法"></a>4. 分代回收算法</h5><p>该算法其实是上述三种算法的组合，因为上述三种算法都有其适用的适用情景，不可能适用所有情况，分代回收算法就是根据jvm里不同对象的存活特性来组合使用上述三种算法。</p>
 <p>jvm按照对象生命周期将内存划分为两个区域。</p>
@@ -314,18 +316,20 @@
 </ul>
 <p>一般是生命周期长的对象，回收频率很低，只有当老年代内存占满了之后，才会触发一次full gc，或称之为（major gc）。</p>
 <p>内存的具体划分</p>
-<p><img src="https://pic4.zhimg.com/80/v2-2a4b12f1a7633839bd1c5bdae358f9ba_hd.jpg" alt="image"></p>
+<p><img src="/media/4.jpg" alt="4"></p>
 <p>可以看到 </p>
 <p>新生代又被分为Eden 区 和 s1，s2区。s1 s2是为了拷贝算法划分的乒乓区域。他们大小是相同的。</p>
 <h5 id="2-分代回收算法的具体回收过程"><a href="#2-分代回收算法的具体回收过程" class="headerlink" title="2. 分代回收算法的具体回收过程"></a>2. 分代回收算法的具体回收过程</h5><ol>
-<li>新生对象全部在Eden区域活动，当Eden区域满了之后，会触发一次minor gc  将Eden区域中还能用的的对象拷贝到From区域。<br><img src="https://img-blog.csdn.net/20161101200530361" alt="image"><br>此时 Eden区域的空间被清空，存活对象在From区。</li>
-<li>当From区域满了之后，会再次触发monor gc，将Eden和From区域中还可用的对象拷贝到To区域中。<br><img src="https://img-blog.csdn.net/20161101200709299" alt="image"><br>此时 Eden 和From区的空间被清空。</li>
+<li>新生对象全部在Eden区域活动，当Eden区域满了之后，会触发一次minor gc  将Eden区域中还能用的的对象拷贝到From区域。<br><img src="/media/5.png" alt="5"></li>
 </ol>
+<p>此时 Eden区域的空间被清空，存活对象在From区。</p>
+<ol start="2">
+<li>当From区域满了之后，会再次触发monor gc，将Eden和From区域中还可用的对象拷贝到To区域中。<br><img src="/media/6.png" alt="6"></li>
+</ol>
+<p>此时 Eden 和From区的空间被清空。</p>
 <ol start="3">
-<li><p>当To的空间满了之后，会再次触发minor gc，此时会将Eden 和To 空间中还存活的对象拷贝到From区。Eden 和To space被清空。<br><img src="https://img-blog.csdn.net/20161101200920951" alt="image"></p>
-</li>
-<li><p>在多次minor gc之后，有些对象会一直在from和to 区域之间来回拷贝，此时会被算法标注为老年代对象，gc会将该对象从新生代直接拷贝到老年代。<br>JVM虚拟机默认的反复拷贝次数为==15次==。如果对象在From 到 to区域中反复拷贝了15次，就会被划分为老年代。<br><img src="https://img-blog.csdn.net/20161101201239084" alt="image"></p>
-</li>
+<li>当To的空间满了之后，会再次触发minor gc，此时会将Eden 和To 空间中还存活的对象拷贝到From区。Eden 和To space被清空。<br><img src="/media/7.png" alt="7"></li>
+<li>在多次minor gc之后，有些对象会一直在from和to 区域之间来回拷贝，此时会被算法标注为老年代对象，gc会将该对象从新生代直接拷贝到老年代。<br>JVM虚拟机默认的反复拷贝次数为==15次==。如果对象在From 到 to区域中反复拷贝了15次，就会被划分为老年代。<br><img src="/media/8.png" alt="8"></li>
 <li>对象进入老年代之后，当老年代内存区域也满了，便会触发一次Full gc， 此时使用的算法是标记算法和标记整理算法。</li>
 <li>为什么老年代的gc 不使用拷贝算法，因为老年代中的对象大多是存活率高的对象，使用拷贝算法要创建一个很大的新内存空间来做拷贝，这样很浪费资源。为什么不只使用标记算法，因为这样会导致内存碎片。使用标记清除算法，会将存活对象做地址移动，都集中在一块连续地址空间中，防止产生内存碎片。</li>
 <li>所monor gc的时候，是用空间换时间，因为该gc发生频繁，效率是首要考虑的问题。 而full gc的时候，腾出空间更重要，所以选择用时间（使用标注整理算法）换空间。</li>
@@ -338,7 +342,8 @@
 <li>必须存活</li>
 <li>必须有其他引用（因为要以它自己去遍历引用关系）</li>
 </ol>
-<p><img src="https://images2015.cnblogs.com/blog/975131/201607/975131-20160715211141123-1331326167.png" alt="image"><br>jvm 运行时内存</p>
+<p>jvm 运行时内存</p>
+<p><img src="/media/9.png" alt="9"></p>
 <p>所以“GC roots”，或者说tracing GC的“根集合”，就是一组必须==活跃==的==引用==。<br>具体包括以下几种：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. Class 由System Class Loader/Boot Class Loader加载的类，类似于java.util.*包下的类，因为它</span><br><span class="line">一定是贯穿于整个生命周期的，可以以此为根遍历出去找到其他引用的类。被引用到的就一定是存活的。</span><br><span class="line"><span class="number">2</span>. Thread 对象，已激活但是未结束的线程对象；</span><br><span class="line"><span class="number">3</span>. Stack Local 栈中的对象。每个线程都会分配一个栈，栈中的局部变量或者参数的引用都是GC root，因为仍在栈中，表明方法还没执行完，对象仍存活，（执行后的方法会出栈，就不满足存活条件了），同时是引用对象。</span><br><span class="line"><span class="number">4</span>.JNI Local JNI中的局部变量和参数引用的对象；可能在JNI中定义的，也可能在虚拟机中定义</span><br><span class="line"><span class="number">5</span>. JNI Global JNI中的全局变量引用的对象；同上</span><br><span class="line"><span class="number">6</span>. Monitor Used 用于保证同步的对象，例如wait()，notify()中使用的对象、锁等。</span><br><span class="line"><span class="number">7</span>. Held by JVM JVM持有的对象。JVM为了特殊用途保留的对象，它与JVM的具体实现有关。比如有System Class Loader, 一些Exceptions对象，和一些其它的ClassLoader。对于这些类，JVM也没有过多的信息。</span><br><span class="line"><span class="number">8</span>. 静态数据结构指向对象堆的引用。</span><br></pre></td></tr></table></figure>
 <p>关于1 2 我举几个具体例子来说明一下：</p>
@@ -403,7 +408,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhj9obfg0005ft0c60fcglky" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhk0ablg0006s3y2pbi8z12s" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
