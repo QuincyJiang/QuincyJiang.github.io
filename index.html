@@ -154,11 +154,11 @@
         </div>
         <div class="article-info profile-block">
             <div class="article-info-block">
-                19
+                22
                 <span>posts</span>
             </div>
             <div class="article-info-block">
-                24
+                26
                 <span>tags</span>
             </div>
         </div>
@@ -195,6 +195,567 @@
 
             
             <section id="main">
+    <article id="post-理解Liunx的FD与Inode" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2018/06/02/理解Liunx的FD与Inode/">理解Linux的FD与Inode</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/06/02/理解Liunx的FD与Inode/">
+            <time datetime="2018-06-02T08:30:15.000Z" itemprop="datePublished">2018-06-02</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/linux/">linux</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h1 id="FD-文件描述符"><a href="#FD-文件描述符" class="headerlink" title="FD 文件描述符"></a>FD 文件描述符</h1><h2 id="一、概念"><a href="#一、概念" class="headerlink" title="一、概念"></a>一、概念</h2><p>　　Linux 系统中，把一切都看做是文件，当进程打开现有文件或创建新文件时，内核向进程返回一个文件描述符，文件描述符就是内核为了高效管理已被打开的文件所创建的索引，用来指向被打开的文件，所有执行I/O操作的系统调用都会通过文件描述符。</p>
+<h2 id="二、文件描述符、文件、进程间的关系"><a href="#二、文件描述符、文件、进程间的关系" class="headerlink" title="二、文件描述符、文件、进程间的关系"></a>二、文件描述符、文件、进程间的关系</h2><p>###1.描述：<br>我们可以通过linux的几个基本的I/O操作函数来理解什么是文件操作符。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">fd = open(pathname, flags, mode)</span><br><span class="line"><span class="comment">// 返回了该文件的fd</span></span><br><span class="line">rlen = read(fd, buf, count)</span><br><span class="line"><span class="comment">// IO操作均需要传入该文件的fd值</span></span><br><span class="line">wlen = write(fd, buf, count)</span><br><span class="line">status = close(fd)</span><br></pre></td></tr></table></figure>
+<p>每当进程用<code>open（）</code>函数打开一个文件，内核便会返回该文件的文件操作符（一个非负的整形值），此后所有对该文件的操作，都会以返回的fd文件操作符为参数。【注1】</p>
+<blockquote>
+<p>注1： <strong>文件描述符</strong>可以理解为进程文件描述表这个表的<strong>索引</strong>，或者把文件描述表看做一个数组的话，文件描述符可以看做是数组的下标。当需要进行I/O操作的时候，会传入fd作为参数，先从进程文件描述符表查找该fd对应的那个条目，取出对应的那个已经打开的文件的<strong>句柄</strong>，根据文件句柄指向，去系统fd表中查找到该文件指向的<strong>inode</strong>，从而定位到该文件的真正位置，从而进行I/O操作。</p>
+</blockquote>
+<ul>
+<li><p>每个文件描述符会与一个打开的文件相对应</p>
+</li>
+<li><p>不同的文件描述符也可能指向同一个文件</p>
+</li>
+<li><p>相同的文件可以被不同的进程打开，也可以在同一个进程被多次打开</p>
+</li>
+</ul>
+<p>###2.系统为维护文件描述符，建立了三个表</p>
+<ul>
+<li><p>进程级的文件描述符表</p>
+</li>
+<li><p>系统级的文件描述符表</p>
+</li>
+<li><p>文件系统的i-node表 (inode 见下文)</p>
+</li>
+</ul>
+<h4 id="进程级别的文件描述表："><a href="#进程级别的文件描述表：" class="headerlink" title="进程级别的文件描述表："></a>进程级别的文件描述表：</h4><p>linux内核会为每一个进程创建一个<code>task_truct</code>结构体来维护进程信息，称之为 进程描述符，该结构体中 指针 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">files_struct</span> *<span class="title">files</span></span></span><br></pre></td></tr></table></figure></p>
+<p>指向一个名称为<code>file_struct</code>的结构体，该结构体即 进程级别的文件描述表。</p>
+<p>它的每一个条目记录的是单个文件描述符的相关信息</p>
+<ol>
+<li>fd控制标志，前内核仅定义了一个，即close-on-exec</li>
+<li>文件描述符所打开的文件句柄的引用【注2】</li>
+</ol>
+<blockquote>
+<p>[注释2]：文件句柄这里可以理解为文件名，或者文件的全路径名，因为linux文件系统文件名和文件是独立的，以此与inode区分</p>
+</blockquote>
+<h4 id="系统级别的文件描述符表"><a href="#系统级别的文件描述符表" class="headerlink" title="系统级别的文件描述符表"></a>系统级别的文件描述符表</h4><p>内核对系统中所有打开的文件维护了一个描述符表，也被称之为 【打开文件表】，表格中的每一项被称之为 【打开文件句柄】，一个【打开文件句柄】 描述了一个打开文件的全部信息。<br>主要包括：</p>
+<ol>
+<li>当前文件偏移量（调用read()和write()时更新，或使用lseek()直接修改）</li>
+<li>打开文件时所使用的状态标识（即，open()的flags参数）</li>
+<li>文件访问模式（如调用open()时所设置的只读模式、只写模式或读写模式）</li>
+<li>与信号驱动相关的设置</li>
+<li>对该文件i-node对象的引用</li>
+<li>文件类型（例如：常规文件、套接字或FIFO）和访问权限</li>
+<li>一个指针，指向该文件所持有的锁列表</li>
+<li>文件的各种属性，包括文件大小以及与不同类型操作相关的时间戳 </li>
+</ol>
+<h4 id="Inode表"><a href="#Inode表" class="headerlink" title="Inode表"></a>Inode表</h4><p> 每个文件系统会为存储于其上的所有文件(包括目录)维护一个i-node表，单个i-node包含以下信息：</p>
+<ol>
+<li>文件类型(file type)，可以是常规文件、目录、套接字或FIFO</li>
+<li>访问权限</li>
+<li>文件锁列表(file locks)</li>
+<li>文件大小<br>等等<br>i-node存储在磁盘设备上，内核在内存中维护了一个副本，这里的i-node表为后者。副本除了原有信息，还包括：引用计数(从打开文件描述体)、所在设备号以及一些临时属性，例如文件锁。</li>
+</ol>
+<p><img src="/media/15279154636960.jpg" alt=""></p>
+<blockquote>
+<p>注：进程A的fd表中，左边fd0，fd1，fd2… 就是各个文件描述符，它是fd表的索引，fd不是表里那个fd flags！这里不要搞混淆了，fd flags 目前只有一个取值。</p>
+</blockquote>
+<p>在进程A中，文件描述符1和30都指向了同一个打开的文件句柄（标号23）。这可能是通过调用dup()、dup2()、fcntl()或者对同一个文件多次调用了open()函数而形成的。<br><strong>dup（）</strong>，也称之为<strong>文件描述符复制函数</strong>，在某些场景下非常有用，比如：标准输入/输出重定向。在shell下，完成这个操作非常简单，大部分人都会，但是极少人思考过背后的原理。</p>
+<p>大概描述一下需要的几个步骤，以标准输出(文件描述符为1)重定向为例：</p>
+<ol>
+<li>打开目标文件，返回文件描述符n；</li>
+<li>关闭文件描述符1；</li>
+<li>调用dup将文件描述符n复制到1；</li>
+<li>关闭文件描述符n；</li>
+</ol>
+<p>进程A的文件描述符2和进程B的文件描述符2都指向了同一个打开的文件句柄（标号73）。这种情形可能是在调用fork()后出现的（即，进程A、B是父子进程关系）【注3】，或者当某进程通过UNIX域套接字将一个打开的文件描述符传递给另一个进程时，也会发生。再者是不同的进程独自去调用open函数打开了同一个文件，此时进程内部的描述符正好分配到与其他进程打开该文件的描述符一样。</p>
+<blockquote>
+<p>注3： 子进程会继承父进程的文件描述符表，也就是子进程继承父进程打开的文件 这句话的由来。</p>
+</blockquote>
+<p>此外，进程A的描述符0和进程B的描述符3分别指向不同的打开文件句柄，但这些句柄均指向i-node表的相同条目（1976），换言之，指向同一个文件。发生这种情况是因为每个进程各自对同一个文件发起了open()调用。同一个进程两次打开同一个文件，也会发生类似情况。</p>
+<p>##三、文件描述符限制<br>　　有资源的地方就有战争，“文件描述符”也是一种资源，系统中的每个进程都需要有“文件描述符”才能进行改变世界的宏图霸业。世界需要秩序，于是就有了“文件描述符限制”的规定。</p>
+<p>如下表：<br><img src="/media/15279200633321.jpg" alt=""></p>
+<p>永久修改用户级限制时有三种设置类型：</p>
+<ul>
+<li><p>soft 指的是当前系统生效的设置值</p>
+</li>
+<li><p>hard 指的是系统中所能设定的最大值</p>
+</li>
+<li><p>“-” 指的是同时设置了 soft 和 hard 的值</p>
+</li>
+</ul>
+<h1 id="Inode-文件节点"><a href="#Inode-文件节点" class="headerlink" title="Inode 文件节点"></a>Inode 文件节点</h1><h2 id="一、inode是什么？"><a href="#一、inode是什么？" class="headerlink" title="一、inode是什么？"></a>一、inode是什么？</h2><p>理解inode，要从文件储存说起。</p>
+<p>文件储存在硬盘上，硬盘的最小存储单位叫做”扇区”（Sector）。每个扇区储存512字节（相当于0.5KB）。</p>
+<p>操作系统读取硬盘的时候，不会一个个扇区地读取，这样效率太低，而是一次性连续读取多个扇区，即一次性读取一个”块”（block）。这种由多个扇区组成的”块”，是文件存取的最小单位。”块”的大小，最常见的是4KB，即连续八个 sector组成一个 block。</p>
+<p>文件数据都储存在”块”中，那么很显然，我们还必须找到一个地方储存文件的元信息，比如文件的创建者、文件的创建日期、文件的大小等等。这种储存文件元信息的区域就叫做inode，中文译名为”索引节点”。</p>
+<p>每一个文件都有对应的inode，里面包含了与该文件有关的一些信息。</p>
+<h2 id="二、inode的内容"><a href="#二、inode的内容" class="headerlink" title="二、inode的内容"></a>二、inode的内容</h2><p>inode包含文件的元信息，具体来说有以下内容：</p>
+<ul>
+<li>文件的字节数</li>
+<li>文件拥有者的User ID</li>
+<li>文件的Group ID</li>
+<li>文件的读、写、执行权限</li>
+<li>文件的时间戳，共有三个：ctime指inode上一次变动的时间，mtime指文件内容上一次变动的时间，atime指文件上一次打开的时间。</li>
+<li>链接数，即有多少文件名指向这个inode</li>
+<li>文件数据block的位置</li>
+</ul>
+<p>可以用<code>stat</code>命令，查看某个文件的inode信息：<br>　<code>stat 233.txt</code><br>　<img src="/media/15279145480304.jpg" alt=""></p>
+<p>总之，除了文件名以外的所有文件信息，都存在inode之中。至于为什么没有文件名，下文会有详细解释。</p>
+<h2 id="s三、inode的大小"><a href="#s三、inode的大小" class="headerlink" title="s三、inode的大小"></a>s三、inode的大小</h2><p>inode也会消耗硬盘空间，所以硬盘格式化的时候，操作系统自动将硬盘分成两个区域。一个是数据区，存放文件数据；另一个是inode区（inode table），存放inode所包含的信息。</p>
+<p>每个inode节点的大小，一般是128字节或256字节。inode节点的总数，在格式化时就给定，一般是每1KB或每2KB就设置一个inode。假定在一块1GB的硬盘中，每个inode节点的大小为128字节，每1KB就设置一个inode，那么inode table的大小就会达到128MB，占整块硬盘的12.8%。</p>
+<p>查看每个硬盘分区的inode总数和已经使用的数量，可以使用df命令。</p>
+<p>　　<code>df -i</code><br><img src="/media/15279146030394.jpg" alt=""></p>
+<p>查看每个inode节点的大小，可以用如下命令：</p>
+<p>　<code>sudo dumpe2fs -h /dev/hda | grep &quot;Inode size&quot;</code></p>
+<p>由于每个文件都必须有一个inode，因此有可能发生inode已经用光，但是硬盘还未存满的情况。这时，就无法在硬盘上创建新文件。</p>
+<h2 id="四、inode号码"><a href="#四、inode号码" class="headerlink" title="四、inode号码"></a>四、inode号码</h2><p>每个inode都有一个号码，操作系统用inode号码来识别不同的文件。</p>
+<p>这里值得重复一遍，Unix/Linux系统内部不使用文件名，而使用inode号码来识别文件。对于系统来说，文件名只是inode号码便于识别的别称或者绰号。</p>
+<p>表面上，用户通过文件名，打开文件。实际上，系统内部这个过程分成三步：首先，系统找到这个文件名对应的inode号码；其次，通过inode号码，获取inode信息；最后，根据inode信息，找到文件数据所在的block，读出数据。</p>
+<p>使用ls -i命令，可以看到文件名对应的inode号码：</p>
+<p><code>ls -i 233.txt</code></p>
+<p><img src="/media/15279146959888.jpg" alt=""></p>
+<p>五、目录文件</p>
+<p>Unix/Linux系统中，目录（directory）也是一种文件。打开目录，实际上就是打开目录文件。</p>
+<p>目录文件的结构非常简单，就是一系列目录项（dirent）的列表。每个目录项，由两部分组成：所包含文件的文件名，以及该文件名对应的inode号码。</p>
+<p>ls命令只列出目录文件中的所有文件名：</p>
+<p>　<code>ls /etc</code></p>
+<p>ls -i命令列出整个目录文件，即文件名和inode号码：</p>
+<p>　　<code>ls -i /etc</code></p>
+<p>如果要查看文件的详细信息，就必须根据inode号码，访问inode节点，读取信息。ls -l命令列出文件的详细信息。</p>
+<p>　　<code>ls -l /etc</code></p>
+<p>理解了上面这些知识，就能理解目录的权限。目录文件的读权限（r）和写权限（w），都是针对目录文件本身。由于目录文件内只有文件名和inode号码，所以如果只有读权限，只能获取文件名，无法获取其他信息，因为其他信息都储存在inode节点中，而读取inode节点内的信息需要目录文件的执行权限（x）。</p>
+<h2 id="六、硬链接"><a href="#六、硬链接" class="headerlink" title="六、硬链接"></a>六、硬链接</h2><p>一般情况下，文件名和inode号码是”一一对应”关系，每个inode号码对应一个文件名。但是，Unix/Linux系统允许，多个文件名指向同一个inode号码。</p>
+<p>这意味着，可以用不同的文件名访问同样的内容；对文件内容进行修改，会影响到所有文件名；但是，删除一个文件名，不影响另一个文件名的访问。这种情况就被称为”硬链接”（hard link）。</p>
+<p>ln命令可以创建硬链接：</p>
+<p>　　<code>ln 源文件 目标文件</code></p>
+<p>运行上面这条命令以后，源文件与目标文件的inode号码相同，都指向同一个inode。inode信息中有一项叫做”链接数”，记录指向该inode的文件名总数，这时就会增加1。</p>
+<p>反过来，删除一个文件名，就会使得inode节点中的”链接数”减1。当这个值减到0，表明没有文件名指向这个inode，系统就会回收这个inode号码，以及其所对应block区域。</p>
+<p>这里顺便说一下目录文件的”链接数”。创建目录时，默认会生成两个目录项：”.”和”..”。前者的inode号码就是当前目录的inode号码，等同于当前目录的”硬链接”；后者的inode号码就是当前目录的父目录的inode号码，等同于父目录的”硬链接”。所以，任何一个目录的”硬链接”总数，总是等于2加上它的子目录总数（含隐藏目录）。</p>
+<h2 id="七、软链接"><a href="#七、软链接" class="headerlink" title="七、软链接"></a>七、软链接</h2><p>除了硬链接以外，还有一种特殊情况。</p>
+<p>文件A和文件B的inode号码虽然不一样，但是文件A的内容是文件B的路径。读取文件A时，系统会自动将访问者导向文件B。因此，无论打开哪一个文件，最终读取的都是文件B。这时，文件A就称为文件B的”软链接”（soft link）或者”符号链接（symbolic link）。</p>
+<p>这意味着，文件A依赖于文件B而存在，如果删除了文件B，打开文件A就会报错：”No such file or directory”。这是软链接与硬链接最大的不同：文件A指向文件B的文件名，而不是文件B的inode号码，文件B的inode”链接数”不会因此发生变化。</p>
+<p><strong>ln -s命令可以创建软链接</strong>。</p>
+<p>　　<code>ln -s 源文文件或目录 目标文件或目录</code></p>
+<h2 id="八、inode的特殊作用"><a href="#八、inode的特殊作用" class="headerlink" title="八、inode的特殊作用"></a>八、inode的特殊作用</h2><p>由于inode号码与文件名分离，这种机制导致了一些Unix/Linux系统特有的现象。</p>
+<ul>
+<li><p>有时，文件名包含特殊字符，无法正常删除。这时，直接删除inode节点，就能起到删除文件的作用。</p>
+</li>
+<li><p>移动文件或重命名文件，只是改变文件名，不影响inode号码。</p>
+</li>
+<li><p>打开一个文件以后，系统就以inode号码来识别这个文件，不再考虑文件名。因此，通常来说，系统无法从inode号码得知文件名。</p>
+</li>
+</ul>
+<p>第3点使得软件更新变得简单，可以在不关闭软件的情况下进行更新，不需要重启。因为系统通过inode号码，识别运行中的文件，不通过文件名。更新的时候，新版文件以同样的文件名，生成一个新的inode，不会影响到运行中的文件。等到下一次运行这个软件的时候，文件名就自动指向新版文件，旧版文件的inode则被回收。</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2018/06/02/理解Liunx的FD与Inode/" data-id="cjhx4hoi00017yny2vm1mmn6d" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2018/06/02/理解Liunx的FD与Inode/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
+    <article id="post-Docker入门" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2018/05/30/Docker入门/">Docker入门</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/05/30/Docker入门/">
+            <time datetime="2018-05-30T07:56:50.000Z" itemprop="datePublished">2018-05-30</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/容器技术/">容器技术</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/docker/">docker</a>, <a class="tag-link" href="/tags/容器/">容器</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <p>Docker是目前最火的Linux容器解决方案，真正做到一劳永逸的解决环境配置和依赖问题，而且可以方便的修改、分享，版本管理，本篇文章摘选自 <strong>阮一峰的博客</strong>：<a href="http://www.ruanyifeng.com/blog/2018/02/docker-tutorial.html" target="_blank" rel="noopener">Docker 入门教程
+</a></p>
+<h1 id="一、环境配置的难题"><a href="#一、环境配置的难题" class="headerlink" title="一、环境配置的难题"></a>一、环境配置的难题</h1><p>软件开发最大的麻烦事之一，就是环境配置。用户计算机的环境都不相同，你怎么知道自家的软件，能在那些机器跑起来？</p>
+<p>用户必须保证两件事：操作系统的设置，各种库和组件的安装。只有它们都正确，软件才能运行。举例来说，安装一个 Python 应用，计算机必须有 Python 引擎，还必须有各种依赖，可能还要配置环境变量。</p>
+<p>如果某些老旧的模块与当前环境不兼容，那就麻烦了。开发者常常会说：”它在我的机器可以跑了”（It works on my machine），言下之意就是，其他机器很可能跑不了。</p>
+<p>环境配置如此麻烦，换一台机器，就要重来一次，旷日费时。很多人想到，能不能从根本上解决问题，软件可以带环境安装？也就是说，安装的时候，把原始环境一模一样地复制过来。</p>
+<h1 id="二、虚拟机"><a href="#二、虚拟机" class="headerlink" title="二、虚拟机"></a>二、虚拟机</h1><p>虚拟机（virtual machine）就是带环境安装的一种解决方案。它可以在一种操作系统里面运行另一种操作系统，比如在 Windows 系统里面运行 Linux 系统。应用程序对此毫无感知，因为虚拟机看上去跟真实系统一模一样，而对于底层系统来说，虚拟机就是一个普通文件，不需要了就删掉，对其他部分毫无影响。</p>
+<p>虽然用户可以通过虚拟机还原软件的原始环境。但是，这个方案有几个缺点。</p>
+<ul>
+<li>（1）资源占用多</li>
+</ul>
+<p>虚拟机会独占一部分内存和硬盘空间。它运行的时候，其他程序就不能使用这些资源了。哪怕虚拟机里面的应用程序，真正使用的内存只有 1MB，虚拟机依然需要几百 MB 的内存才能运行。</p>
+<ul>
+<li>（2）冗余步骤多</li>
+</ul>
+<p>虚拟机是完整的操作系统，一些系统级别的操作步骤，往往无法跳过，比如用户登录。</p>
+<ul>
+<li>（3）启动慢</li>
+</ul>
+<p>启动操作系统需要多久，启动虚拟机就需要多久。可能要等几分钟，应用程序才能真正运行。</p>
+<h1 id="三、Linux-容器"><a href="#三、Linux-容器" class="headerlink" title="三、Linux 容器"></a>三、Linux 容器</h1><p>由于虚拟机存在这些缺点，Linux 发展出了另一种虚拟化技术：Linux 容器（Linux Containers，缩写为 LXC）。</p>
+<p>Linux 容器不是模拟一个完整的操作系统，而是对进程进行隔离。或者说，在正常进程的外面套了一个保护层。对于容器里面的进程来说，它接触到的各种资源都是虚拟的，从而实现与底层系统的隔离。</p>
+<p>由于容器是进程级别的，相比虚拟机有很多优势。</p>
+<ul>
+<li>（1）启动快</li>
+</ul>
+<p>容器里面的应用，直接就是底层系统的一个进程，而不是虚拟机内部的进程。所以，启动容器相当于启动本机的一个进程，而不是启动一个操作系统，速度就快很多。</p>
+<ul>
+<li>（2）资源占用少</li>
+</ul>
+<p>容器只占用需要的资源，不占用那些没有用到的资源；虚拟机由于是完整的操作系统，不可避免要占用所有资源。另外，多个容器可以共享资源，虚拟机都是独享资源。</p>
+<ul>
+<li>（3）体积小</li>
+</ul>
+<p>容器只要包含用到的组件即可，而虚拟机是整个操作系统的打包，所以容器文件比虚拟机文件要小很多。</p>
+<p>总之，容器有点像轻量级的虚拟机，能够提供虚拟化的环境，但是成本开销小得多。</p>
+<h1 id="四、Docker-是什么？"><a href="#四、Docker-是什么？" class="headerlink" title="四、Docker 是什么？"></a>四、Docker 是什么？</h1><p>Docker 属于 Linux 容器的一种封装，提供简单易用的容器使用接口。它是目前最流行的 Linux 容器解决方案。</p>
+<p>Docker 将应用程序与该程序的依赖，打包在一个文件里面。运行这个文件，就会生成一个虚拟容器。程序在这个虚拟容器里运行，就好像在真实的物理机上运行一样。有了 Docker，就不用担心环境问题。</p>
+<p>总体来说，Docker 的接口相当简单，用户可以方便地创建和使用容器，把自己的应用放入容器。容器还可以进行版本管理、复制、分享、修改，就像管理普通的代码一样。</p>
+<h1 id="五、Docker-的用途"><a href="#五、Docker-的用途" class="headerlink" title="五、Docker 的用途"></a>五、Docker 的用途</h1><p>Docker 的主要用途，目前有三大类。</p>
+<ul>
+<li><p>（1）提供一次性的环境。比如，本地测试他人的软件、持续集成的时候提供单元测试和构建的环境。</p>
+</li>
+<li><p>（2）提供弹性的云服务。因为 Docker 容器可以随开随关，很适合动态扩容和缩容。</p>
+</li>
+<li><p>（3）组建微服务架构。通过多个容器，一台机器可以跑多个服务，因此在本机就可以模拟出微服务架构。</p>
+</li>
+</ul>
+<h1 id="六、Docker-的安装"><a href="#六、Docker-的安装" class="headerlink" title="六、Docker 的安装"></a>六、Docker 的安装</h1><p>Docker 是一个开源的商业产品，有两个版本：社区版（Community Edition，缩写为 CE）和企业版（Enterprise Edition，缩写为 EE）。企业版包含了一些收费服务，个人开发者一般用不到。下面的介绍都针对社区版。</p>
+<p>Docker CE 的安装请参考官方文档。</p>
+<p><a href="https://docs.docker.com/docker-for-mac/install/" target="_blank" rel="noopener">Mac</a><br><a href="https://docs.docker.com/docker-for-windows/install/" target="_blank" rel="noopener">Windows</a><br><a href="https://docs.docker.com/install/linux/docker-ce/ubuntu/" target="_blank" rel="noopener">Ubuntu</a><br><a href="https://docs.docker.com/install/linux/docker-ce/binaries/" target="_blank" rel="noopener">其他 Linux 发行版</a><br>安装完成后，运行下面的命令，验证是否安装成功。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker version</span><br><span class="line"><span class="meta">#</span> 或者</span><br><span class="line"><span class="meta">$</span> docker info</span><br></pre></td></tr></table></figure>
+<p>Docker 需要用户具有 sudo 权限，为了避免每次命令都输入sudo，可以把用户加入 Docker 用户组（<a href="https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user" target="_blank" rel="noopener">官方文档</a>）。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> sudo usermod -aG docker $USER</span><br></pre></td></tr></table></figure>
+<p>Docker 是服务器—-客户端架构。命令行运行docker命令的时候，需要本机有 Docker 服务。如果这项服务没有启动，可以用下面的命令启动（<a href="https://docs.docker.com/config/daemon/systemd/" target="_blank" rel="noopener">官方文档</a>）。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> service 命令的用法</span><br><span class="line"><span class="meta">$</span> sudo service docker start</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> systemctl 命令的用法</span><br><span class="line"><span class="meta">$</span> sudo systemctl start docker</span><br></pre></td></tr></table></figure>
+<p>#六、image 文件<br>Docker 把应用程序及其依赖，打包在 image 文件里面。只有通过这个文件，才能生成 Docker 容器。image 文件可以看作是容器的模板。Docker 根据 image 文件生成容器的实例。同一个 image 文件，可以生成多个同时运行的容器实例。</p>
+<p>image 是二进制文件。实际开发中，一个 image 文件往往通过继承另一个 image 文件，加上一些个性化设置而生成。举例来说，你可以在 Ubuntu 的 image 基础上，往里面加入 Apache 服务器，形成你的 image。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 列出本机的所有 image 文件。</span><br><span class="line"><span class="meta">$</span> docker image ls</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 删除 image 文件</span><br><span class="line"><span class="meta">$</span> docker image rm [imageName]</span><br></pre></td></tr></table></figure>
+<p>image 文件是通用的，一台机器的 image 文件拷贝到另一台机器，照样可以使用。一般来说，为了节省时间，我们应该尽量使用别人制作好的 image 文件，而不是自己制作。即使要定制，也应该基于别人的 image 文件进行加工，而不是从零开始制作。</p>
+<p>为了方便共享，image 文件制作完成后，可以上传到网上的仓库。Docker 的官方仓库 Docker Hub 是最重要、最常用的 image 仓库。此外，出售自己制作的 image 文件也是可以的。</p>
+<p>#七、实例：hello world<br>下面，我们通过最简单的 image 文件”hello world”，感受一下 Docker。</p>
+<p>需要说明的是，国内连接 Docker 的官方仓库很慢，还会断线，需要将默认仓库改成国内的镜像网站，具体的修改方法在下一篇文章的第一节。有需要的朋友，可以先看一下。</p>
+<p>首先，运行下面的命令，将 image 文件从仓库抓取到本地。</p>
+<p><code>$ docker image pull library/hello-world</code><br>上面代码中，docker image pull是抓取 image 文件的命令。<code>library/hello-world</code>是 image 文件在仓库里面的位置，其中library是 image 文件所在的组，<code>hello-world</code>是 image 文件的名字。</p>
+<p>由于 Docker 官方提供的 image 文件，都放在library组里面，所以它的是默认组，可以省略。因此，上面的命令可以写成下面这样。</p>
+<p><code>$ docker image pull hello-world</code><br>抓取成功以后，就可以在本机看到这个 image 文件了。</p>
+<p><code>$ docker image ls</code><br>现在，运行这个 image 文件。</p>
+<p><code>$ docker container run hello-world</code><br>docker container run命令会从 image 文件，生成一个正在运行的容器实例。</p>
+<p>注意，docker container run命令具有自动抓取 image 文件的功能。如果发现本地没有指定的 image 文件，就会从仓库自动抓取。因此，前面的docker image pull命令并不是必需的步骤。</p>
+<p>如果运行成功，你会在屏幕上读到下面的输出。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker container run hello-world</span><br><span class="line"></span><br><span class="line">Hello from Docker!</span><br><span class="line">This message shows that your installation appears to be working correctly.</span><br><span class="line"></span><br><span class="line">... ...</span><br></pre></td></tr></table></figure>
+<p>输出这段提示以后，hello world就会停止运行，容器自动终止。</p>
+<p>有些容器不会自动终止，因为提供的是服务。比如，安装运行 Ubuntu 的 image，就可以在命令行体验 Ubuntu 系统。</p>
+<p><code>$ docker container run -it ubuntu bash</code>对于那些不会自动终止的容器，必须使用docker container kill 命令手动终止。</p>
+<p><code>$ docker container kill [containID]</code></p>
+<p>#八、容器文件<br>image 文件生成的容器实例，本身也是一个文件，称为容器文件。也就是说，一旦容器生成，就会同时存在两个文件： image 文件和容器文件。而且关闭容器并不会删除容器文件，只是容器停止运行而已。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 列出本机正在运行的容器</span><br><span class="line"><span class="meta">$</span> docker container ls</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 列出本机所有容器，包括终止运行的容器</span><br><span class="line"><span class="meta">$</span> docker container ls --all</span><br></pre></td></tr></table></figure>
+<p>上面命令的输出结果之中，包括容器的 ID。很多地方都需要提供这个 ID，比如上一节终止容器运行的<code>docker container kill</code>命令。</p>
+<p>终止运行的容器文件，依然会占据硬盘空间，可以使用<code>docker container rm</code>命令删除。</p>
+<p><code>$ docker container rm [containerID]</code><br>运行上面的命令之后，再使用<code>docker container ls --all</code>命令，就会发现被删除的容器文件已经消失了。</p>
+<h1 id="九、Dockerfile-文件"><a href="#九、Dockerfile-文件" class="headerlink" title="九、Dockerfile 文件"></a>九、Dockerfile 文件</h1><p>学会使用 image 文件以后，接下来的问题就是，如何可以生成 image 文件？如果你要推广自己的软件，势必要自己制作 image 文件。</p>
+<p>这就需要用到 Dockerfile 文件。它是一个文本文件，用来配置 image。Docker 根据 该文件生成二进制的 image 文件。</p>
+<p>下面通过一个实例，演示如何编写 Dockerfile 文件。</p>
+<h1 id="十、实例：制作自己的-Docker-容器"><a href="#十、实例：制作自己的-Docker-容器" class="headerlink" title="十、实例：制作自己的 Docker 容器"></a>十、实例：制作自己的 Docker 容器</h1><p>下面我以 koa-demos 项目为例，介绍怎么写 Dockerfile 文件，实现让用户在 Docker 容器里面运行 Koa 框架。</p>
+<p>作为准备工作，请先下载源码。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> git clone https://github.com/ruanyf/koa-demos.git</span><br><span class="line"><span class="meta">$</span> cd koa-demos</span><br></pre></td></tr></table></figure>
+<p>###10.1 编写 Dockerfile 文件<br>首先，在项目的根目录下，新建一个文本文件<code>.dockerignore</code>，写入下面的内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.git</span><br><span class="line">node_modules</span><br><span class="line">npm-debug.log</span><br></pre></td></tr></table></figure>
+<p>上面代码表示，这三个路径要排除，不要打包进入 image 文件。如果你没有路径要排除，这个文件可以不新建。</p>
+<p>然后，在项目的根目录下，新建一个文本文件 <code>Dockerfile</code>，写入下面的内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">FROM node:8.4</span><br><span class="line">COPY . /app</span><br><span class="line">WORKDIR /app</span><br><span class="line">RUN npm install --registry=https://registry.npm.taobao.org</span><br><span class="line">EXPOSE 3000</span><br></pre></td></tr></table></figure>
+<p>上面代码一共五行，含义如下。</p>
+<h4 id="FROM-node-8-4"><a href="#FROM-node-8-4" class="headerlink" title="FROM node:8.4:"></a>FROM node:8.4:</h4><p>该 image 文件继承官方的 node image，冒号表示标签，这里标签是8.4，即8.4版本的 node。</p>
+<h4 id="COPY-app："><a href="#COPY-app：" class="headerlink" title="COPY . /app："></a>COPY . /app：</h4><p>将当前目录下的所有文件（除了.dockerignore排除的路径），都拷贝进入 image 文件的/app目录。</p>
+<h4 id="WORKDIR-app："><a href="#WORKDIR-app：" class="headerlink" title="WORKDIR /app："></a>WORKDIR /app：</h4><p>指定接下来的工作路径为/app。</p>
+<h4 id="RUN-npm-install："><a href="#RUN-npm-install：" class="headerlink" title="RUN npm install："></a>RUN npm install：</h4><p>在/app目录下，运行npm install命令安装依赖。注意，安装后所有的依赖，都将打包进入 image 文件。<br>EXPOSE 3000：将容器 3000 端口暴露出来， 允许外部连接这个端口。</p>
+<h3 id="10-2-创建-image-文件"><a href="#10-2-创建-image-文件" class="headerlink" title="10.2 创建 image 文件"></a>10.2 创建 image 文件</h3><p>有了 Dockerfile 文件以后，就可以使用docker <code>image build</code>命令创建 image 文件了。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker image build -t koa-demo </span><br><span class="line"><span class="meta">#</span> 或者</span><br><span class="line"><span class="meta">$</span> docker image build -t koa-demo:0.0.1 .</span><br></pre></td></tr></table></figure>
+<p>上面代码中，<code>-t</code>参数用来指定 image 文件的名字，后面还可以用冒号指定标签。如果不指定，默认的标签就是<code>latest</code>。最后的那个点表示 <code>Dockerfile</code> 文件所在的路径，上例是当前路径，所以是一个点。</p>
+<p>如果运行成功，就可以看到新生成的 image 文件koa-demo了。</p>
+<p><code>$ docker image ls</code></p>
+<h3 id="10-3-生成容器"><a href="#10-3-生成容器" class="headerlink" title="10.3 生成容器"></a>10.3 生成容器</h3><p><code>docker container run</code>命令会从 image 文件生成容器。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker container run -p 8000:3000 -it koa-demo /bin/bash</span><br><span class="line"><span class="meta">#</span> 或者</span><br><span class="line"><span class="meta">$</span> docker container run -p 8000:3000 -it koa-demo:0.0.1 /bin/bash</span><br></pre></td></tr></table></figure>
+<p>上面命令的各个参数含义如下：</p>
+<h4 id="p参数："><a href="#p参数：" class="headerlink" title="-p参数："></a>-p参数：</h4><p>容器的 3000 端口映射到本机的 8000 端口。</p>
+<h4 id="it参数："><a href="#it参数：" class="headerlink" title="-it参数："></a>-it参数：</h4><p>容器的 Shell 映射到当前的 Shell，然后你在本机窗口输入的命令，就会传入容器。</p>
+<h4 id="koa-demo-0-0-1："><a href="#koa-demo-0-0-1：" class="headerlink" title="koa-demo:0.0.1："></a>koa-demo:0.0.1：</h4><p>image 文件的名字（如果有标签，还需要提供标签，默认是 latest 标签）。</p>
+<h4 id="bin-bash："><a href="#bin-bash：" class="headerlink" title="/bin/bash："></a>/bin/bash：</h4><p>容器启动以后，内部第一个执行的命令。这里是启动 Bash，保证用户可以使用 Shell。<br>如果一切正常，运行上面的命令以后，就会返回一个命令行提示符。</p>
+<p><code>root@66d80f4aaf1e:/app#</code><br>这表示你已经在容器里面了，返回的提示符就是容器内部的 Shell 提示符。执行下面的命令。</p>
+<p><code>root@66d80f4aaf1e:/app# node demos/01.js</code><br>这时，Koa 框架已经运行起来了。打开本机的浏览器，访问 <a href="http://127.0.0.1:8000，网页显示&quot;Not" target="_blank" rel="noopener">http://127.0.0.1:8000，网页显示&quot;Not</a> Found”，这是因为这个 demo 没有写路由。</p>
+<p>这个例子中，Node 进程运行在 Docker 容器的虚拟环境里面，进程接触到的文件系统和网络接口都是虚拟的，与本机的文件系统和网络接口是隔离的，因此需要定义容器与物理机的端口映射（map）。</p>
+<p>现在，在容器的命令行，按下 <code>Ctrl + c</code> 停止 Node 进程，然后按下 <code>Ctrl + d</code> （或者输入 exit）退出容器。此外，也可以用<code>docker container kill</code>终止容器运行。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 在本机的另一个终端窗口，查出容器的 ID</span><br><span class="line"><span class="meta">$</span> docker container ls</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 停止指定的容器运行</span><br><span class="line"><span class="meta">$</span> docker container kill [containerID]</span><br><span class="line">容器停止运行之后，并不会消失，用下面的命令删除容器文件。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 查出容器的 ID</span><br><span class="line"><span class="meta">$</span> docker container ls --all</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 删除指定的容器文件</span><br><span class="line"><span class="meta">$</span> docker container rm [containerID]</span><br></pre></td></tr></table></figure>
+<p>也可以使用<code>docker container run</code>命令的<code>--rm</code>参数，在容器终止运行后自动删除容器文件。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker container run --rm -p 8000:3000 -it koa-demo /bin/bash</span><br></pre></td></tr></table></figure>
+<h3 id="10-4-CMD-命令"><a href="#10-4-CMD-命令" class="headerlink" title="10.4 CMD 命令"></a>10.4 CMD 命令</h3><p>上一节的例子里面，容器启动以后，需要手动输入命令node demos/01.js。我们可以把这个命令写在 Dockerfile 里面，这样容器启动以后，这个命令就已经执行了，不用再手动输入了。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">FROM node:8.4</span><br><span class="line">COPY . /app</span><br><span class="line">WORKDIR /app</span><br><span class="line">RUN npm install --registry=https://registry.npm.taobao.org</span><br><span class="line">EXPOSE 3000</span><br><span class="line">CMD node demos/01.js</span><br></pre></td></tr></table></figure>
+<p>上面的 Dockerfile 里面，多了最后一行CMD node demos/01.js，它表示容器启动后自动执行node demos/01.js。</p>
+<p>你可能会问，RUN命令与CMD命令的区别在哪里？简单说，RUN命令在 image 文件的构建阶段执行，执行结果都会打包进入 image 文件；CMD命令则是在容器启动后执行。另外，一个 Dockerfile 可以包含多个RUN命令，但是只能有一个CMD命令。</p>
+<p>注意，指定了CMD命令以后，<code>docker container run</code>命令就不能附加命令了（比如前面的/bin/bash），否则它会覆盖CMD命令。现在，启动容器可以使用下面的命令。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker container run --rm -p 8000:3000 -it koa-demo:0.0.1</span><br></pre></td></tr></table></figure>
+<h3 id="10-5-发布-image-文件"><a href="#10-5-发布-image-文件" class="headerlink" title="10.5 发布 image 文件"></a>10.5 发布 image 文件</h3><p>容器运行成功后，就确认了 image 文件的有效性。这时，我们就可以考虑把 image 文件分享到网上，让其他人使用。</p>
+<p>首先，去 <a href="hub.docker.com">cloud.docker.com</a> 或 <a href="">cloud.docker.com</a> 注册一个账户。然后，用下面的命令登录。</p>
+<p><code>$ docker login</code><br>接着，为本地的 image 标注用户名和版本。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker image tag [imageName] [username]/[repository]:[tag]</span><br><span class="line"><span class="meta">#</span> 实例</span><br><span class="line"><span class="meta">$</span> docker image tag koa-demos:0.0.1 ruanyf/koa-demos:0.0.1</span><br></pre></td></tr></table></figure>
+<p>也可以不标注用户名，重新构建一下 image 文件。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker image build -t [username]/[repository]:[tag] .</span><br></pre></td></tr></table></figure>
+<p>最后，发布 image 文件。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker image push [username]/[repository]:[tag]</span><br></pre></td></tr></table></figure>
+<p>发布成功以后，登录 hub.docker.com，就可以看到已经发布的 image 文件。</p>
+<h3 id="十一、其他有用的命令"><a href="#十一、其他有用的命令" class="headerlink" title="十一、其他有用的命令"></a>十一、其他有用的命令</h3><p>docker 的主要用法就是上面这些，此外还有几个命令，也非常有用。</p>
+<ul>
+<li>（1）docker container start</li>
+</ul>
+<p>前面的docker container run命令是新建容器，每运行一次，就会新建一个容器。同样的命令运行两次，就会生成两个一模一样的容器文件。如果希望重复使用容器，就要使用docker container start命令，它用来启动已经生成、已经停止运行的容器文件。</p>
+<p><code>$ docker container start [containerID]</code></p>
+<ul>
+<li>（2）docker container stop</li>
+</ul>
+<p>前面的<code>docker container kill</code>命令终止容器运行，相当于向容器里面的主进程发出 SIGKILL 信号。而<code>docker container stop</code>命令也是用来终止容器运行，相当于向容器里面的主进程发出 SIGTERM 信号，然后过一段时间再发出 SIGKILL 信号。</p>
+<p><code>$ bash container stop [containerID]</code><br>这两个信号的差别是，应用程序收到 SIGTERM 信号以后，可以自行进行收尾清理工作，但也可以不理会这个信号。如果收到 SIGKILL 信号，就会强行立即终止，那些正在进行中的操作会全部丢失。</p>
+<ul>
+<li>（3）docker container logs</li>
+</ul>
+<p><code>docker container logs</code>命令用来查看 docker 容器的输出，即容器里面 Shell 的标准输出。如果<code>docker run</code>命令运行容器的时候，没有使用-it参数，就要用这个命令查看输出。</p>
+<p><code>$ docker container logs [containerID]</code></p>
+<ul>
+<li>（4）docker container exec</li>
+</ul>
+<p><code>docker container exec</code>命令用于进入一个正在运行的 docker 容器。如果docker run命令运行容器的时候，没有使用-it参数，就要用这个命令进入容器。一旦进入了容器，就可以在容器的 Shell 执行命令了。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker container exec -it [containerID] /bin/bash</span><br></pre></td></tr></table></figure>
+<ul>
+<li>（5）docker container cp</li>
+</ul>
+<p>docker container cp命令用于从正在运行的 Docker 容器里面，将文件拷贝到本机。下面是拷贝到当前目录的写法。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> docker container cp [containID]:[/path/to/file] .</span><br></pre></td></tr></table></figure>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2018/05/30/Docker入门/" data-id="cjhx4hohf0006yny2dtusxe9i" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2018/05/30/Docker入门/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
     <article id="post-JAVA的垃圾回收策略（二）" class="article article-type-post" itemscope itemprop="blogPost">
     <div class="article-inner">
         
@@ -394,7 +955,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhw5h9ku00092v0cxxzt3pyf" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhx4hohk000cyny269njq42h" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -569,7 +1130,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjhw5h9kr00072v0c2i0jwezm" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjhx4hohi0009yny2m43sumyo" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -760,7 +1321,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjhw5h9l6000q2v0ccukx6e3t" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjhx4hohx0010yny2pxtvblkg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1023,7 +1584,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjhw5h9la00102v0cwzjik79y" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjhx4hoi4001gyny2aodz39k0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1234,7 +1795,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjhw5h9kg00012v0c10qaeck5" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjhx4hoh50000yny29hae3jiy" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1553,7 +2114,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjhw5h9l5000p2v0c5gr6v5to" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjhx4hohp000jyny2j27fqd2a" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1698,7 +2259,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjhw5h9l2000k2v0cjbrsjfjy" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjhx4hohs000oyny2qyxc1frt" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1844,7 +2405,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjhw5h9lg001c2v0cbc9e1e65" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjhx4hoi5001lyny2g24i641p" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1922,341 +2483,8 @@
 
 
 
-    <article id="post-mac搭建PyQt5环境" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2017/12/11/mac搭建PyQt5环境/">mac搭建Pyqt5环境</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2017/12/11/mac搭建PyQt5环境/">
-            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/python/">python</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/python/">python</a>, <a class="tag-link" href="/tags/qt/">qt</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <h3 id="1-首先基于virtualenv-搭建一个python3的运行环境"><a href="#1-首先基于virtualenv-搭建一个python3的运行环境" class="headerlink" title="1.首先基于virtualenv 搭建一个python3的运行环境"></a>1.首先基于virtualenv 搭建一个python3的运行环境</h3><p>virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。</p>
-<h5 id="1-首先，我们用pip安装virtualenv："><a href="#1-首先，我们用pip安装virtualenv：" class="headerlink" title="1. 首先，我们用pip安装virtualenv："></a>1. 首先，我们用pip安装virtualenv：</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install virtualenv</span><br></pre></td></tr></table></figure>
-<h5 id="2-创建一个pyhton3的运行环境"><a href="#2-创建一个pyhton3的运行环境" class="headerlink" title="2.创建一个pyhton3的运行环境"></a>2.创建一个pyhton3的运行环境</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3</span><br></pre></td></tr></table></figure>
-<p>可以通过<strong>python=python3</strong>来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者python3.6</p>
-<h4 id="3-激活该运行环境"><a href="#3-激活该运行环境" class="headerlink" title="3. 激活该运行环境"></a>3. 激活该运行环境</h4><p>执行</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ source ~/py3/bin/activate</span><br><span class="line">(py3) jiangxqdeMBP:~ jiangxq$</span><br></pre></td></tr></table></figure>
-<p>当用户名前出现该运行环境的名称时，表示环境已经激活了</p>
-<h3 id="2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行"><a href="#2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行" class="headerlink" title="2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行"></a>2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install --upgrade pip</span><br></pre></td></tr></table></figure>
-<p>这里有个窍门是如果mac的默认python运行环境为python2.7，但是不想修改注册文件，可以直接打<strong>pip3</strong>，<strong>pip3</strong>是<br>是python3的pip工具，<strong>pip</strong>是python2的pip工具。</p>
-<h3 id="3-使用pip工具安装PyQt5"><a href="#3-使用pip工具安装PyQt5" class="headerlink" title="3. 使用pip工具安装PyQt5"></a>3. 使用pip工具安装PyQt5</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install PyQt5</span><br></pre></td></tr></table></figure>
-<p>当PyQt5安装完成之后，其实Qt的组件此时已经可用了，如果要测试是否安装成功，可以新建一个Python项目，然后倒入PyQt5的包看看。<br><img src="https://note.youdao.com/yws/api/personal/file/WEBa771a15d091f47d6ebb57e09a1c5eff4?method=download&amp;shareKey=c7c7e8069597b7ab8e8f58d4df01e4af" alt="image"></p>
-<h3 id="4-在pycharm上安装QtDesign工具包"><a href="#4-在pycharm上安装QtDesign工具包" class="headerlink" title="4.在pycharm上安装QtDesign工具包"></a>4.在pycharm上安装QtDesign工具包</h3><p>QtDesign是Pycharm上的可视化uI设计工具，可以拖动控件来达到实现设计界面的功能<br>安装Qtdesign 需要先安装QT</p>
-<h4 id="1-下载QT安装包"><a href="#1-下载QT安装包" class="headerlink" title="1. 下载QT安装包"></a>1. 下载QT安装包</h4><p>下载地址：<a href="http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg" target="_blank" rel="noopener">http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg</a><br>下载完成后直接安装</p>
-<h4 id="2-打开pycharm-点击preference-点击Tools-新建一个插件"><a href="#2-打开pycharm-点击preference-点击Tools-新建一个插件" class="headerlink" title="2.打开pycharm 点击preference 点击Tools 新建一个插件"></a>2.打开pycharm 点击preference 点击Tools 新建一个插件</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE9bf5498a9bb100d2b67bf988c494f1be/1941" alt="image"><br> 注意插件地址不要写错了，是qt5的安装路径</p>
-<h4 id="3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）"><a href="#3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）" class="headerlink" title="3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）"></a>3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）</h4>
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjhw5h9l8000u2v0cggwsqiw4" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
-    <article id="post-MQTT相关" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2017/12/11/MQTT相关/">MQTT相关总结</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2017/12/11/MQTT相关/">
-            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/MQTT/">MQTT</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/mqtt/">mqtt</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <h1 id="MQTT相关"><a href="#MQTT相关" class="headerlink" title="MQTT相关"></a>MQTT相关</h1><p>MQTT官网：<a href="http://mqtt.org/" target="_blank" rel="noopener">http://mqtt.org/</a></p>
-<p>MQTT介绍：<a href="http://www.ibm.com" target="_blank" rel="noopener">http://www.ibm.com</a></p>
-<p>MQTT Android github：<a href="https://github.com/eclipse/paho.mqtt.android" target="_blank" rel="noopener">https://github.com/eclipse/paho.mqtt.android</a></p>
-<p>MQTT API：<a href="http://www.eclipse.org/paho/files/javadoc/index.html" target="_blank" rel="noopener">http://www.eclipse.org/paho/files/javadoc/index.html</a></p>
-<p>MQTT Android API： <a href="http://www.eclipse.org/paho/files/android-javadoc/index.html" target="_blank" rel="noopener">http://www.eclipse.org/paho/files/android-javadoc/index.html</a></p>
-<hr>
-<h2 id="MQTT服务器搭建"><a href="#MQTT服务器搭建" class="headerlink" title="MQTT服务器搭建"></a>MQTT服务器搭建</h2><ul>
-<li>环境：windows7 64位</li>
-<li>JAVA环境:jdk 1.8.0</li>
-<li>下载：<a href="http://activemq.apache.org/apollo/download.html" target="_blank" rel="noopener">Apollo服务器</a></li>
-</ul>
-<p>以下为步骤：</p>
-<ol>
-<li>下载Apollo服务器后，解压安装；</li>
-<li>用命令行进入到安装目录bin目录下</li>
-<li>输入 apollo create xxx (xxx为服务器实例名，eg.apollo create xmaihh)<blockquote>
-<p>执行之后会在bin目录下创建名称为xxx的文件夹，比如我生成的文件夹是 xmaihh<br>xxx文件夹下etc\apollo.xml文件是 配置服务器文件信息<br>etc\users.properties文件包含连接MQTT服务器时用到的用户名和密码，默认为admin=password，即账号为admin，密码为password，可自行更改。</p>
-</blockquote>
-</li>
-<li>用命令行进入到刚创建的xxx\bin目录下，输入apollo-broker.cmd run开启服务器</li>
-<li>在浏览器输入<a href="http://127.0.0.1:61680/，查看是否安装成功" target="_blank" rel="noopener">http://127.0.0.1:61680/，查看是否安装成功</a><br><img src="https://i.imgur.com/qyuQDHy.png" alt=""><br><img src="https://i.imgur.com/SAh5lfp.png" alt=""><br><img src="https://i.imgur.com/5KZpNcP.png" alt=""><h2 id="MQTT-Android客户端"><a href="#MQTT-Android客户端" class="headerlink" title="MQTT Android客户端"></a>MQTT Android客户端</h2></li>
-</ol>
-<ul>
-<li>环境：AndroidStudio 3.0.1</li>
-<li>topic：中文意思是“话题”。在MQTT中订阅了(subscribe)同一话题（topic）的客户端会同时收到消息推送。</li>
-<li>clientId：客户身份唯一标识。</li>
-<li>qos：服务质量。</li>
-<li>retained：要保留最后的断开连接信息。</li>
-<li>MqttAndroidClient#subscribe()：订阅某个话题。</li>
-<li>MqttAndroidClient#publish()： 向某个话题发送消息，之后服务器会推送给所有订阅了此话题的客户。</li>
-<li>userName：连接到MQTT服务器的用户名。</li>
-<li>passWord ：连接到MQTT服务器的密码</li>
-</ul>
-<p>以下为步骤：</p>
-<ol>
-<li><p>添加依赖</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    maven &#123;</span><br><span class="line">        url &quot;https://repo.eclipse.org/content/repositories/paho-snapshots/&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile &apos;org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0&apos;</span><br><span class="line">    compile &apos;org.eclipse.paho:org.eclipse.paho.android.service:1.1.1&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>添加权限</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot; /&gt;</span><br><span class="line">&lt;uses-permission android:name=&quot;android.permission.ACCESS_NETWORK_STATE&quot; /&gt;</span><br><span class="line">&lt;uses-permission android:name=&quot;android.permission.WAKE_LOCK&quot; /&gt;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>注册Service</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- Mqtt Service --&gt;</span><br><span class="line">&lt;service android:name=&quot;org.eclipse.paho.android.service.MqttService&quot; /&gt;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>具体实现</p>
-</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * MQTT长连接服务</span><br><span class="line"> */</span><br><span class="line">public class MQTTService extends Service &#123;</span><br><span class="line">    public static final String TAG = MQTTService.class.getSimpleName();</span><br><span class="line"></span><br><span class="line">    public static MqttAndroidClient client;</span><br><span class="line">    private MqttConnectOptions connectOptions;</span><br><span class="line">        private String host = &quot;tcp://192.168.102.216:61613&quot;;</span><br><span class="line">//        private String host = &quot;tcp://192.168.8.241:61613&quot;;</span><br><span class="line">//        private String host = &quot;tcp://10.0.2.2:61613&quot;;</span><br><span class="line">//    private String host = &quot;tcp://192.168.26.144:1883&quot;;</span><br><span class="line"></span><br><span class="line">    private String username = &quot;admin&quot;;</span><br><span class="line">    private String password = &quot;password&quot;;</span><br><span class="line">    private static String myTopic = &quot;topic&quot;;</span><br><span class="line">    private String clientId = &quot;test123&quot;;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">        init();</span><br><span class="line">        return super.onStartCommand(intent, flags, startId);</span><br><span class="line">    &#125;</span><br><span class="line">    @Nullable</span><br><span class="line">    @Override</span><br><span class="line">    public IBinder onBind(Intent intent) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void publish(String msg) &#123;</span><br><span class="line">        String topic = myTopic;</span><br><span class="line">        Integer qos = 0;</span><br><span class="line">        Boolean retained = false;</span><br><span class="line">        try &#123;</span><br><span class="line">            client.publish(topic, msg.getBytes(), qos.intValue(), retained.booleanValue());</span><br><span class="line">        &#125; catch (MqttException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    /**</span><br><span class="line">     * 初始化方法</span><br><span class="line">     */</span><br><span class="line">    private void init() &#123;</span><br><span class="line">        // 服务器地址 (协议+地址+端口号)</span><br><span class="line">        String url = host;</span><br><span class="line">        client = new MqttAndroidClient(this, url, clientId);</span><br><span class="line">        client.setCallback(mqttCallback);</span><br><span class="line">        connectOptions = new MqttConnectOptions();</span><br><span class="line">        // 清除缓存</span><br><span class="line">        connectOptions.setCleanSession(true);</span><br><span class="line">        // 设置超时时间,单位:秒</span><br><span class="line">        connectOptions.setConnectionTimeout(10);</span><br><span class="line">        // 心跳包发送时间间隔,单位:秒</span><br><span class="line">        connectOptions.setKeepAliveInterval(20);</span><br><span class="line">        // 用户名</span><br><span class="line">        connectOptions.setUserName(username);</span><br><span class="line">        // 密码</span><br><span class="line">        connectOptions.setPassword(password.toCharArray());</span><br><span class="line">        // last will message</span><br><span class="line">        boolean doConnect = true;</span><br><span class="line">        String message = &quot;&#123;\&quot;terminal_uid\&quot;:\&quot;&quot; + clientId + &quot;\&quot;&#125;&quot;;</span><br><span class="line">        String topic = myTopic;</span><br><span class="line">        Integer qos = 0;</span><br><span class="line">        Boolean retained = false;</span><br><span class="line">        if ((!message.equals(&quot;&quot;)) || (!topic.equals(&quot;&quot;))) &#123;</span><br><span class="line">            //最后的遗嘱</span><br><span class="line">            try &#123;</span><br><span class="line">                connectOptions.setWill(topic, message.getBytes(), qos.intValue(), retained.booleanValue());</span><br><span class="line">            &#125; catch (Exception ex) &#123;</span><br><span class="line">                Log.d(TAG, &quot;Exception Occured&quot;, ex);</span><br><span class="line">                doConnect = false;</span><br><span class="line">                iMqttActionListener.onFailure(null, ex);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (doConnect) &#123;</span><br><span class="line">            //连接MQTT服务器</span><br><span class="line">            doClientConnection();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 连接MQTT服务器</span><br><span class="line">     */</span><br><span class="line">    private void doClientConnection() &#123;</span><br><span class="line">        if (!client.isConnected() &amp;&amp; isConnectIsNomarl()) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                client.connect(connectOptions, null, iMqttActionListener);</span><br><span class="line">            &#125; catch (MqttException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 判断网络是否连接</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    private boolean isConnectIsNomarl() &#123;</span><br><span class="line">        ConnectivityManager connectivityManager = (ConnectivityManager)</span><br><span class="line">                this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);</span><br><span class="line">        NetworkInfo info = connectivityManager.getActiveNetworkInfo();</span><br><span class="line">        if (info != null &amp;&amp; info.isAvailable()) &#123;</span><br><span class="line">            String name = info.getTypeName();</span><br><span class="line">            Log.i(TAG, &quot;MQTT当前网络名称：&quot; + name);</span><br><span class="line">            return true;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            Log.i(TAG, &quot;MQTT 没有可用网络&quot;);</span><br><span class="line">            return false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * MQTT监听并且接收消息</span><br><span class="line">     */</span><br><span class="line">    private MqttCallback mqttCallback = new MqttCallback() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void connectionLost(Throwable cause) &#123;</span><br><span class="line">            //失去连接，重连</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void messageArrived(String topic, MqttMessage message) throws Exception &#123;</span><br><span class="line">            EventBus.getDefault().post(message);</span><br><span class="line">            String str2 = topic + &quot;;qos :&quot; + message.getQos() + &quot;;retained:&quot; + message.isRetained();</span><br><span class="line">            Log.d(TAG, &quot;messageArrived: str2&quot; + str2);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void deliveryComplete(IMqttDeliveryToken token) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    /**</span><br><span class="line">     * MQTT是否连接成功</span><br><span class="line">     */</span><br><span class="line">    private IMqttActionListener iMqttActionListener = new IMqttActionListener() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void onSuccess(IMqttToken asyncActionToken) &#123;</span><br><span class="line">            Log.d(TAG, &quot;onSuccess: MQTT连接成功&quot;);</span><br><span class="line">            try &#123;</span><br><span class="line">                //订阅myTopic话题</span><br><span class="line">                client.subscribe(myTopic, 1);</span><br><span class="line">            &#125; catch (MqttException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onFailure(IMqttToken asyncActionToken, Throwable exception) &#123;</span><br><span class="line">            exception.printStackTrace();</span><br><span class="line">            //连接失败，重连</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>初始化各个参数，之后连接服务器。连接成功之后在<a href="http://127.0.0.1:61680/" target="_blank" rel="noopener">http://127.0.0.1:61680/</a> 看到自动创建了名称为”topic”的topic。这里我使用两台真机。<a href="http://127.0.0.1:61680/" target="_blank" rel="noopener">http://127.0.0.1:61680/</a> 服务端看到的是这个样子<br><img src="https://i.imgur.com/9eB33fT.png" alt=""></p>
-<ol>
-<li>模拟器运行的时候host = “tcp://10.0.2.2:61613”，因为10.0.2.2 是模拟器设置的特定ip，是你电脑的别名。真机运行的时候host = “tcp://192.168.102.216:61613”。192.168.102.216是我主机的IPv4地址，查看本机IP的cmd命令为ipconfig/all。 </li>
-<li>两次运行时的clientId不能一样（为了保证客户标识的唯一性）</li>
-</ol>
-</blockquote>
-<hr>
-<h3 id="访问管理界面"><a href="#访问管理界面" class="headerlink" title="访问管理界面"></a>访问管理界面</h3><p>要修改前面创建的xxx文件夹下etc\apollo.xml文件，添加你的host就可以通过host访问管理界面，否则只能通过 <a href="http://127.0.0.1:61680" target="_blank" rel="noopener">http://127.0.0.1:61680</a> 和 <a href="https://127.0.0.1:61681" target="_blank" rel="noopener">https://127.0.0.1:61681</a> 访问<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">... ...</span><br><span class="line"> &lt;virtual_host id=&quot;xmaihh&quot;&gt;</span><br><span class="line">    &lt;!--</span><br><span class="line">      You should add all the host names that this virtual host is known as</span><br><span class="line">      to properly support the STOMP 1.1 virtual host feature.</span><br><span class="line">      --&gt;</span><br><span class="line">    &lt;host_name&gt;xmaihh&lt;/host_name&gt;</span><br><span class="line">    &lt;host_name&gt;localhost&lt;/host_name&gt;</span><br><span class="line">    &lt;host_name&gt;127.0.0.1&lt;/host_name&gt;</span><br><span class="line">	&lt;!--以下为添加内容--&gt;</span><br><span class="line">    &lt;host_name&gt;192.168.102.216&lt;/host_name&gt;</span><br><span class="line">	&lt;!--以上为添加内容--&gt;</span><br><span class="line">    &lt;!-- Uncomment to disable security for the virtual host --&gt;</span><br><span class="line">    &lt;!-- &lt;authentication enabled=&quot;false&quot;/&gt; --&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- Uncomment to disable security for the virtual host --&gt;</span><br><span class="line">    &lt;!-- &lt;authentication enabled=&quot;false&quot;/&gt; --&gt;</span><br><span class="line">    &lt;access_rule allow=&quot;users&quot; action=&quot;connect create destroy send receive consume&quot;/&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &lt;!-- You can delete this element if you want to disable persistence for this virtual host --&gt;</span><br><span class="line">    &lt;leveldb_store directory=&quot;$&#123;apollo.base&#125;/data&quot;/&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  &lt;/virtual_host&gt;</span><br><span class="line"></span><br><span class="line">  &lt;web_admin bind=&quot;http://127.0.0.1:61680&quot;/&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;https://127.0.0.1:61681&quot;/&gt;</span><br><span class="line">  &lt;!--以下为添加内容--&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;http://192.168.102.216:61680&quot;/&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;https://192.168.102.216:61681&quot;/&gt;</span><br><span class="line">  &lt;!--以上为添加内容--&gt;</span><br><span class="line"></span><br><span class="line">  &lt;connector id=&quot;tcp&quot; bind=&quot;tcp://0.0.0.0:61613&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;tls&quot; bind=&quot;tls://0.0.0.0:61614&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;ws&quot;  bind=&quot;ws://0.0.0.0:61623&quot;  connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;wss&quot; bind=&quot;wss://0.0.0.0:61624&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line"></span><br><span class="line">  &lt;key_storage file=&quot;$&#123;apollo.base&#125;/etc/keystore&quot; password=&quot;password&quot; key_password=&quot;password&quot;/&gt;</span><br></pre></td></tr></table></figure></p>
-
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjhw5h9l1000i2v0c4dy77vrx" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
     <nav id="page-nav">
-        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
     </nav>
 </section>
             
@@ -2268,6 +2496,44 @@
         <h3 class="widget-title">recent</h3>
         <div class="widget">
             <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/06/02/理解Liunx的FD与Inode/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/Linux/">Linux</a></p>
+                            <p class="item-title"><a href="/2018/06/02/理解Liunx的FD与Inode/" class="title">理解Linux的FD与Inode</a></p>
+                            <p class="item-date"><time datetime="2018-06-02T08:30:15.000Z" itemprop="datePublished">2018-06-02</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/05/30/Docker入门/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/容器技术/">容器技术</a></p>
+                            <p class="item-title"><a href="/2018/05/30/Docker入门/" class="title">Docker入门</a></p>
+                            <p class="item-date"><time datetime="2018-05-30T07:56:50.000Z" itemprop="datePublished">2018-05-30</time></p>
+                        </div>
+                    </li>
                 
                     <li>
                         
@@ -2326,44 +2592,6 @@
                         </div>
                     </li>
                 
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/05/13/六大设计模式/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
-                            <p class="item-title"><a href="/2018/05/13/六大设计模式/" class="title">六大设计模式</a></p>
-                            <p class="item-date"><time datetime="2018-05-12T16:51:50.000Z" itemprop="datePublished">2018-05-13</time></p>
-                        </div>
-                    </li>
-                
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/05/10/AnimatedVectorDrawable 总结/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/CoolUI/">CoolUI</a></p>
-                            <p class="item-title"><a href="/2018/05/10/AnimatedVectorDrawable 总结/" class="title">AnimatedVectorDrawable总结</a></p>
-                            <p class="item-date"><time datetime="2018-05-09T16:51:50.000Z" itemprop="datePublished">2018-05-10</time></p>
-                        </div>
-                    </li>
-                
             </ul>
         </div>
     </div>
@@ -2373,7 +2601,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">categories</h3>
         <div class="widget">
-            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">1</span></li></ul>
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2382,7 +2610,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2391,7 +2619,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">tags</h3>
         <div class="widget">
-            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li></ul>
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2400,7 +2628,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">tag cloud</h3>
         <div class="widget tagcloud">
-            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 10px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 13.33px;">垃圾回收</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 16.67px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a>
+            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 12.5px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 17.5px;">java</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 12.5px;">垃圾回收</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/容器/" style="font-size: 10px;">容器</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a>
         </div>
     </div>
 
