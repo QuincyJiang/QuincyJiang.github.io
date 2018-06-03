@@ -26,7 +26,7 @@
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15280221155795.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15280221222039.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15280227943358.jpg">
-<meta property="og:updated_time" content="2018-06-03T10:49:34.716Z">
+<meta property="og:updated_time" content="2018-06-03T13:59:28.859Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="从驱动角度理解binder">
 <meta name="twitter:description" content="一次binder通讯建立的大致流程我们已经了解了，首先是要注册一个serviceManager，server端创建实名binder，向smg注册自己可以提供的服务，以及该实名binder的标签，smg会在svcinfo 链表中缓存该server提供的binder信息，当client需要使用该服务时，只需要向smg中查询服务，获取server端binder的引用就可以了，这其中所有的通讯细节，全部需">
@@ -286,11 +286,42 @@
 <tbody>
 <tr>
 <td>flat_binder_object</td>
-<td>binder通</td>
+<td>binder通讯过程中在client-binderDriver-server之间传递的实际内容，所谓跨进程传递的binder对象，其实传递的就是这个</td>
+</tr>
+<tr>
+<td>binder_wirte_read</td>
+<td>存储对binder驱动进行读写操作的数据，当为写的时候，结构体中的write_size非空，当为读的时候，read_size不为空</td>
+</tr>
+<tr>
+<td>binder_version</td>
+<td>存储binder的版本号</td>
+</tr>
+<tr>
+<td>transaction_flags</td>
+<td>描述一次binder事务的flag，比如是同步还是异步请求</td>
+</tr>
+<tr>
+<td>binder_transcation_data</td>
+<td>存储一次事务的数据</td>
+</tr>
+<tr>
+<td>binder_handle_cookie</td>
+<td>包含一个句柄和一个cookie</td>
+</tr>
+<tr>
+<td>binder_ptr_cookie</td>
+<td>包含一个指针和一个cookie </td>
+</tr>
+<tr>
+<td>binder_pri_dest</td>
+<td>暂未用到 </td>
+</tr>
+<tr>
+<td>binder_pri_ptr_cookie</td>
+<td>暂未用到</td>
 </tr>
 </tbody>
 </table>
-<p>讯过程中在client-binderDriver-server之间传递的实际内容，所谓跨进程传递的binder对象，其实传递的就是这个 |<br>| binder_wirte_read | 存储对binder驱动进行读写操作的数据，当为写的时候，结构体中的write_size非空，当为读的时候，read_size不为空 |<br>| binder_version | 存储binder的版本号 |<br>| transaction_flags | 描述一次binder事务的flag，比如是同步还是异步请求 |<br>| binder_transcation_data | 存储一次事务的数据 |<br>| binder_handle_cookie | 包含一个句柄和一个cookie |<br>| binder_ptr_cookie | 包含一个指针和一个cookie<br>| binder_pri_dest | 暂未用到<br>| binder_pri_ptr_cookie | 暂未用到 |</p>
 <p>另一部分定义在binder驱动中，是驱动特有的结构体</p>
 <table>
 <thead>
@@ -657,7 +688,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/" data-id="cjhypm5g100171n0cioazsx8z" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/" data-id="cjhyw7xfb00146h0c9d8cwxd7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding

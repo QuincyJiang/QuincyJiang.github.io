@@ -268,11 +268,42 @@
 <tbody>
 <tr>
 <td>flat_binder_object</td>
-<td>binder通</td>
+<td>binder通讯过程中在client-binderDriver-server之间传递的实际内容，所谓跨进程传递的binder对象，其实传递的就是这个</td>
+</tr>
+<tr>
+<td>binder_wirte_read</td>
+<td>存储对binder驱动进行读写操作的数据，当为写的时候，结构体中的write_size非空，当为读的时候，read_size不为空</td>
+</tr>
+<tr>
+<td>binder_version</td>
+<td>存储binder的版本号</td>
+</tr>
+<tr>
+<td>transaction_flags</td>
+<td>描述一次binder事务的flag，比如是同步还是异步请求</td>
+</tr>
+<tr>
+<td>binder_transcation_data</td>
+<td>存储一次事务的数据</td>
+</tr>
+<tr>
+<td>binder_handle_cookie</td>
+<td>包含一个句柄和一个cookie</td>
+</tr>
+<tr>
+<td>binder_ptr_cookie</td>
+<td>包含一个指针和一个cookie </td>
+</tr>
+<tr>
+<td>binder_pri_dest</td>
+<td>暂未用到 </td>
+</tr>
+<tr>
+<td>binder_pri_ptr_cookie</td>
+<td>暂未用到</td>
 </tr>
 </tbody>
 </table>
-<p>讯过程中在client-binderDriver-server之间传递的实际内容，所谓跨进程传递的binder对象，其实传递的就是这个 |<br>| binder_wirte_read | 存储对binder驱动进行读写操作的数据，当为写的时候，结构体中的write_size非空，当为读的时候，read_size不为空 |<br>| binder_version | 存储binder的版本号 |<br>| transaction_flags | 描述一次binder事务的flag，比如是同步还是异步请求 |<br>| binder_transcation_data | 存储一次事务的数据 |<br>| binder_handle_cookie | 包含一个句柄和一个cookie |<br>| binder_ptr_cookie | 包含一个指针和一个cookie<br>| binder_pri_dest | 暂未用到<br>| binder_pri_ptr_cookie | 暂未用到 |</p>
 <p>另一部分定义在binder驱动中，是驱动特有的结构体</p>
 <table>
 <thead>
@@ -639,7 +670,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/" data-id="cjhypm5g100171n0cioazsx8z" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/" data-id="cjhyw7xfb00146h0c9d8cwxd7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -911,7 +942,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/06/02/理解Liunx的FD与Inode/" data-id="cjhypm5g5001m1n0cjke0zna4" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/06/02/理解Liunx的FD与Inode/" data-id="cjhyw7xfi001m6h0cxyj5f8yw" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1199,7 +1230,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/30/Docker入门/" data-id="cjhypm5fh00071n0cym3yc22f" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/30/Docker入门/" data-id="cjhyw7xes00076h0ci1aatqzl" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1421,7 +1452,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/29/Binder的设计架构/" data-id="cjhypm5fb00021n0cdk017cbe" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/29/Binder的设计架构/" data-id="cjhyw7xer00066h0cc95f9vyk" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1698,7 +1729,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhypm5fk000b1n0cwnqwxb76" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjhyw7xev000b6h0cuqc4l73h" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1873,7 +1904,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjhypm5fi00081n0cp9dwb5gg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjhyw7xet00086h0cz7y7yuvg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2064,7 +2095,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjhypm5fv000u1n0cevqw04gn" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjhyw7xf6000u6h0cqbgexcio" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2327,7 +2358,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjhypm5g2001a1n0cp9yio3ua" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjhyw7xfj001p6h0caqcoc5vg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2538,7 +2569,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjhypm5f600001n0c613hbkvd" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjhyw7xeg00006h0cb6yq1kjv" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2857,7 +2888,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjhypm5fu000s1n0c0w6xql7w" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjhyw7xf5000s6h0cnma15807" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
