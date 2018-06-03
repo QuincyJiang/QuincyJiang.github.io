@@ -14,7 +14,8 @@
 <meta property="og:description" content="一、为什么选择Binderandroid 是基于Linux开发的移动端操作系统，而传统的Linux已有的IPC机制，包括管道，消息队列、共享内存、信号量、socket为什么不适合安卓，而非要采用Binder？ 1.拷贝次数SocketLinux中除了Binder之外唯一一个C/S架构的IPC，为了兼容本地操作系统中的进程间通讯和互联网中的远程主机之间的通讯，Socket采用的是更加通用型的架构，一">
 <meta property="og:locale" content="en">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15276457266040.jpg">
-<meta property="og:updated_time" content="2018-06-02T08:21:59.553Z">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15280001106523.jpg">
+<meta property="og:updated_time" content="2018-06-03T04:49:58.141Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Binder的设计架构">
 <meta name="twitter:description" content="一、为什么选择Binderandroid 是基于Linux开发的移动端操作系统，而传统的Linux已有的IPC机制，包括管道，消息队列、共享内存、信号量、socket为什么不适合安卓，而非要采用Binder？ 1.拷贝次数SocketLinux中除了Binder之外唯一一个C/S架构的IPC，为了兼容本地操作系统中的进程间通讯和互联网中的远程主机之间的通讯，Socket采用的是更加通用型的架构，一">
@@ -161,7 +162,7 @@
         </div>
         <div class="article-info profile-block">
             <div class="article-info-block">
-                22
+                23
                 <span>posts</span>
             </div>
             <div class="article-info-block">
@@ -324,14 +325,17 @@
 <p>Server、Client、ServiceManager、Binder驱动。</p>
 </blockquote>
 <p>server client smg 运行在用户空间，Binder驱动运行在内和空间。</p>
-<h2 id="1-Binder驱动"><a href="#1-Binder驱动" class="headerlink" title="1.Binder驱动"></a>1.Binder驱动</h2><p>实现方式类似硬件驱动，工作在内核态，提供open(),mmap(),poll(),ioctl()等标准的文件操作【注1】，Binder驱动负责在内核中创建对应的Binder实体节点，为client或者server进程创建对该实体节点的引用，负责进程之间Binder通信的建立，Binder在进程之间传递，Binder引用计数管理，数据包在进程之间的传递等一系列操作的底层支持，驱动和应用程序之间定义了一套标准的接口协议，主要功能由ioctl()【注2】来实现，不提供read（），write接口。（因为ioctl是更为高灵活的操作文件的接口，自动遵循先写后读的顺序，可以满足同步请求）</p>
+<h2 id="1-Binder驱动"><a href="#1-Binder驱动" class="headerlink" title="1.Binder驱动"></a>1.Binder驱动</h2><p>实现方式类似硬件驱动，工作在内核态<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">binder_fops</span> = &#123;</span></span><br><span class="line">    .owner = THIS_MODULE,</span><br><span class="line">    .poll = binder_poll,</span><br><span class="line">    .unlocked_ioctl = binder_ioctl,</span><br><span class="line">    .mmap = binder_mmap,</span><br><span class="line">    .open = binder_open,</span><br><span class="line">    .flush = binder_flush,</span><br><span class="line">    .release = binder_release,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>这是binder驱动的<code>file_operation</code>结构体，可以看到binder驱动为应用层提供了open(),mmap(),poll(),ioctl()等标准的文件操作【注1】，open()负责打开驱动，mmap()负责对binder做内核空间向用户空间的地址映射，ioctl()负责binder协议的通信。<br>Binder驱动负责在内核中创建对应的Binder实体节点，为client或者server进程创建对该实体节点的引用，负责进程之间Binder通信的建立，Binder在进程之间传递，Binder引用计数管理，数据包在进程之间的传递等一系列操作的底层支持，驱动和应用程序之间定义了一套标准的接口协议，主要功能由ioctl()【注2】来实现，不提供read（），write接口。（因为ioctl是更为高灵活的操作文件的接口，自动遵循先写后读的顺序，可以满足同步请求）</p>
 <blockquote>
 <p>注释1：设备驱动程序是操作系统内核和机器硬件之间的接口。设备驱动程序为应用程序屏蔽了硬件的细节，这样在应用程序看来，硬件设备只是一个设备文件，应用程序可以象操作普通文件一样对硬件设备进行操作。设备驱动程序是内核的一部分，它完成以下的功能:<br>1、对设备初始化和释放；<br>2、把数据从内核传送到硬件和从硬件读取数据；<br>3、读取应用程序传送给设备文件的数据和回送应用程序请求的数据；<br>4、检测和处理设备出现的错误。</p>
 </blockquote>
 <blockquote>
 <p>注释2： ioctl()函数是驱动中对设备的I/O通道进行管理的函数，ioctl函数里面都实现了多个的对硬件的操作步骤，将他们综合起来完成一个任务，而不是单一的某个write/read操作，通过应用层传入的命令来调用相应的操作。</p>
 </blockquote>
-<p>—-&gt; 未完待续</p>
+<h2 id="ServiceManager"><a href="#ServiceManager" class="headerlink" title="ServiceManager"></a>ServiceManager</h2><p>ServiceManger有点类似于路由器，使得client端可以通过字符串形式的binder名来获取server端binder的引用，它提供注册和查询服务。server端像smg注册服务，client从smg获取服务。</p>
+<p>server创建了一个binder实体，为其取一个容易记住的名字，然后将这个binder实体 连同名字通过binder驱动发送给smg，通知smg注册一个服务，以及该服务的名字，binder驱动会为这个穿过进程边际的binder创建一个位于内核的实体节点，以及smg对该实体节点的引用，然后将名字以及新建的引用打包发送给serviceManager，smg会在它的svcinfo表中添加该信息。该svcinfo便是服务查询表。</p>
+<p><img src="/media/15280001106523.jpg" alt=""></p>
 
         
         </div>
@@ -342,7 +346,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/29/Binder的设计架构/" data-id="cjhx4r16q00040dy2cmerlt52" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/29/Binder的设计架构/" data-id="cjhypgryj0002zh0cxv0922br" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -462,6 +466,25 @@
                     <li>
                         
                         <div class="item-thumbnail">
+                            <a href="/2018/06/02/从驱动角度理解binder/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
+                            <p class="item-title"><a href="/2018/06/02/从驱动角度理解binder/" class="title">从驱动角度理解binder</a></p>
+                            <p class="item-date"><time datetime="2018-06-02T11:00:50.000Z" itemprop="datePublished">2018-06-02</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
                             <a href="/2018/06/02/理解Liunx的FD与Inode/" class="thumbnail">
     
     
@@ -535,25 +558,6 @@
                         </div>
                     </li>
                 
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/05/17/JAVA的垃圾回收策略/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/java基础/">java基础</a></p>
-                            <p class="item-title"><a href="/2018/05/17/JAVA的垃圾回收策略/" class="title">JAVA的垃圾回收策略</a></p>
-                            <p class="item-date"><time datetime="2018-05-16T16:56:50.000Z" itemprop="datePublished">2018-05-17</time></p>
-                        </div>
-                    </li>
-                
             </ul>
         </div>
     </div>
@@ -563,7 +567,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">categories</h3>
         <div class="widget">
-            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li></ul>
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -572,7 +576,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -581,7 +585,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">tags</h3>
         <div class="widget">
-            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li></ul>
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -590,7 +594,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">tag cloud</h3>
         <div class="widget tagcloud">
-            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 12.5px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 17.5px;">java</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 12.5px;">垃圾回收</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/容器/" style="font-size: 10px;">容器</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a>
+            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 15px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 17.5px;">java</a> <a href="/tags/linux/" style="font-size: 12.5px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 12.5px;">垃圾回收</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/容器/" style="font-size: 10px;">容器</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a>
         </div>
     </div>
 
