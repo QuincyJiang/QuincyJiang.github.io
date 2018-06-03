@@ -26,7 +26,7 @@
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15280221155795.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15280221222039.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15280227943358.jpg">
-<meta property="og:updated_time" content="2018-06-03T13:59:28.859Z">
+<meta property="og:updated_time" content="2018-06-03T14:05:09.390Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="从驱动角度理解binder">
 <meta name="twitter:description" content="一次binder通讯建立的大致流程我们已经了解了，首先是要注册一个serviceManager，server端创建实名binder，向smg注册自己可以提供的服务，以及该实名binder的标签，smg会在svcinfo 链表中缓存该server提供的binder信息，当client需要使用该服务时，只需要向smg中查询服务，获取server端binder的引用就可以了，这其中所有的通讯细节，全部需">
@@ -613,13 +613,13 @@
 <h4 id="binder-请求的过程"><a href="#binder-请求的过程" class="headerlink" title="binder 请求的过程"></a>binder 请求的过程</h4><p>见下图：</p>
 <p><img src="/media/15280173877321.jpg" alt=""></p>
 <p>通过上面的Binder协议的说明中我们看到，Binder协议的通信过程中，不仅仅是发送请求和接受数据这些命令。同时包括了对于引用计数的管理和对于死亡通知的管理（告知一方，通讯的另外一方已经死亡）等功能。</p>
-<p>这些功能的通信过程和上面这幅图是类似的：一方发送BC_XXX，然后由驱动控制通信过程，接着发送对应的BR_XXX命令给通信的另外一方。因为这种相似性，对于这些内容就不再赘述了。</p>
+<p>这些功能的通信过程和上面这幅图是类似的：一方发送<code>BC_XXX</code>，然后由驱动控制通信过程，接着发送对应的<code>BR_XXX</code>命令给通信的另外一方。因为这种相似性，对于这些内容就不再赘述了。</p>
 <h3 id="由驱动角度理解-Binder通讯建立的过程"><a href="#由驱动角度理解-Binder通讯建立的过程" class="headerlink" title="由驱动角度理解 Binder通讯建立的过程"></a>由驱动角度理解 Binder通讯建立的过程</h3><h4 id="1-打开驱动（open-“dev-binder”-）"><a href="#1-打开驱动（open-“dev-binder”-）" class="headerlink" title="1 打开驱动（open(“dev/binder”)）"></a>1 打开驱动（open(“dev/binder”)）</h4><p>任何进程在使用Binder之前，都需要先通过<code>open(&quot;/dev/binder&quot;)</code>打开Binder设备。上文已经提到，用户空间的<code>open</code>系统调用对应了驱动中的<code>binder_open</code>函数。在这个函数，Binder驱动会为调用的进程做一些初始化工作。<code>binder_open</code>函数代码如下所示</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">binder_open</span><span class="params">(struct inode *nodp, struct file *filp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">binder_proc</span> *<span class="title">proc</span>;</span></span><br><span class="line"></span><br><span class="line">   <span class="comment">// 创建进程对应的binder_proc对象 </span></span><br><span class="line">	proc = kzalloc(<span class="keyword">sizeof</span>(*proc), GFP_KERNEL); </span><br><span class="line">	<span class="keyword">if</span> (proc == <span class="literal">NULL</span>)</span><br><span class="line">		<span class="keyword">return</span> -ENOMEM;</span><br><span class="line">	get_task_struct(current);</span><br><span class="line">	proc-&gt;tsk = current;</span><br><span class="line">	<span class="comment">// 初始化binder_proc</span></span><br><span class="line">	INIT_LIST_HEAD(&amp;proc-&gt;todo);</span><br><span class="line">	init_waitqueue_head(&amp;proc-&gt;wait);</span><br><span class="line">	proc-&gt;default_priority = task_nice(current);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 锁保护</span></span><br><span class="line">	binder_lock(__func__);</span><br><span class="line"></span><br><span class="line">	binder_stats_created(BINDER_STAT_PROC);</span><br><span class="line">	<span class="comment">// 添加到全局列表binder_procs中</span></span><br><span class="line">	hlist_add_head(&amp;proc-&gt;proc_node, &amp;binder_procs);</span><br><span class="line">	proc-&gt;pid = current-&gt;group_leader-&gt;pid;</span><br><span class="line">	INIT_LIST_HEAD(&amp;proc-&gt;delivered_death);</span><br><span class="line">	filp-&gt;private_data = proc;</span><br><span class="line"></span><br><span class="line">	binder_unlock(__func__);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>可以看到，在打开binder驱动时，<code>binder_procs</code>会将所有打开binder驱动的进程加入到该列表中，上文中提到binder中的几个主要结构体，其实都是通过<code>binder_procs</code>结构体链接在一起的。</p>
 <p><img src="/media/15280179417192.jpg" alt=""></p>
 <h4 id="2-创建内存空间并实现用户空间-内核空间的映射（mmap）"><a href="#2-创建内存空间并实现用户空间-内核空间的映射（mmap）" class="headerlink" title="2. 创建内存空间并实现用户空间 内核空间的映射（mmap）"></a>2. 创建内存空间并实现用户空间 内核空间的映射（mmap）</h4><p>打开binder驱动之后，进程会通过<code>mmap()</code>方法进行内存空间的映射。 </p>
-<p>上文描述过，mmap()对应的binder_mmap()函数，它会先申请一份物理内存，默认PAGE_SIZE 是4k，然后会<strong>同时在 用户空间和 内核空间</strong>映射该物理内存。当client 发送数据给server的时候，只需要将client端的数据，拷贝到server端所指向的 内核中的地址即可，因为server的用户空间和binder对应的内核空间映射的是同一份物理内存，当server取数据的时候，就无需再从内科中拷贝了，server可以直接使用。</p>
+<p>上文描述过，<code>mmap()</code>对应的<code>binder_mmap()</code>函数，它会先申请一份物理内存，默认<code>PAGE_SIZE</code> 是4k，然后会<strong>同时在 用户空间和 内核空间</strong>映射该物理内存。当client 发送数据给server的时候，只需要将client端的数据，拷贝到server端所指向的 内核中的地址即可，因为server的用户空间和binder对应的内核空间映射的是同一份物理内存，当server取数据的时候，就无需再从内科中拷贝了，server可以直接使用。</p>
 <p><img src="/media/15280184528253.jpg" alt=""></p>
 <p>这幅图的说明如下：</p>
 <p>Server在启动之后，对<code>/dev/binder</code>设备调用<code>mmap</code><br>内核中的<code>binder_mmap</code>函数进行对应的处理：申请一块物理内存，然后在用户空间和内核空间同时进行映射</p>
@@ -629,22 +629,22 @@
 <p>首先，我们还是从一次IPC请求说起。</p>
 <p>当一个Client想要对Server发出请求时，它首先将请求发送到Binder设备上，由Binder驱动根据请求的信息找到对应的目标节点，然后将请求数据传递过去。</p>
 <p>进程通过ioctl系统调用来发出请求：<code>ioctl(mProcess-&gt;mDriverFD, BINDER_WRITE_READ, &amp;bwr)</code></p>
-<p>PS：这行代码来自于Framework层的IPCThreadState类。在后文中，我们将看到，IPCThreadState类专门负责与驱动进行通信。</p>
-<p>这里的mProcess-&gt;mDriverFD对应了打开Binder设备时的fd。<code>BINDER_WRITE_READ</code>对应了具体要做的操作码，这个操作码将由Binder驱动解析。<code>bwr</code>存储了请求数据，其类型是<code>binder_write_read</code>。</p>
+<p>PS：这行代码来自于Framework层的<code>IPCThreadState</code>类。在后文中，我们将看到，<code>IPCThreadState</code>类专门负责与驱动进行通信。</p>
+<p>这里的<code>mProcess-&gt;mDriverFD</code>对应了打开Binder设备时的<code>fd</code>。<code>BINDER_WRITE_READ</code>对应了具体要做的操作码，这个操作码将由Binder驱动解析。<code>bwr</code>存储了请求数据，其类型是<code>binder_write_read</code>。</p>
 <p><code>binder_write_read</code>其实是一个相对外层的数据结构，其内部会包含一个<code>binder_transaction_data</code>结构的数据。<code>binder_transaction_data</code>包含了发出请求者的标识，请求的目标对象以及请求所需要的参数。它们的关系如下图所示：</p>
 <p><img src="/media/15280191293122.jpg" alt=""></p>
-<p><code>binder_ioctl</code>函数对应了ioctl系统调用的处理。这个函数的逻辑比较简单，就是根据ioctl的命令来确定进一步处理的逻辑，具体如下:</p>
-<p>如果命令是<code>BINDER_WRITE_READ</code>，并且<br>如果 bwr.write_size &gt; 0，则调用<code>binder_thread_write</code><br>该方法用于处理Binder协议中的请求码。当<code>binder_buffer</code>存在数据，binder线程的写操作循环执行。对于请求码为<code>BC_TRANSACTION</code>或<code>BC_REPLY</code>时，会执行<code>binder_transaction</code>()方法，这是最为频繁的操作。 对于其他命令则不同。</p>
-<p>如果 bwr.read_size &gt; 0，则调用<code>binder_thread_read</code>，该方法用以处理响应过程，根据不同的binder_work-&gt;type以及不同状态，生成相应的响应码。</p>
+<p><code>binder_ioctl</code>函数对应了<code>ioctl</code>系统调用的处理。这个函数的逻辑比较简单，就是根据<code>ioctl</code>的命令来确定进一步处理的逻辑，具体如下:</p>
+<p>如果命令是<code>BINDER_WRITE_READ</code>，并且<br>如果 <code>bwr.write_size &gt; 0</code>，则调用<code>binder_thread_write</code><br>该方法用于处理Binder协议中的请求码。当<code>binder_buffer</code>存在数据，binder线程的写操作循环执行。对于请求码为<code>BC_TRANSACTION</code>或<code>BC_REPLY</code>时，会执行<code>binder_transaction</code>()方法，这是最为频繁的操作。 对于其他命令则不同。</p>
+<p>如果 <code>bwr.read_size &gt; 0</code>，则调用<code>binder_thread_read</code>，该方法用以处理响应过程，根据不同的<code>binder_work-&gt;type</code>以及不同状态，生成相应的响应码。</p>
 <p>如果命令是<code>BINDER_SET_MAX_THREADS</code>，则设置进程的<code>max_threads</code>，即进程支持的最大线程数<br>如果命令是<code>BINDER_SET_CONTEXT_MGR</code>，则设置当前进程为<code>ServiceManager</code>，见下文<br>如果命令是<code>BINDER_THREAD_EXIT</code>，则调用<code>binder_free_thread</code>，释放<code>binder_thread</code><br>如果命令是<code>BINDER_VERSION</code>，则返回当前的Binder版本号<br>这其中，最关键的就是<code>binder_thread_write</code>方法。当Client请求Server的时候，便会发送一个<code>BINDER_WRITE_READ</code>命令，同时框架会将将实际的数据包装好。此时，<code>binder_transaction_data</code>中的code将是<code>BC_TRANSACTION</code>，由此便会调用到<code>binder_transaction</code>方法，这个方法是对一次Binder事务的处理，这其中会调用<code>binder_alloc_buf</code>函数为此次事务申请一个缓存。<br>调用关系见下图<br><img src="/media/15280210111665.jpg" alt=""></p>
 <p><code>binder_update_page_range</code>这个函数在上文中，我们已经看到过了。其作用就是：进行内存分配并且完成内存的映射。而<code>binder_alloc_buf</code>函数，正如其名称那样的：完成缓存的分配。</p>
-<p>在驱动中，通过<code>binder_buffer</code>结构体描述缓存。一次Binder事务就会对应一个binder_buffer，<br>进程在mmap时，会设定支持的总缓存大小的上限。而进程每当收到<code>BC_TRANSACTION</code>，就会判断已使用缓存加本次申请的和有没有超过上限。如果没有，就考虑进行内存的分配。</p>
+<p>在驱动中，通过<code>binder_buffer</code>结构体描述缓存。一次Binder事务就会对应一个<code>binder_buffer</code>，<br>进程在mmap时，会设定支持的总缓存大小的上限。而进程每当收到<code>BC_TRANSACTION</code>，就会判断已使用缓存加本次申请的和有没有超过上限。如果没有，就考虑进行内存的分配。</p>
 <p>进程的空闲缓存记录在<code>binder_proc</code>的<code>free_buffers</code>中，这是一个以红黑树形式存储的结构。每次尝试分配缓存的时候，会从这里面按大小顺序进行查找，找到最接近需要的一块缓存。找到之后，还要对binder_proc的字段进行更新。</p>
 <p><code>BC_FREE_BUFFER</code>命令是通知驱动进行内存的释放，<code>binder_free_buf</code>函数是真正实现的逻辑，这个函数与<code>binder_alloc_buf</code>是刚好对应的。在这个函数中，所做的事情包括：</p>
 <ul>
 <li>重新计算进程的空闲缓存大小</li>
-<li>通过binder_update_page_range释放内存</li>
-<li>更新binder_proc的buffers，free_buffers，allocated_buffers字段</li>
+<li>通过<code>binder_update_page_range</code>释放内存</li>
+<li>更新<code>binder_proc</code>的<code>buffers</code>，<code>free_buffers</code>，<code>allocated_buffers</code>字段</li>
 </ul>
 <h4 id="4-通讯过程"><a href="#4-通讯过程" class="headerlink" title="4 通讯过程"></a>4 通讯过程</h4><p><code>BINDER_COMMAND_PROTOCOL</code>：binder请求码，以”BC_“开头，简称BC码，用于从IPC层传递到Binder Driver层；<br><code>BINDER_RETURN_PROTOCOL</code> ：binder响应码，以”BR_“开头，简称BR码，用于从Binder Driver层传递到IPC层；</p>
 <p>一次完整的binder通讯流程：<br><img src="/media/15280207692595.jpg" alt=""><strong>Binder IPC通信至少是两个进程的交互</strong>：</p>
@@ -653,7 +653,7 @@
 <li>server进程执行<code>binder_thread_read</code>，<code>thread_read</code>根据<code>binder_work.type</code>类型，生成<code>BR_XXX</code>，发送到用户空间处理。<br><img src="/media/15280214808773.jpg" alt=""></li>
 </ul>
 <p><code>binder_work.type</code> ：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BINDER_WORK_TRANSACTION <span class="comment">//最常见类型</span></span><br><span class="line">BINDER_WORK_TRANSACTION_COMPLETE</span><br><span class="line">BINDER_WORK_NODE</span><br><span class="line">BINDER_WORK_DEAD_BINDER</span><br><span class="line">BINDER_WORK_DEAD_BINDER_AND_CLEAR</span><br><span class="line">BINDER_WORK_CLEAR_DEATH_NOTIFICATION</span><br></pre></td></tr></table></figure></p>
-<p>可以知道，上述通信流程涉及到三种状态码的转换：<br>BR_CODE BC_CODE  BW_CODE,<br>他们之间的转换图如下：</p>
+<p>可以知道，上述通信流程涉及到三种状态码的转换：<br><code>BR_CODE</code> <code>BC_CODE</code>  <code>BW_CODE</code>,<br>他们之间的转换图如下：</p>
 <p><img src="/media/15280221155795.jpg" alt=""></p>
 <p><img src="/media/15280221222039.jpg" alt=""></p>
 <p>图解：(以<code>BC_TRANSACTION</code>为例)</p>
@@ -688,7 +688,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/" data-id="cjhyw7xfb00146h0c9d8cwxd7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/" data-id="cjhywf4bg001f750cgeyujji2" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
