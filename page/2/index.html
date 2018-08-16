@@ -154,7 +154,7 @@
         </div>
         <div class="article-info profile-block">
             <div class="article-info-block">
-                28
+                29
                 <span>posts</span>
             </div>
             <div class="article-info-block">
@@ -195,6 +195,181 @@
 
             
             <section id="main">
+    <article id="post-JAVA的垃圾回收策略" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2018/05/17/JAVA的垃圾回收策略/">JAVA的垃圾回收策略</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/05/17/JAVA的垃圾回收策略/">
+            <time datetime="2018-05-16T16:56:50.000Z" itemprop="datePublished">2018-05-17</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/java基础/">java基础</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/java/">java</a>, <a class="tag-link" href="/tags/垃圾回收/">垃圾回收</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>创建了一个对象，就意味着或早或晚，该对象都是需要 被释放掉的，只不过这个时间有长有短，对象从被new出来到被垃圾回收器回收，就是一个生命周期的完整过程，java的垃圾回收机制可以做到自动决定哪些对象是无用的从而被回收掉，无需使用者担心，但是不健壮的java代码会影响到回收算法对无效对象的识别，从而影响对象的生命周期，导致无法回收。为了弄清楚java的垃圾回收机制，有必要先搞懂下面这些概念。</p>
+<h2 id="java程序的生存空间：-堆与栈"><a href="#java程序的生存空间：-堆与栈" class="headerlink" title="java程序的生存空间： 堆与栈"></a>java程序的生存空间： 堆与栈</h2><ul>
+<li>堆：实例变量（成员变量）与对象的生存空间</li>
+<li>栈：方法调用与局部变量的生存空间<blockquote>
+<p>注1：实例变量生命在对象内部，而不是方法内，塔代表每一个独立对象的“字段”，是存储在对象中的。</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>注2：局部变量生命在方法中，他们是暂时的，生命周期只限于方法被放入栈上的时间，也就是方法执行到结束的过程。</p>
+</blockquote>
+<blockquote>
+<p>注3：方法的调用过程，是伴随方法栈入栈出栈的过程的，方法被调用，一个对应的方法堆栈块也就被放置到栈顶，这个堆栈块里除了存放局部变量和方法参数之外，还会存放方法的执行状态，包括方法执行的行数，当方法执行完毕之后，该方法堆栈块便会出栈。</p>
+</blockquote>
+<p>如果是这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">    foo1();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">bar</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo2</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo1</span><span class="params">()</span></span>&#123;</span><br><span class="line">    foo2();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>方法foo1 调用了foo2 执行到调用时，会将foo2放在foo1()的栈顶上，foo1被压下去。</p>
+<blockquote>
+<p>注4：非primitive（注5）的变量都只是对对象的引用而已，所以所有的局部变量，变量本身都是存放在方法栈空间的，当所指向的对象被实例化了，对象存放在堆空间。</p>
+</blockquote>
+<blockquote>
+<p>注5：java的变量类型分为 primitive数据类型和 引用类型，primitive 主数据类型用来保存基本类型的值，包括整数、布尔和浮点数等，而对象引用保存的是对象的引用。</p>
+</blockquote>
+<blockquote>
+<p>注6： 不管是实例变量还是局部变量，对象本身都是存放在堆上的</p>
+</blockquote>
+<h2 id="对象的创建-三部曲：声明、创建、赋值"><a href="#对象的创建-三部曲：声明、创建、赋值" class="headerlink" title="对象的创建 三部曲：声明、创建、赋值"></a>对象的创建 三部曲：声明、创建、赋值</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Duck duck   <span class="comment">// 1.创建出新的引用变量duck给Duck类型</span></span><br><span class="line">=           <span class="comment">//3. 赋值该对象给引用变量</span></span><br><span class="line"><span class="keyword">new</span> Duck(); <span class="comment">//2. 创建该对象实例</span></span><br></pre></td></tr></table></figure>
+<p>调用new 方法，便创建了一个duck实例，这其中的过程其实是调用了类的构造方法。</p>
+<p><strong>注意</strong> 对象构造方法会先与对象实例被赋值给引用对象之前就执行。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">People</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">People</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">'people'</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">        People p = <span class="keyword">new</span> People();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>会打印出people的log</p>
+<h2 id="对象的声明周期"><a href="#对象的声明周期" class="headerlink" title="对象的声明周期"></a>对象的声明周期</h2><p>对象的生命周期是看对象的引用。如果还有引用，对象继续存活在堆上，如果没有引用了，对象就会被垃圾回收器回收。<br>所以==对象的声明周期 要看引用变量的声明周期==，而引用变量的声明周期，又要看它是局部变量还是成员变量。</p>
+<ul>
+<li>局部变量： 与方法声明周期同步，只活在该方法内，方法执行完毕，对象立即被释放，对其他程序和方法不可见。</li>
+<li>成员变量： 与对象声明周期同步。如果对象活着，该成员变量也活着。<h4 id="关于局部变量，这里需要讲两个概念"><a href="#关于局部变量，这里需要讲两个概念" class="headerlink" title="关于局部变量，这里需要讲两个概念"></a>关于局部变量，这里需要讲两个概念</h4><h3 id="Life"><a href="#Life" class="headerlink" title="Life"></a>Life</h3>对象的堆栈块还在栈内，方法还没执行完，就还活着。活到方法执行完结束。</li>
+</ul>
+<h3 id="Scope"><a href="#Scope" class="headerlink" title="Scope"></a>Scope</h3><p>局部变量的范围，只存在声明它的方法内，如果该方法调用了其他方法，则该变量仍然存活，只不过在执行调用方法的时候，该变量不在它的范围而已。</p>
+<blockquote>
+<p>只要方法还没执行完，对象就不会死，但只有方法在栈顶，对象才是可用的。</p>
+</blockquote>
+<h2 id="变量的生命周期如何影响对象的生命周期？"><a href="#变量的生命周期如何影响对象的生命周期？" class="headerlink" title="变量的生命周期如何影响对象的生命周期？"></a>变量的生命周期如何影响对象的生命周期？</h2><p>只要有活的引用，对象会一直活着，如果对某个对象的引用不在它的范围内，但该引用变量还是活的，则该对象也会活着，呆在堆内存中。如果对该对象的唯一引用没有了，对象便会回收</p>
+<p>三种方法释放对象引用：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方法执行完，引用便释放了</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">go</span><span class="params">()</span></span>&#123;</span><br><span class="line">    People p = <span class="keyword">new</span> People();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 引用被赋值到别处</span></span><br><span class="line">People p = <span class="keyword">new</span> People();</span><br><span class="line">p = <span class="keyword">new</span> People(); <span class="comment">//第一个对象会在此时被释放</span></span><br><span class="line"><span class="comment">// 直接置空</span></span><br><span class="line">People p = <span class="keyword">new</span> People();</span><br><span class="line">p =<span class="keyword">null</span>;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>—待续 5.17 00:51</p>
+</blockquote>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjkweiwos000eqm8x4d56g83w" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
     <article id="post-hexo+icarus" class="article article-type-post" itemscope itemprop="blogPost">
     <div class="article-inner">
         
@@ -308,7 +483,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjiuem2nn000v8k0coaei5ok7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjkweiwp70013qm8x3bfbqap5" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -571,7 +746,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjiuem2o300238k0c1hwqxsl0" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjkweiwpo001vqm8xs0pt6he3" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -782,7 +957,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjiuem2mx00008k0cmyjc6irx" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjkweiwol0008qm8xwvgtbnsu" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1101,7 +1276,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjiuem2nl000p8k0cbq0tmakd" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjkweiwp4000xqm8xnwlda1qu" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1246,7 +1421,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjiuem2nm000t8k0ckfndwrpw" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjkweiwoy000lqm8x2c3b2rox" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1392,7 +1567,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjiuem2o200208k0c3850zd1o" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjkweiwpr0023qm8xr0s0fdrn" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1461,151 +1636,6 @@
             
     
         <a href="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
-    <article id="post-mac搭建PyQt5环境" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2017/12/11/mac搭建PyQt5环境/">mac搭建Pyqt5环境</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2017/12/11/mac搭建PyQt5环境/">
-            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/python/">python</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/python/">python</a>, <a class="tag-link" href="/tags/qt/">qt</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <h3 id="1-首先基于virtualenv-搭建一个python3的运行环境"><a href="#1-首先基于virtualenv-搭建一个python3的运行环境" class="headerlink" title="1.首先基于virtualenv 搭建一个python3的运行环境"></a>1.首先基于virtualenv 搭建一个python3的运行环境</h3><p>virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。</p>
-<h5 id="1-首先，我们用pip安装virtualenv："><a href="#1-首先，我们用pip安装virtualenv：" class="headerlink" title="1. 首先，我们用pip安装virtualenv："></a>1. 首先，我们用pip安装virtualenv：</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install virtualenv</span><br></pre></td></tr></table></figure>
-<h5 id="2-创建一个pyhton3的运行环境"><a href="#2-创建一个pyhton3的运行环境" class="headerlink" title="2.创建一个pyhton3的运行环境"></a>2.创建一个pyhton3的运行环境</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3</span><br></pre></td></tr></table></figure>
-<p>可以通过<strong>python=python3</strong>来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者python3.6</p>
-<h4 id="3-激活该运行环境"><a href="#3-激活该运行环境" class="headerlink" title="3. 激活该运行环境"></a>3. 激活该运行环境</h4><p>执行</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ source ~/py3/bin/activate</span><br><span class="line">(py3) jiangxqdeMBP:~ jiangxq$</span><br></pre></td></tr></table></figure>
-<p>当用户名前出现该运行环境的名称时，表示环境已经激活了</p>
-<h3 id="2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行"><a href="#2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行" class="headerlink" title="2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行"></a>2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install --upgrade pip</span><br></pre></td></tr></table></figure>
-<p>这里有个窍门是如果mac的默认python运行环境为python2.7，但是不想修改注册文件，可以直接打<strong>pip3</strong>，<strong>pip3</strong>是<br>是python3的pip工具，<strong>pip</strong>是python2的pip工具。</p>
-<h3 id="3-使用pip工具安装PyQt5"><a href="#3-使用pip工具安装PyQt5" class="headerlink" title="3. 使用pip工具安装PyQt5"></a>3. 使用pip工具安装PyQt5</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install PyQt5</span><br></pre></td></tr></table></figure>
-<p>当PyQt5安装完成之后，其实Qt的组件此时已经可用了，如果要测试是否安装成功，可以新建一个Python项目，然后倒入PyQt5的包看看。<br><img src="https://note.youdao.com/yws/api/personal/file/WEBa771a15d091f47d6ebb57e09a1c5eff4?method=download&amp;shareKey=c7c7e8069597b7ab8e8f58d4df01e4af" alt="image"></p>
-<h3 id="4-在pycharm上安装QtDesign工具包"><a href="#4-在pycharm上安装QtDesign工具包" class="headerlink" title="4.在pycharm上安装QtDesign工具包"></a>4.在pycharm上安装QtDesign工具包</h3><p>QtDesign是Pycharm上的可视化uI设计工具，可以拖动控件来达到实现设计界面的功能<br>安装Qtdesign 需要先安装QT</p>
-<h4 id="1-下载QT安装包"><a href="#1-下载QT安装包" class="headerlink" title="1. 下载QT安装包"></a>1. 下载QT安装包</h4><p>下载地址：<a href="http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg" target="_blank" rel="noopener">http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg</a><br>下载完成后直接安装</p>
-<h4 id="2-打开pycharm-点击preference-点击Tools-新建一个插件"><a href="#2-打开pycharm-点击preference-点击Tools-新建一个插件" class="headerlink" title="2.打开pycharm 点击preference 点击Tools 新建一个插件"></a>2.打开pycharm 点击preference 点击Tools 新建一个插件</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE9bf5498a9bb100d2b67bf988c494f1be/1941" alt="image"><br> 注意插件地址不要写错了，是qt5的安装路径</p>
-<h4 id="3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）"><a href="#3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）" class="headerlink" title="3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）"></a>3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）</h4>
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjiuem2nq00128k0c08x158by" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/#comments" class="article-comment-link">Comments</a>
     
 
         </footer>
@@ -1725,7 +1755,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjiuem2nk000o8k0c88gmhrmy" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjkweiwp3000vqm8x0g53h9ft" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1794,6 +1824,151 @@
             
     
         <a href="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
+    <article id="post-mac搭建PyQt5环境" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2017/12/11/mac搭建PyQt5环境/">mac搭建Pyqt5环境</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/12/11/mac搭建PyQt5环境/">
+            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/python/">python</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/python/">python</a>, <a class="tag-link" href="/tags/qt/">qt</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h3 id="1-首先基于virtualenv-搭建一个python3的运行环境"><a href="#1-首先基于virtualenv-搭建一个python3的运行环境" class="headerlink" title="1.首先基于virtualenv 搭建一个python3的运行环境"></a>1.首先基于virtualenv 搭建一个python3的运行环境</h3><p>virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。</p>
+<h5 id="1-首先，我们用pip安装virtualenv："><a href="#1-首先，我们用pip安装virtualenv：" class="headerlink" title="1. 首先，我们用pip安装virtualenv："></a>1. 首先，我们用pip安装virtualenv：</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install virtualenv</span><br></pre></td></tr></table></figure>
+<h5 id="2-创建一个pyhton3的运行环境"><a href="#2-创建一个pyhton3的运行环境" class="headerlink" title="2.创建一个pyhton3的运行环境"></a>2.创建一个pyhton3的运行环境</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3</span><br></pre></td></tr></table></figure>
+<p>可以通过<strong>python=python3</strong>来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者python3.6</p>
+<h4 id="3-激活该运行环境"><a href="#3-激活该运行环境" class="headerlink" title="3. 激活该运行环境"></a>3. 激活该运行环境</h4><p>执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ source ~/py3/bin/activate</span><br><span class="line">(py3) jiangxqdeMBP:~ jiangxq$</span><br></pre></td></tr></table></figure>
+<p>当用户名前出现该运行环境的名称时，表示环境已经激活了</p>
+<h3 id="2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行"><a href="#2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行" class="headerlink" title="2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行"></a>2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install --upgrade pip</span><br></pre></td></tr></table></figure>
+<p>这里有个窍门是如果mac的默认python运行环境为python2.7，但是不想修改注册文件，可以直接打<strong>pip3</strong>，<strong>pip3</strong>是<br>是python3的pip工具，<strong>pip</strong>是python2的pip工具。</p>
+<h3 id="3-使用pip工具安装PyQt5"><a href="#3-使用pip工具安装PyQt5" class="headerlink" title="3. 使用pip工具安装PyQt5"></a>3. 使用pip工具安装PyQt5</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install PyQt5</span><br></pre></td></tr></table></figure>
+<p>当PyQt5安装完成之后，其实Qt的组件此时已经可用了，如果要测试是否安装成功，可以新建一个Python项目，然后倒入PyQt5的包看看。<br><img src="https://note.youdao.com/yws/api/personal/file/WEBa771a15d091f47d6ebb57e09a1c5eff4?method=download&amp;shareKey=c7c7e8069597b7ab8e8f58d4df01e4af" alt="image"></p>
+<h3 id="4-在pycharm上安装QtDesign工具包"><a href="#4-在pycharm上安装QtDesign工具包" class="headerlink" title="4.在pycharm上安装QtDesign工具包"></a>4.在pycharm上安装QtDesign工具包</h3><p>QtDesign是Pycharm上的可视化uI设计工具，可以拖动控件来达到实现设计界面的功能<br>安装Qtdesign 需要先安装QT</p>
+<h4 id="1-下载QT安装包"><a href="#1-下载QT安装包" class="headerlink" title="1. 下载QT安装包"></a>1. 下载QT安装包</h4><p>下载地址：<a href="http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg" target="_blank" rel="noopener">http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg</a><br>下载完成后直接安装</p>
+<h4 id="2-打开pycharm-点击preference-点击Tools-新建一个插件"><a href="#2-打开pycharm-点击preference-点击Tools-新建一个插件" class="headerlink" title="2.打开pycharm 点击preference 点击Tools 新建一个插件"></a>2.打开pycharm 点击preference 点击Tools 新建一个插件</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE9bf5498a9bb100d2b67bf988c494f1be/1941" alt="image"><br> 注意插件地址不要写错了，是qt5的安装路径</p>
+<h4 id="3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）"><a href="#3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）" class="headerlink" title="3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）"></a>3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）</h4>
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjkweiwp2000rqm8xywqm44qp" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/#comments" class="article-comment-link">Comments</a>
     
 
         </footer>
@@ -1996,7 +2171,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjiuem2nt00188k0cc6jmng5a" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjkweiwpc001dqm8xrigdgbxi" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2074,155 +2249,6 @@
 
 
 
-    <article id="post-Linux 用户空间 内核空间" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2017/09/07/Linux 用户空间 内核空间/">linux用户控件、内和空间</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2017/09/07/Linux 用户空间 内核空间/">
-            <time datetime="2017-09-07T12:30:15.000Z" itemprop="datePublished">2017-09-07</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/Linux/">Linux</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/linux/">linux</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <p>用户空间就是用户进程所在的内存区域，相对的，系统空间就是操作系统占据的内存区域。</p>
-<p>用户进程和系统进程的所有数据都在内存中。<br>  是谁来划分内存空间的呢？</p>
-<p>  在电脑开机之前，内存就是一块原始的物理内存。什么也没有。开机加电，系统启动后，就对物理内存进行了划分。当然，这是系统的规定，物理内存条上并没有划分好的地址和空间范围。这些划分都是操作系统在逻辑上的划分。不同版本的操作系统划分的结果都是不一样的。<br>  为什么要划分用户空间和系统空间呢？当然是有必要的。操作系统的数据都是存放于系统空间的，用户进程的数据是存放于用户空间的。这是第一点，不同的身份，数据放置的位置必然不一样，否则大混战就会导致系统的数据和用户的数据混在一起，系统就不能很好的运行了。分开来存放，就让系统的数据和用户的数据互不干扰，保证系统的稳定性。分开存放，管理上很方便，而更重要的是，将用户的数据和系统的数据隔离开，就可以对两部分的数据的访问进行控制。这样就可以确保用户程序不能随便操作系统的数据，这样防止用户程序误操作或者是恶意破坏系统。</p>
-<p>处于用户态的程序只能访问用户空间，而处于内核态的程序可以访问用户空间和内核空间。那么用户态和内核态有什么区别呢？</p>
-<p>当一个任务（进程）执行系统调用而陷入内核代码中执行时，我们就称进程处于内核运行态（或简称为内核态）。此时处理器处于特权级最高的（0级）内核代码中执行。当进程处于内核态时，执行的内核代码会使用当前进程的内核栈。每个进程都有自己的内核栈。当进程在执行用户自己的代码时，则称其处于用户运行态（用户态）。即此时处理器在特权级最低的（3级）用户代码中运行。</p>
-<p>内核态与用户态是操作系统的两种运行级别,Intel x86架构提供Ring0-Ring3四种级别的运行模式，Ring0级别最高，Ring3最低。Linux使用了Ring3级别运行用户态，Ring0作为 内核态，没有使用Ring1和Ring2。Ring3状态不能访问Ring0的地址空间，包括代码和数据。程序特权级别的不同，其所拥有的权力也不同。如下图所示。</p>
-<p><img src="https://img-blog.csdn.net/20170610171008637?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzQyMjg1NzA=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"></p>
-<p>用户态切换到内核态的3种方式</p>
-<h4 id="a-系统调用"><a href="#a-系统调用" class="headerlink" title="a. 系统调用"></a>a. 系统调用</h4><blockquote>
-<p>这是用户态进程主动要求切换到内核态的一种方式，用户态进程通过系统调用申请使用操作系统提供的服务程序完成工作，比如fork()实际上就是执行了一个创建新进程的系统调用。而系统调用的机制其核心还是使用了操作系统为用户特别开放的一个中断来实现，例如Linux的int 80h中断。</p>
-</blockquote>
-<h4 id="b-异常"><a href="#b-异常" class="headerlink" title="b. 异常"></a>b. 异常</h4><blockquote>
-<p>当CPU在执行运行在用户态下的程序时，发生了某些事先不可知的异常，这时会触发由当前运行进程切换到处理此异常的内核相关程序中，也就转到了内核态，比如缺页异常。</p>
-</blockquote>
-<h4 id="c-外围设备的中断"><a href="#c-外围设备的中断" class="headerlink" title="c. 外围设备的中断"></a>c. 外围设备的中断</h4><blockquote>
-<p>当外围设备完成用户请求的操作后，会向CPU发出相应的中断信号，这时CPU会暂停执行下一条即将要执行的指令转而去执行与中断信号对应的处理程序，如果先前执行的指令是用户态下的程序，那么这个转换的过程自然也就发生了由用户态到内核态的切换。比如硬盘读写操作完成，系统会切换到硬盘读写的中断处理程序中执行后续操作等。</p>
-</blockquote>
-<p>这3种方式是系统在运行时由用户态转到内核态的最主要方式，其中系统调用可以认为是用户进程主动发起的，异常和外围设备中断则是被动的。</p>
-
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2017/09/07/Linux 用户空间 内核空间/" data-id="cjiuem2ng000h8k0c3rww62hg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2017/09/07/Linux 用户空间 内核空间/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
     <nav id="page-nav">
         <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
     </nav>
@@ -2236,6 +2262,25 @@
         <h3 class="widget-title">recent</h3>
         <div class="widget">
             <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/08/16/一些知识点总结/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
+                            <p class="item-title"><a href="/2018/08/16/一些知识点总结/" class="title">一些知识点总结</a></p>
+                            <p class="item-date"><time datetime="2018-08-16T11:00:50.000Z" itemprop="datePublished">2018-08-16</time></p>
+                        </div>
+                    </li>
                 
                     <li>
                         
@@ -2313,25 +2358,6 @@
                         </div>
                     </li>
                 
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/06/02/从驱动角度理解binder/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
-                            <p class="item-title"><a href="/2018/06/02/从驱动角度理解binder/" class="title">从驱动角度理解binder</a></p>
-                            <p class="item-date"><time datetime="2018-06-02T11:00:50.000Z" itemprop="datePublished">2018-06-02</time></p>
-                        </div>
-                    </li>
-                
             </ul>
         </div>
     </div>
@@ -2341,7 +2367,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">categories</h3>
         <div class="widget">
-            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/机器学习/">机器学习</a><span class="category-list-count">1</span></li></ul>
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/机器学习/">机器学习</a><span class="category-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2350,7 +2376,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2359,7 +2385,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">tags</h3>
         <div class="widget">
-            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tensorflow/">Tensorflow</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/备忘录/">备忘录</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习/">机器学习</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/现代艺术150年/">现代艺术150年</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li></ul>
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tensorflow/">Tensorflow</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/备忘录/">备忘录</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习/">机器学习</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/现代艺术150年/">现代艺术150年</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li></ul>
         </div>
     </div>
 
