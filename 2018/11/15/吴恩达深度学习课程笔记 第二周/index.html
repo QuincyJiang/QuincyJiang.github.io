@@ -33,7 +33,9 @@
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422676113907.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422686564038.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422687425629.jpg">
-<meta property="og:updated_time" content="2018-11-15T08:25:49.884Z">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422763982130.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422764818132.jpg">
+<meta property="og:updated_time" content="2018-11-15T10:40:24.723Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="吴恩达深度学习课程笔记 第二周">
 <meta name="twitter:description" content="本博是吴恩达DeepLearning.ai 的学习笔记从第二周开始记录 改善深层神经网络： 超参调试、正则化以及优化训练集 开发集 测试集 的划分假设所有的训练数据如下一个典型的数据划分： 即：一部分作为 训练集一部分作为 简单交叉验证集/验证集一部分作为 测试集 具体的流程是 在训练集上 对各模型运行训练算法 将训练完成的模型 带入 交叉验证集 选择出最佳模型然后带入测试集对神经网络做出无偏评估">
@@ -321,6 +323,11 @@
 <p>假设每一层的激活函数都是tanh(),tanh()函数具有一个特殊性质，就是当x范围比较小的时候，tanh()接近y=x。<br><img src="/media/15422686564038.jpg" alt="-w675"></p>
 <p>当我们对神经网络施加L2正则化，在训练中会导致w变小，又因为g(z)中的z 等于<br><img src="/media/15422687425629.jpg" alt="-w391"></p>
 <p>当w[l]变小，会导致z[l]变小，当z落在tanh的中间那一小部分范围时，整个神经网络只利用到了tanh的线性部分，模型也会趋近于线性回归。这样会有效降低过拟合出现的情况</p>
+<h2 id="另一种正则化方式：-Dropout正则化"><a href="#另一种正则化方式：-Dropout正则化" class="headerlink" title="另一种正则化方式： Dropout正则化"></a>另一种正则化方式： Dropout正则化</h2><p>Dropout，也被称之为随机失活。<br>其实就是 令神经网络的每一层的每个神经元，按照一定的概率失活。<br>我们将原始训练集分为若干子集，对每一个子集，都利用一次dropout<br><img src="/media/15422763982130.jpg" alt="-w451"></p>
+<p>假设在这个神经网络中，我们设置每个元素的失活概率为0.5，那么在这个子集中，我们便会得到一个精简的神经网络<br><img src="/media/15422764818132.jpg" alt="-w449"></p>
+<p>对每一个训练子集机型dropout，便会得到很多精简的神经网络，我们对每一个神经网络进行训练。其实这里也能看出来，为什么dropout可以有效防止过拟合，以为实施过dropout的神经网络变小了。</p>
+<p>下面以python代码示例 </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="comment"># 假设当前为layer3</span></span><br><span class="line"><span class="comment"># 意味每个单元的保留概率是0.8 </span></span><br><span class="line">keep-prop = <span class="number">0.8</span> </span><br><span class="line"><span class="comment"># 生成一个随机矩阵，该矩阵和a3具有相同的行列数，且矩阵中 任一元素 d3[i,j] = 0的概率是0.2，等于1的概率是0.8</span></span><br><span class="line">d3 = np.random.rand(a3.shape[<span class="number">0</span>],a3.shape[<span class="number">1</span>])&lt;keep-prop</span><br><span class="line"><span class="comment"># 重新计算a3</span></span><br><span class="line">a3 = np.multiply(a3,d3)</span><br><span class="line"><span class="comment"># 除以keep-prop的目的是为了不减少a3的期望</span></span><br><span class="line">a3 /= keep-prop</span><br></pre></td></tr></table></figure>
 
         
         </div>
@@ -331,7 +338,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/11/15/吴恩达深度学习课程笔记 第二周/" data-id="cjoicfa28001rdvfyfupxye0b" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/11/15/吴恩达深度学习课程笔记 第二周/" data-id="cjoifaw2p001g6g0cysqyyniu" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
