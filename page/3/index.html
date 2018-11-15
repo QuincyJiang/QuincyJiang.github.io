@@ -154,7 +154,7 @@
         </div>
         <div class="article-info profile-block">
             <div class="article-info-block">
-                30
+                32
                 <span>posts</span>
             </div>
             <div class="article-info-block">
@@ -195,6 +195,339 @@
 
             
             <section id="main">
+    <article id="post-MQTT相关" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2017/12/11/MQTT相关/">MQTT相关总结</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/12/11/MQTT相关/">
+            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/MQTT/">MQTT</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/mqtt/">mqtt</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h1 id="MQTT相关"><a href="#MQTT相关" class="headerlink" title="MQTT相关"></a>MQTT相关</h1><p>MQTT官网：<a href="http://mqtt.org/" target="_blank" rel="noopener">http://mqtt.org/</a></p>
+<p>MQTT介绍：<a href="http://www.ibm.com" target="_blank" rel="noopener">http://www.ibm.com</a></p>
+<p>MQTT Android github：<a href="https://github.com/eclipse/paho.mqtt.android" target="_blank" rel="noopener">https://github.com/eclipse/paho.mqtt.android</a></p>
+<p>MQTT API：<a href="http://www.eclipse.org/paho/files/javadoc/index.html" target="_blank" rel="noopener">http://www.eclipse.org/paho/files/javadoc/index.html</a></p>
+<p>MQTT Android API： <a href="http://www.eclipse.org/paho/files/android-javadoc/index.html" target="_blank" rel="noopener">http://www.eclipse.org/paho/files/android-javadoc/index.html</a></p>
+<hr>
+<h2 id="MQTT服务器搭建"><a href="#MQTT服务器搭建" class="headerlink" title="MQTT服务器搭建"></a>MQTT服务器搭建</h2><ul>
+<li>环境：windows7 64位</li>
+<li>JAVA环境:jdk 1.8.0</li>
+<li>下载：<a href="http://activemq.apache.org/apollo/download.html" target="_blank" rel="noopener">Apollo服务器</a></li>
+</ul>
+<p>以下为步骤：</p>
+<ol>
+<li>下载Apollo服务器后，解压安装；</li>
+<li>用命令行进入到安装目录bin目录下</li>
+<li>输入 apollo create xxx (xxx为服务器实例名，eg.apollo create xmaihh)<blockquote>
+<p>执行之后会在bin目录下创建名称为xxx的文件夹，比如我生成的文件夹是 xmaihh<br>xxx文件夹下etc\apollo.xml文件是 配置服务器文件信息<br>etc\users.properties文件包含连接MQTT服务器时用到的用户名和密码，默认为admin=password，即账号为admin，密码为password，可自行更改。</p>
+</blockquote>
+</li>
+<li>用命令行进入到刚创建的xxx\bin目录下，输入apollo-broker.cmd run开启服务器</li>
+<li>在浏览器输入<a href="http://127.0.0.1:61680/，查看是否安装成功" target="_blank" rel="noopener">http://127.0.0.1:61680/，查看是否安装成功</a><br><img src="https://i.imgur.com/qyuQDHy.png" alt=""><br><img src="https://i.imgur.com/SAh5lfp.png" alt=""><br><img src="https://i.imgur.com/5KZpNcP.png" alt=""><h2 id="MQTT-Android客户端"><a href="#MQTT-Android客户端" class="headerlink" title="MQTT Android客户端"></a>MQTT Android客户端</h2></li>
+</ol>
+<ul>
+<li>环境：AndroidStudio 3.0.1</li>
+<li>topic：中文意思是“话题”。在MQTT中订阅了(subscribe)同一话题（topic）的客户端会同时收到消息推送。</li>
+<li>clientId：客户身份唯一标识。</li>
+<li>qos：服务质量。</li>
+<li>retained：要保留最后的断开连接信息。</li>
+<li>MqttAndroidClient#subscribe()：订阅某个话题。</li>
+<li>MqttAndroidClient#publish()： 向某个话题发送消息，之后服务器会推送给所有订阅了此话题的客户。</li>
+<li>userName：连接到MQTT服务器的用户名。</li>
+<li>passWord ：连接到MQTT服务器的密码</li>
+</ul>
+<p>以下为步骤：</p>
+<ol>
+<li><p>添加依赖</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">    maven &#123;</span><br><span class="line">        url &quot;https://repo.eclipse.org/content/repositories/paho-snapshots/&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile &apos;org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0&apos;</span><br><span class="line">    compile &apos;org.eclipse.paho:org.eclipse.paho.android.service:1.1.1&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot; /&gt;</span><br><span class="line">&lt;uses-permission android:name=&quot;android.permission.ACCESS_NETWORK_STATE&quot; /&gt;</span><br><span class="line">&lt;uses-permission android:name=&quot;android.permission.WAKE_LOCK&quot; /&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>注册Service</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- Mqtt Service --&gt;</span><br><span class="line">&lt;service android:name=&quot;org.eclipse.paho.android.service.MqttService&quot; /&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>具体实现</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * MQTT长连接服务</span><br><span class="line"> */</span><br><span class="line">public class MQTTService extends Service &#123;</span><br><span class="line">    public static final String TAG = MQTTService.class.getSimpleName();</span><br><span class="line"></span><br><span class="line">    public static MqttAndroidClient client;</span><br><span class="line">    private MqttConnectOptions connectOptions;</span><br><span class="line">        private String host = &quot;tcp://192.168.102.216:61613&quot;;</span><br><span class="line">//        private String host = &quot;tcp://192.168.8.241:61613&quot;;</span><br><span class="line">//        private String host = &quot;tcp://10.0.2.2:61613&quot;;</span><br><span class="line">//    private String host = &quot;tcp://192.168.26.144:1883&quot;;</span><br><span class="line"></span><br><span class="line">    private String username = &quot;admin&quot;;</span><br><span class="line">    private String password = &quot;password&quot;;</span><br><span class="line">    private static String myTopic = &quot;topic&quot;;</span><br><span class="line">    private String clientId = &quot;test123&quot;;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public int onStartCommand(Intent intent, int flags, int startId) &#123;</span><br><span class="line">        init();</span><br><span class="line">        return super.onStartCommand(intent, flags, startId);</span><br><span class="line">    &#125;</span><br><span class="line">    @Nullable</span><br><span class="line">    @Override</span><br><span class="line">    public IBinder onBind(Intent intent) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void publish(String msg) &#123;</span><br><span class="line">        String topic = myTopic;</span><br><span class="line">        Integer qos = 0;</span><br><span class="line">        Boolean retained = false;</span><br><span class="line">        try &#123;</span><br><span class="line">            client.publish(topic, msg.getBytes(), qos.intValue(), retained.booleanValue());</span><br><span class="line">        &#125; catch (MqttException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    /**</span><br><span class="line">     * 初始化方法</span><br><span class="line">     */</span><br><span class="line">    private void init() &#123;</span><br><span class="line">        // 服务器地址 (协议+地址+端口号)</span><br><span class="line">        String url = host;</span><br><span class="line">        client = new MqttAndroidClient(this, url, clientId);</span><br><span class="line">        client.setCallback(mqttCallback);</span><br><span class="line">        connectOptions = new MqttConnectOptions();</span><br><span class="line">        // 清除缓存</span><br><span class="line">        connectOptions.setCleanSession(true);</span><br><span class="line">        // 设置超时时间,单位:秒</span><br><span class="line">        connectOptions.setConnectionTimeout(10);</span><br><span class="line">        // 心跳包发送时间间隔,单位:秒</span><br><span class="line">        connectOptions.setKeepAliveInterval(20);</span><br><span class="line">        // 用户名</span><br><span class="line">        connectOptions.setUserName(username);</span><br><span class="line">        // 密码</span><br><span class="line">        connectOptions.setPassword(password.toCharArray());</span><br><span class="line">        // last will message</span><br><span class="line">        boolean doConnect = true;</span><br><span class="line">        String message = &quot;&#123;\&quot;terminal_uid\&quot;:\&quot;&quot; + clientId + &quot;\&quot;&#125;&quot;;</span><br><span class="line">        String topic = myTopic;</span><br><span class="line">        Integer qos = 0;</span><br><span class="line">        Boolean retained = false;</span><br><span class="line">        if ((!message.equals(&quot;&quot;)) || (!topic.equals(&quot;&quot;))) &#123;</span><br><span class="line">            //最后的遗嘱</span><br><span class="line">            try &#123;</span><br><span class="line">                connectOptions.setWill(topic, message.getBytes(), qos.intValue(), retained.booleanValue());</span><br><span class="line">            &#125; catch (Exception ex) &#123;</span><br><span class="line">                Log.d(TAG, &quot;Exception Occured&quot;, ex);</span><br><span class="line">                doConnect = false;</span><br><span class="line">                iMqttActionListener.onFailure(null, ex);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (doConnect) &#123;</span><br><span class="line">            //连接MQTT服务器</span><br><span class="line">            doClientConnection();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 连接MQTT服务器</span><br><span class="line">     */</span><br><span class="line">    private void doClientConnection() &#123;</span><br><span class="line">        if (!client.isConnected() &amp;&amp; isConnectIsNomarl()) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                client.connect(connectOptions, null, iMqttActionListener);</span><br><span class="line">            &#125; catch (MqttException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 判断网络是否连接</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    private boolean isConnectIsNomarl() &#123;</span><br><span class="line">        ConnectivityManager connectivityManager = (ConnectivityManager)</span><br><span class="line">                this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);</span><br><span class="line">        NetworkInfo info = connectivityManager.getActiveNetworkInfo();</span><br><span class="line">        if (info != null &amp;&amp; info.isAvailable()) &#123;</span><br><span class="line">            String name = info.getTypeName();</span><br><span class="line">            Log.i(TAG, &quot;MQTT当前网络名称：&quot; + name);</span><br><span class="line">            return true;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            Log.i(TAG, &quot;MQTT 没有可用网络&quot;);</span><br><span class="line">            return false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * MQTT监听并且接收消息</span><br><span class="line">     */</span><br><span class="line">    private MqttCallback mqttCallback = new MqttCallback() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void connectionLost(Throwable cause) &#123;</span><br><span class="line">            //失去连接，重连</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void messageArrived(String topic, MqttMessage message) throws Exception &#123;</span><br><span class="line">            EventBus.getDefault().post(message);</span><br><span class="line">            String str2 = topic + &quot;;qos :&quot; + message.getQos() + &quot;;retained:&quot; + message.isRetained();</span><br><span class="line">            Log.d(TAG, &quot;messageArrived: str2&quot; + str2);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void deliveryComplete(IMqttDeliveryToken token) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    /**</span><br><span class="line">     * MQTT是否连接成功</span><br><span class="line">     */</span><br><span class="line">    private IMqttActionListener iMqttActionListener = new IMqttActionListener() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void onSuccess(IMqttToken asyncActionToken) &#123;</span><br><span class="line">            Log.d(TAG, &quot;onSuccess: MQTT连接成功&quot;);</span><br><span class="line">            try &#123;</span><br><span class="line">                //订阅myTopic话题</span><br><span class="line">                client.subscribe(myTopic, 1);</span><br><span class="line">            &#125; catch (MqttException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public void onFailure(IMqttToken asyncActionToken, Throwable exception) &#123;</span><br><span class="line">            exception.printStackTrace();</span><br><span class="line">            //连接失败，重连</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>初始化各个参数，之后连接服务器。连接成功之后在<a href="http://127.0.0.1:61680/" target="_blank" rel="noopener">http://127.0.0.1:61680/</a> 看到自动创建了名称为”topic”的topic。这里我使用两台真机。<a href="http://127.0.0.1:61680/" target="_blank" rel="noopener">http://127.0.0.1:61680/</a> 服务端看到的是这个样子<br><img src="https://i.imgur.com/9eB33fT.png" alt=""></p>
+<ol>
+<li>模拟器运行的时候host = “tcp://10.0.2.2:61613”，因为10.0.2.2 是模拟器设置的特定ip，是你电脑的别名。真机运行的时候host = “tcp://192.168.102.216:61613”。192.168.102.216是我主机的IPv4地址，查看本机IP的cmd命令为ipconfig/all。 </li>
+<li>两次运行时的clientId不能一样（为了保证客户标识的唯一性）</li>
+</ol>
+</blockquote>
+<hr>
+<h3 id="访问管理界面"><a href="#访问管理界面" class="headerlink" title="访问管理界面"></a>访问管理界面</h3><p>要修改前面创建的xxx文件夹下etc\apollo.xml文件，添加你的host就可以通过host访问管理界面，否则只能通过 <a href="http://127.0.0.1:61680" target="_blank" rel="noopener">http://127.0.0.1:61680</a> 和 <a href="https://127.0.0.1:61681" target="_blank" rel="noopener">https://127.0.0.1:61681</a> 访问<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">... ...</span><br><span class="line"> &lt;virtual_host id=&quot;xmaihh&quot;&gt;</span><br><span class="line">    &lt;!--</span><br><span class="line">      You should add all the host names that this virtual host is known as</span><br><span class="line">      to properly support the STOMP 1.1 virtual host feature.</span><br><span class="line">      --&gt;</span><br><span class="line">    &lt;host_name&gt;xmaihh&lt;/host_name&gt;</span><br><span class="line">    &lt;host_name&gt;localhost&lt;/host_name&gt;</span><br><span class="line">    &lt;host_name&gt;127.0.0.1&lt;/host_name&gt;</span><br><span class="line">	&lt;!--以下为添加内容--&gt;</span><br><span class="line">    &lt;host_name&gt;192.168.102.216&lt;/host_name&gt;</span><br><span class="line">	&lt;!--以上为添加内容--&gt;</span><br><span class="line">    &lt;!-- Uncomment to disable security for the virtual host --&gt;</span><br><span class="line">    &lt;!-- &lt;authentication enabled=&quot;false&quot;/&gt; --&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- Uncomment to disable security for the virtual host --&gt;</span><br><span class="line">    &lt;!-- &lt;authentication enabled=&quot;false&quot;/&gt; --&gt;</span><br><span class="line">    &lt;access_rule allow=&quot;users&quot; action=&quot;connect create destroy send receive consume&quot;/&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &lt;!-- You can delete this element if you want to disable persistence for this virtual host --&gt;</span><br><span class="line">    &lt;leveldb_store directory=&quot;$&#123;apollo.base&#125;/data&quot;/&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  &lt;/virtual_host&gt;</span><br><span class="line"></span><br><span class="line">  &lt;web_admin bind=&quot;http://127.0.0.1:61680&quot;/&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;https://127.0.0.1:61681&quot;/&gt;</span><br><span class="line">  &lt;!--以下为添加内容--&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;http://192.168.102.216:61680&quot;/&gt;</span><br><span class="line">  &lt;web_admin bind=&quot;https://192.168.102.216:61681&quot;/&gt;</span><br><span class="line">  &lt;!--以上为添加内容--&gt;</span><br><span class="line"></span><br><span class="line">  &lt;connector id=&quot;tcp&quot; bind=&quot;tcp://0.0.0.0:61613&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;tls&quot; bind=&quot;tls://0.0.0.0:61614&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;ws&quot;  bind=&quot;ws://0.0.0.0:61623&quot;  connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line">  &lt;connector id=&quot;wss&quot; bind=&quot;wss://0.0.0.0:61624&quot; connection_limit=&quot;2000&quot;/&gt;</span><br><span class="line"></span><br><span class="line">  &lt;key_storage file=&quot;$&#123;apollo.base&#125;/etc/keystore&quot; password=&quot;password&quot; key_password=&quot;password&quot;/&gt;</span><br></pre></td></tr></table></figure></p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjoi8awrw000ojofys8pzq5as" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
+    <article id="post-mac搭建PyQt5环境" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2017/12/11/mac搭建PyQt5环境/">mac搭建Pyqt5环境</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2017/12/11/mac搭建PyQt5环境/">
+            <time datetime="2017-12-11T12:30:50.000Z" itemprop="datePublished">2017-12-11</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/python/">python</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/python/">python</a>, <a class="tag-link" href="/tags/qt/">qt</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h3 id="1-首先基于virtualenv-搭建一个python3的运行环境"><a href="#1-首先基于virtualenv-搭建一个python3的运行环境" class="headerlink" title="1.首先基于virtualenv 搭建一个python3的运行环境"></a>1.首先基于virtualenv 搭建一个python3的运行环境</h3><p>virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。</p>
+<h5 id="1-首先，我们用pip安装virtualenv："><a href="#1-首先，我们用pip安装virtualenv：" class="headerlink" title="1. 首先，我们用pip安装virtualenv："></a>1. 首先，我们用pip安装virtualenv：</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install virtualenv</span><br></pre></td></tr></table></figure>
+<h5 id="2-创建一个pyhton3的运行环境"><a href="#2-创建一个pyhton3的运行环境" class="headerlink" title="2.创建一个pyhton3的运行环境"></a>2.创建一个pyhton3的运行环境</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3</span><br></pre></td></tr></table></figure>
+<p>可以通过<strong>python=python3</strong>来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者python3.6</p>
+<h4 id="3-激活该运行环境"><a href="#3-激活该运行环境" class="headerlink" title="3. 激活该运行环境"></a>3. 激活该运行环境</h4><p>执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jiangxqdeMBP:~ jiangxq$ source ~/py3/bin/activate</span><br><span class="line">(py3) jiangxqdeMBP:~ jiangxq$</span><br></pre></td></tr></table></figure>
+<p>当用户名前出现该运行环境的名称时，表示环境已经激活了</p>
+<h3 id="2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行"><a href="#2-检查pip工具的版本-目前最新的为9-0-2-需要更新请-执行" class="headerlink" title="2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行"></a>2. 检查pip工具的版本 目前最新的为9.0.2 需要更新请 执行</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install --upgrade pip</span><br></pre></td></tr></table></figure>
+<p>这里有个窍门是如果mac的默认python运行环境为python2.7，但是不想修改注册文件，可以直接打<strong>pip3</strong>，<strong>pip3</strong>是<br>是python3的pip工具，<strong>pip</strong>是python2的pip工具。</p>
+<h3 id="3-使用pip工具安装PyQt5"><a href="#3-使用pip工具安装PyQt5" class="headerlink" title="3. 使用pip工具安装PyQt5"></a>3. 使用pip工具安装PyQt5</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install PyQt5</span><br></pre></td></tr></table></figure>
+<p>当PyQt5安装完成之后，其实Qt的组件此时已经可用了，如果要测试是否安装成功，可以新建一个Python项目，然后倒入PyQt5的包看看。<br><img src="https://note.youdao.com/yws/api/personal/file/WEBa771a15d091f47d6ebb57e09a1c5eff4?method=download&amp;shareKey=c7c7e8069597b7ab8e8f58d4df01e4af" alt="image"></p>
+<h3 id="4-在pycharm上安装QtDesign工具包"><a href="#4-在pycharm上安装QtDesign工具包" class="headerlink" title="4.在pycharm上安装QtDesign工具包"></a>4.在pycharm上安装QtDesign工具包</h3><p>QtDesign是Pycharm上的可视化uI设计工具，可以拖动控件来达到实现设计界面的功能<br>安装Qtdesign 需要先安装QT</p>
+<h4 id="1-下载QT安装包"><a href="#1-下载QT安装包" class="headerlink" title="1. 下载QT安装包"></a>1. 下载QT安装包</h4><p>下载地址：<a href="http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg" target="_blank" rel="noopener">http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.10/5.10.1/qt-opensource-mac-x64-5.10.1.dmg</a><br>下载完成后直接安装</p>
+<h4 id="2-打开pycharm-点击preference-点击Tools-新建一个插件"><a href="#2-打开pycharm-点击preference-点击Tools-新建一个插件" class="headerlink" title="2.打开pycharm 点击preference 点击Tools 新建一个插件"></a>2.打开pycharm 点击preference 点击Tools 新建一个插件</h4><p><img src="https://note.youdao.com/yws/public/resource/fa0a00bd4972d5802d8ad504e9e623fc/xmlnote/WEBRESOURCE9bf5498a9bb100d2b67bf988c494f1be/1941" alt="image"><br> 注意插件地址不要写错了，是qt5的安装路径</p>
+<h4 id="3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）"><a href="#3-创建PyUIC-插件（将pydesigner的布局自动转化为python代码）" class="headerlink" title="3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）"></a>3. 创建PyUIC 插件（将pydesigner的布局自动转化为python代码）</h4>
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjoi8aws0000vjofy14utkq06" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
     <article id="post-view 绘制机制" class="article article-type-post" itemscope itemprop="blogPost">
     <div class="article-inner">
         
@@ -388,7 +721,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjl3hswwg001fum8xm2eijahl" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjoi8aws8001ejofysjfkou13" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -537,7 +870,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/09/07/Linux 用户空间 内核空间/" data-id="cjl3hswvv000cum8x2ta7lkqb" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/09/07/Linux 用户空间 内核空间/" data-id="cjoi8awrs000hjofy7c6qs7sx" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -717,7 +1050,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/08/16/webrtc 音频/" data-id="cjl3hswwc0016um8xcpl8aitz" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/08/16/webrtc 音频/" data-id="cjoi8aws30011jofydwns4mwx" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -893,7 +1226,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/" data-id="cjl3hsww5000pum8x9zq9hgp7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/" data-id="cjoi8aws40014jofy0ot0lno6" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1224,7 +1557,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/05/07/MK语法规范/" data-id="cjl3hswvz000hum8xckrahuaj" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/05/07/MK语法规范/" data-id="cjoi8awrx000pjofyns9jubn8" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1442,7 +1775,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/04/11/Binder 进程间通讯机制/" data-id="cjl3hswvm0003um8xe0ewwpj8" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/04/11/Binder 进程间通讯机制/" data-id="cjoi8awrg0002jofyl0xvt6c7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1648,7 +1981,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/04/05/编译系统环境初始化过程/" data-id="cjl3hswwq002aum8xe8tpu19u" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/04/05/编译系统环境初始化过程/" data-id="cjoi8awsl002gjofyh8tigaa2" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1811,7 +2144,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/03/15/添加SE安全策略/" data-id="cjl3hswwj001num8xdktqzj88" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/03/15/添加SE安全策略/" data-id="cjoi8awsh0027jofyo7rw796y" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1889,305 +2222,8 @@ TARGET_PRELINK_MODULES := false
 
 
 
-    <article id="post-抓包工具 - Fiddler（如何捕获Android数据包）" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/">fiddler抓android数据包</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/">
-            <time datetime="2016-08-03T12:20:17.000Z" itemprop="datePublished">2016-08-03</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/Android/">Android</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/android/">android</a>, <a class="tag-link" href="/tags/抓包/">抓包</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <h2 id="抓包工具-Fiddler（如何捕获Android数据包）"><a href="#抓包工具-Fiddler（如何捕获Android数据包）" class="headerlink" title="抓包工具 - Fiddler（如何捕获Android数据包）"></a>抓包工具 - Fiddler（如何捕获Android数据包）</h2><p>移动设备访问网络原理</p>
-<p>先看看移动设备是怎么去访问网络，如图所示，可以看到，移动端的数据包是从wifi出去的。<br><img src="http://i.imgur.com/88ZFpNh.png" alt=""><br>可以看得出，移动端的数据包，都是要走wifi出去，所以我们可以把自己的电脑开启热点，将手机连上电脑，Fiddler开启代理后，让这些数据通过Fiddler，Fiddler就可以抓到这些包，然后发给路由器（如图）：<br><img src="http://i.imgur.com/xpx7qof.png" alt=""></p>
-<p>二、Fiddler抓取android数据包所需条件</p>
-<p>　　1、电脑需要安装Fiddler</p>
-<p>　　2、测试手机需要支持Wifi</p>
-<p>　　3、测试手机与电脑需要同一网络</p>
-<p>　　4、所测APP需支持代理</p>
-<p>　　注：Iphone、Ipad、WinPhone等支持代理手机均适用</p>
-<ol>
-<li>打开Wifi热点，让手机连上（我这里用的360wifi，其实随意一个都行）<br><img src="http://i.imgur.com/lwCWyI7.png" alt=""></li>
-<li>打开Fidder，点击菜单栏中的 [Tools] –&gt; [Fiddler Options]<br><img src="http://i.imgur.com/K87KQ8y.png" alt=""><br>Connections，设置代理端口：8888， 勾选 Allow remote computers to connect，即允许远程计算机连接Fiddler.<blockquote>
-<p>注：8888为默认端口号，可修改，但需注意两点，一是本机空闲端口，二是手机代理设置时要与fiddler的端口一致。<br><img src="http://i.imgur.com/gwshRc7.png" alt=""></p>
-</blockquote>
-</li>
-</ol>
-<p>3、设置解密HTTPS的网络数据<br>　　Tools –&gt;  Options-&gt; Https，勾选”Decrypt HTTPS traffic”、”Ignore server certificate errors”，<br><img src="http://i.imgur.com/uEHa5dw.png" alt=""></p>
-<p>4、查看本机的无线网卡IP<br>　　设置了上面的步骤后，就可以在 Fiddler看到自己本机无线网卡的IP了（要是没有的话，重启Fiddler，或者可以在cmd中ipconfig找到自己的网卡IP，注：一定要开启本机的wifi热点），</p>
-<p><img src="http://i.imgur.com/JN06oW7.png" alt=""></p>
-<p>也可以在CMD中查看本机网卡的IP，输入命令：ipconfig，<br><img src="http://i.imgur.com/vkKMXHN.png" alt=""></p>
-<p>5、手机连接本机的Wifi，并设置代理<br>　　每个品牌的手机设置wifi的方式可能不一样，这里以华为手机为例，如图8所示，将手机连接至PC的wifi</p>
-<p><img src="http://i.imgur.com/kkNUd7s.png" alt=""></p>
-<p>勾选“显示高级选项”-&gt; 代理 选择“手动” -&gt;输入服务器主机名和服务器端口 -&gt;IP选择“DHCP”-&gt;连接，即完成手机端设置代理操作，如图9所示</p>
-<blockquote>
-<p>注：服务器主机名：Fiddler所在电脑IP（即开启wifi后，在fiddler或cmd中看到的无线网卡IP地址）<br>　　服务器端口： Fiddler使用的端口（即Options-Connections中设置的端口号）<br><img src="http://i.imgur.com/LxaVORC.png" alt=""></p>
-</blockquote>
-<p>6、手机下载安装Fiddler证书<br>　　连接上wifi后，手机打开浏览器输入代理IP+端口号（即是本机无线网卡IP，也是手机连接wifi时所设置的服务器主机名，这里的ip+端口号为192.168.191.1：8888），进入fiddler echo service页面，下载Fiddler的证书，如图10所示，点击FiddlerRoot certificate</p>
-<p><img src="http://i.imgur.com/7OhLqhq.png" alt=""></p>
-<p>下载完成后，进行安装证书</p>
-<p><img src="http://i.imgur.com/DvxwP2J.png" alt=""></p>
-<p>【注意】：如果打开浏览器碰到类似下面的报错，请打开Fiddler的证书解密模式（如上面的步骤3所示）：No root certificate was found. Have you enabled HTTPS traffic decryption in Fiddler yet?</p>
-<p>设置完上面6个步骤后，即表明已设置完毕，此时用手机访问应用，就可以看到fiddler抓取到的数据包了.</p>
-<p><img src="http://i.imgur.com/iSn6kTI.png" alt=""></p>
-
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/" data-id="cjl3hswwi001mum8x46hedj68" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
-    <article id="post-Linux vi命令使用方法" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2016/07/04/Linux vi命令使用方法/">Linux vi用法</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2016/07/04/Linux vi命令使用方法/">
-            <time datetime="2016-07-04T13:11:15.000Z" itemprop="datePublished">2016-07-04</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/Linux/">Linux</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/linux命令/">linux命令</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <p>vi编辑器支持编辑模式和命令模式，编辑模式下可以完成文本的编辑功能，命令模式下可以完成对文件的操作命令，要正确使用vi编辑器就必须熟练掌握着两种模式的切换。默认情况下，打开vi编辑器后自动进入命令模式。从编辑模式切换到命令模式使用“esc”键，从命令模式切换到编辑模式使用“A”、“a”、“O”、“o”、“I”、“i”键。</p>
-<p>vi编辑器提供了丰富的内置命令，有些内置命令使用键盘组合键即可完成，有些内置命令则需要以冒号“：”开头输入。常用内置命令如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">Ctrl+u：向文件首翻半屏；</span><br><span class="line">Ctrl+d：向文件尾翻半屏；</span><br><span class="line">Ctrl+f：向文件尾翻一屏；</span><br><span class="line">Ctrl+b：向文件首翻一屏；</span><br><span class="line">Esc：从编辑模式切换到命令模式；</span><br><span class="line">ZZ：命令模式下保存当前文件所做的修改后退出vi；</span><br><span class="line">:行号：光标跳转到指定行的行首；</span><br><span class="line">:$：光标跳转到最后一行的行首；</span><br><span class="line">x或X：删除一个字符，x删除光标后的，而X删除光标前的；</span><br><span class="line">D：删除从当前光标到光标所在行尾的全部字符；</span><br><span class="line">dd：删除光标行正行内容；</span><br><span class="line">ndd：删除当前行及其后n-1行；</span><br><span class="line">nyy：将当前行及其下n行的内容保存到寄存器？中，其中？为一个字母，n为一个数字；</span><br><span class="line">p：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的下方；</span><br><span class="line">P：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的上方；</span><br><span class="line">/字符串：文本查找操作，用于从当前光标所在位置开始向文件尾部查找指定字符串的内容，查找的字符串会被加亮显示；</span><br><span class="line">？name：文本查找操作，用于从当前光标所在位置开始向文件头部查找指定字符串的内容，查找的字符串会被加亮显示；</span><br><span class="line">a，bs/F/T：替换文本操作，用于在第a行到第b行之间，将F字符串换成T字符串。其中，“s/”表示进行替换操作；</span><br><span class="line">a：在当前字符后添加文本；</span><br><span class="line">A：在行末添加文本；</span><br><span class="line">i：在当前字符前插入文本；</span><br><span class="line">I：在行首插入文本；</span><br><span class="line">o：在当前行后面插入一空行；</span><br><span class="line">O：在当前行前面插入一空行；</span><br><span class="line">:wq：在命令模式下，执行存盘退出操作；</span><br><span class="line">:w：在命令模式下，执行存盘操作；</span><br><span class="line">:w！：在命令模式下，执行强制存盘操作；</span><br><span class="line">:q：在命令模式下，执行退出vi操作；</span><br><span class="line">:q！：在命令模式下，执行强制退出vi操作；</span><br><span class="line">:e文件名：在命令模式下，打开并编辑指定名称的文件；</span><br><span class="line">:n：在命令模式下，如果同时打开多个文件，则继续编辑下一个文件；</span><br><span class="line">:f：在命令模式下，用于显示当前的文件名、光标所在行的行号以及显示比例；</span><br><span class="line">:set number：在命令模式下，用于在最左端显示行号；</span><br><span class="line">:set nonumber：在命令模式下，用于在最左端不显示行号；</span><br></pre></td></tr></table></figure>
-
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2016/07/04/Linux vi命令使用方法/" data-id="cjl3hswvr0007um8xso7sqwrw" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2016/07/04/Linux vi命令使用方法/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
     <nav id="page-nav">
-        <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+        <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
     </nav>
 </section>
             
@@ -2199,6 +2235,44 @@ TARGET_PRELINK_MODULES := false
         <h3 class="widget-title">recent</h3>
         <div class="widget">
             <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/11/15/吴恩达深度学习课程笔记 第二周/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/机器学习/">机器学习</a></p>
+                            <p class="item-title"><a href="/2018/11/15/吴恩达深度学习课程笔记 第二周/" class="title">吴恩达深度学习课程笔记 第二周</a></p>
+                            <p class="item-date"><time datetime="2018-11-15T03:52:50.000Z" itemprop="datePublished">2018-11-15</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/11/11/机器学习算法的演进/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/机器学习/">机器学习</a></p>
+                            <p class="item-title"><a href="/2018/11/11/机器学习算法的演进/" class="title">机器学习算法的演进</a></p>
+                            <p class="item-date"><time datetime="2018-11-11T11:33:50.000Z" itemprop="datePublished">2018-11-11</time></p>
+                        </div>
+                    </li>
                 
                     <li>
                         
@@ -2257,44 +2331,6 @@ TARGET_PRELINK_MODULES := false
                         </div>
                     </li>
                 
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/06/16/《现代艺术150年》未影印作品2/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/备忘录/">备忘录</a></p>
-                            <p class="item-title"><a href="/2018/06/16/《现代艺术150年》未影印作品2/" class="title">《现代艺术150年》未影印作品2</a></p>
-                            <p class="item-date"><time datetime="2018-06-16T06:00:50.000Z" itemprop="datePublished">2018-06-16</time></p>
-                        </div>
-                    </li>
-                
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/06/08/深度学习1-反向传播/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/机器学习/">机器学习</a></p>
-                            <p class="item-title"><a href="/2018/06/08/深度学习1-反向传播/" class="title">深度学习1-反向传播</a></p>
-                            <p class="item-date"><time datetime="2018-06-08T09:33:50.000Z" itemprop="datePublished">2018-06-08</time></p>
-                        </div>
-                    </li>
-                
             </ul>
         </div>
     </div>
@@ -2304,7 +2340,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">categories</h3>
         <div class="widget">
-            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/学习计划/">学习计划</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/机器学习/">机器学习</a><span class="category-list-count">1</span></li></ul>
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/学习计划/">学习计划</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/机器学习/">机器学习</a><span class="category-list-count">3</span></li></ul>
         </div>
     </div>
 
@@ -2313,7 +2349,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2322,7 +2358,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">tags</h3>
         <div class="widget">
-            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tensorflow/">Tensorflow</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/备忘录/">备忘录</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/学习计划/">学习计划</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习/">机器学习</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/现代艺术150年/">现代艺术150年</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/音视频/">音视频</a><span class="tag-list-count">1</span></li></ul>
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tensorflow/">Tensorflow</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/备忘录/">备忘录</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/学习计划/">学习计划</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习/">机器学习</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/现代艺术150年/">现代艺术150年</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/音视频/">音视频</a><span class="tag-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2331,7 +2367,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">tag cloud</h3>
         <div class="widget tagcloud">
-            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 17.5px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/Tensorflow/" style="font-size: 10px;">Tensorflow</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 17.5px;">java</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 12.5px;">垃圾回收</a> <a href="/tags/备忘录/" style="font-size: 12.5px;">备忘录</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/学习计划/" style="font-size: 10px;">学习计划</a> <a href="/tags/容器/" style="font-size: 10px;">容器</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/机器学习/" style="font-size: 10px;">机器学习</a> <a href="/tags/现代艺术150年/" style="font-size: 12.5px;">现代艺术150年</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a> <a href="/tags/音视频/" style="font-size: 10px;">音视频</a>
+            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 17.5px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/Tensorflow/" style="font-size: 15px;">Tensorflow</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 17.5px;">java</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 12.5px;">垃圾回收</a> <a href="/tags/备忘录/" style="font-size: 12.5px;">备忘录</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/学习计划/" style="font-size: 10px;">学习计划</a> <a href="/tags/容器/" style="font-size: 10px;">容器</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/机器学习/" style="font-size: 15px;">机器学习</a> <a href="/tags/现代艺术150年/" style="font-size: 12.5px;">现代艺术150年</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a> <a href="/tags/音视频/" style="font-size: 10px;">音视频</a>
         </div>
     </div>
 
