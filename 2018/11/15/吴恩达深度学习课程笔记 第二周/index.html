@@ -18,7 +18,22 @@
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422532146088.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422574024898.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422578079564.jpg">
-<meta property="og:updated_time" content="2018-11-15T06:19:29.129Z">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422648475258.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422655692214.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422656218635.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422656880309.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422662423114.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422667161032.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422666818228.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422667406636.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422668045079.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422668622209.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422669165717.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422670345410.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422676113907.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422686564038.jpg">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15422687425629.jpg">
+<meta property="og:updated_time" content="2018-11-15T08:25:49.884Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="吴恩达深度学习课程笔记 第二周">
 <meta name="twitter:description" content="本博是吴恩达DeepLearning.ai 的学习笔记从第二周开始记录 改善深层神经网络： 超参调试、正则化以及优化训练集 开发集 测试集 的划分假设所有的训练数据如下一个典型的数据划分： 即：一部分作为 训练集一部分作为 简单交叉验证集/验证集一部分作为 测试集 具体的流程是 在训练集上 对各模型运行训练算法 将训练完成的模型 带入 交叉验证集 选择出最佳模型然后带入测试集对神经网络做出无偏评估">
@@ -277,10 +292,35 @@
 </ul>
 <p>即：<br><strong>训练集误差高 表示 偏差大<br>测试集误差高 表示 方差大</strong></p>
 <p><strong>关于方差和偏差的数学原理 ，见文章附录[1]。</strong></p>
-<h2 id="一个基本流程"><a href="#一个基本流程" class="headerlink" title="一个基本流程"></a>一个基本流程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">st=&gt;start: 获取数据</span><br><span class="line">e=&gt;end: 训练结束</span><br><span class="line">op=&gt;operation: 评估训练集误差（偏差值）</span><br><span class="line">op1=&gt;operation: 评估测试集误差（方差值）</span><br><span class="line">op2=&gt;operation: 选择更深层的神经网络或花费更多时间训练算法，或尝试更先进算法</span><br><span class="line">op3=&gt;operation: 获取更多数据，或者通过正则化减少过拟合</span><br><span class="line">cond=&gt;condition: 偏差正常?</span><br><span class="line">cond2=&gt;condition: 方差偏高?</span><br><span class="line"></span><br><span class="line">st-&gt;op</span><br><span class="line">op-&gt;cond</span><br><span class="line">cond(yes)-&gt;op1</span><br><span class="line">cond(no)-&gt;op2</span><br><span class="line">op2-&gt;cond</span><br><span class="line">op1-&gt;cond2</span><br><span class="line">cond2(yes)-&gt;op3</span><br><span class="line">cond2(no)-&gt;e</span><br><span class="line">op3-&gt;cond2</span><br></pre></td></tr></table></figure>
+<h2 id="一个基本流程"><a href="#一个基本流程" class="headerlink" title="一个基本流程"></a>一个基本流程</h2><p><img src="/media/15422648475258.jpg" alt=""></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">st=&gt;start: 获取数据</span><br><span class="line">e=&gt;end: 训练结束</span><br><span class="line">op=&gt;operation: 评估训练集误差（偏差值）</span><br><span class="line">op1=&gt;operation: 评估测试集误差（方差值）</span><br><span class="line">op2=&gt;operation: 选择更深层的神经网络或花费更多时间训练算法，或尝试更先进算法</span><br><span class="line">op3=&gt;operation: 获取更多数据，或者通过正则化减少过拟合</span><br><span class="line">cond=&gt;condition: 偏差正常?</span><br><span class="line">cond2=&gt;condition: 方差偏高?</span><br><span class="line"></span><br><span class="line">st-&gt;op</span><br><span class="line">op-&gt;cond</span><br><span class="line">cond(yes)-&gt;op1</span><br><span class="line">cond(no)-&gt;op2</span><br><span class="line">op2-&gt;cond</span><br><span class="line">op1-&gt;cond2</span><br><span class="line">cond2(yes)-&gt;op3</span><br><span class="line">cond2(no)-&gt;e</span><br><span class="line">op3-&gt;cond2</span><br></pre></td></tr></table></figure>
 <p>在早期机器学习的时代，我们没有太多工具可以只影响偏差或者方差的一种而不对另一种造成影响，所以往往需要在两者间权衡。<br>现在在大数据时代，我们有了一些工具，比如只要对数据进行适当正则，再构建一个更大的神经网络，就可以在几乎不影响方差的情况下，减少偏差。而采用更多数据，或者对数据正则化，可以在不过多影响偏差的情况下，减少方差</p>
 <h2 id="降低方差的手段：正则化"><a href="#降低方差的手段：正则化" class="headerlink" title="降低方差的手段：正则化"></a>降低方差的手段：正则化</h2><p>出现高方差往往就表示，模型对数据过拟合了。<br>前面讲到 降低方差的手段，可以通过获取更多数据或者对数据进行正则来实现。</p>
 <p>更多数据的获取，实现起来成本比较高，那正则化又为什么可以减少方差呢？</p>
+<h3 id="如何实施正则化"><a href="#如何实施正则化" class="headerlink" title="如何实施正则化"></a>如何实施正则化</h3><h4 id="logistic-回归"><a href="#logistic-回归" class="headerlink" title="logistic 回归"></a>logistic 回归</h4><p>我们之前定义的损失函数为<br><img src="/media/15422655692214.jpg" alt=""></p>
+<p>现在在其基础上加上正则化参数 也就是向量w的二范数（也有使用一范数的，但目前更多倾向于使用二范数）</p>
+<p><img src="/media/15422656218635.jpg" alt=""></p>
+<p>至于b的正则化参数，可加可不加，因为w通常是一个高维度的矩阵，它已经包含很多参数了，b只是众多参数的其中之一，加不加影响也不是很大。<br><img src="/media/15422656880309.jpg" alt=""></p>
+<p>其中 λ是正则化参数。这个参数需要我们在验证集经过多次调试来选择最佳取值，λ属于超参数的一种。</p>
+<h4 id="神经网络"><a href="#神经网络" class="headerlink" title="神经网络"></a>神经网络</h4><p>神经网络和logistic回归的差别在于，神经网络是有多层隐藏神经元的数学模型。</p>
+<p>它的正则化参数则是将所有层的w向量写成一个矩阵后 矩阵W的二范数，<strong>在DL中，习惯将矩阵的二范数称之为 F范数，或者弗罗贝尼乌斯范数</strong><br><img src="/media/15422662423114.jpg" alt=""></p>
+<p>在之前的梯度下降过程中，我们通过反向传播 计算出了原始J对w[l]的导数：<br><img src="/media/15422667161032.jpg" alt="-w234"><br>现在代价函数J增加了一项正则化参数<br>对正则化参数求导<br><img src="/media/15422666818228.jpg" alt="-w252"></p>
+<p>为<img src="/media/15422667406636.jpg" alt="-w136"></p>
+<p>则新的dw[l]为</p>
+<p><img src="/media/15422668045079.jpg" alt="-w428"></p>
+<p>带入<br><code>w[l] = w[l]-α*dw[l]</code><br>得到<br><img src="/media/15422668622209.jpg" alt="-w531"></p>
+<p><img src="/media/15422669165717.jpg" alt="-w569"></p>
+<p>可以看到，如果将w[l]提取出来，每次反向传播后，更新的权重值相当于在其前面乘上了这么一个参数：<br><img src="/media/15422670345410.jpg" alt="-w170"></p>
+<p>显而易见这个参数是小于1的。</p>
+<p>所以L2正则化也被称之为 <strong>权重衰减</strong></p>
+<p>所以 对神经网络 应用L2 正则化的过程 其实相当于在每次反向传播更新梯度的过程中，对w[l]乘上了一个小于1的参数<br><code>1-αλ/m</code><br>这个参数是小于1的，所以 L2正则化 也被称之为 <strong>权重衰减</strong>。</p>
+<h3 id="为什么正则化可以减少过拟合"><a href="#为什么正则化可以减少过拟合" class="headerlink" title="为什么正则化可以减少过拟合"></a>为什么正则化可以减少过拟合</h3><p>从直观上理解，因为我们的代价函数加上了对权重矩阵W的正则化参数，也就是W的F范数，在训练过程中，为了降低代价函数J，必然会压缩正则化参数，当λ设置的足够大，会导致矩阵W的F范数接近于0，也就意味着W中的很多元素变为了0，<br>等于原始神经网络中的很多神经元失去了作用，模型也被精简了。</p>
+<p><img src="/media/15422676113907.jpg" alt="-w401"></p>
+<p>此时模型越来越趋近于logistic回归<br>模型过于简单的时候，会导致偏差变高，模型甚至无法很好的拟合数据。<br>但这种W中参数变为0的情况在现实情况下一般不会发生，往往是某些w会变得很小，等于在训练过程中，这些神经元没有消失，只不过权重值变得很小而已。这样来看，貌似神经网络变得更简单了，这样更不容易出现过拟合。</p>
+<p>下面举一个直观一些的例子。</p>
+<p>假设每一层的激活函数都是tanh(),tanh()函数具有一个特殊性质，就是当x范围比较小的时候，tanh()接近y=x。<br><img src="/media/15422686564038.jpg" alt="-w675"></p>
+<p>当我们对神经网络施加L2正则化，在训练中会导致w变小，又因为g(z)中的z 等于<br><img src="/media/15422687425629.jpg" alt="-w391"></p>
+<p>当w[l]变小，会导致z[l]变小，当z落在tanh的中间那一小部分范围时，整个神经网络只利用到了tanh的线性部分，模型也会趋近于线性回归。这样会有效降低过拟合出现的情况</p>
 
         
         </div>
@@ -291,7 +331,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/11/15/吴恩达深度学习课程笔记 第二周/" data-id="cjoi8aws9001fjofyqshmj1ly" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/11/15/吴恩达深度学习课程笔记 第二周/" data-id="cjoicb7qt001nccfyxoct4ba4" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
