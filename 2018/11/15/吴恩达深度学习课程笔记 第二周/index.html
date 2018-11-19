@@ -35,7 +35,8 @@
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422687425629.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422763982130.jpg">
 <meta property="og:image" content="http://wenyiqingnian.xyz/media/15422764818132.jpg">
-<meta property="og:updated_time" content="2018-11-15T10:40:24.723Z">
+<meta property="og:image" content="http://wenyiqingnian.xyz/media/15425968372625.jpg">
+<meta property="og:updated_time" content="2018-11-19T03:43:38.126Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="吴恩达深度学习课程笔记 第二周">
 <meta name="twitter:description" content="本博是吴恩达DeepLearning.ai 的学习笔记从第二周开始记录 改善深层神经网络： 超参调试、正则化以及优化训练集 开发集 测试集 的划分假设所有的训练数据如下一个典型的数据划分： 即：一部分作为 训练集一部分作为 简单交叉验证集/验证集一部分作为 测试集 具体的流程是 在训练集上 对各模型运行训练算法 将训练完成的模型 带入 交叉验证集 选择出最佳模型然后带入测试集对神经网络做出无偏评估">
@@ -328,6 +329,19 @@
 <p>对每一个训练子集机型dropout，便会得到很多精简的神经网络，我们对每一个神经网络进行训练。其实这里也能看出来，为什么dropout可以有效防止过拟合，以为实施过dropout的神经网络变小了。</p>
 <p>下面以python代码示例 </p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="comment"># 假设当前为layer3</span></span><br><span class="line"><span class="comment"># 意味每个单元的保留概率是0.8 </span></span><br><span class="line">keep-prop = <span class="number">0.8</span> </span><br><span class="line"><span class="comment"># 生成一个随机矩阵，该矩阵和a3具有相同的行列数，且矩阵中 任一元素 d3[i,j] = 0的概率是0.2，等于1的概率是0.8</span></span><br><span class="line">d3 = np.random.rand(a3.shape[<span class="number">0</span>],a3.shape[<span class="number">1</span>])&lt;keep-prop</span><br><span class="line"><span class="comment"># 重新计算a3</span></span><br><span class="line">a3 = np.multiply(a3,d3)</span><br><span class="line"><span class="comment"># 除以keep-prop的目的是为了不减少a3的期望</span></span><br><span class="line">a3 /= keep-prop</span><br></pre></td></tr></table></figure>
+<p>关于为什么a3要除以<strong>keep-prop</strong></p>
+<p>这被称为<strong>inverted dropout</strong>。当模型使用了<strong>dropout layer</strong>，训练的时候只有占比为<strong><em>P</em></strong> 的隐藏层单元参与训练，那么在预测的时候，如果所有的隐藏层单元都需要参与进来，则得到的结果相比训练时平均要大<strong><em>1/p</em></strong> ，为了避免这种情况，就需要测试的时候将输出结果乘以  <strong><em>p</em></strong> 使下一层的输入规模保持不变。而利用<strong>inverted dropout</strong>，我们可以在训练的时候直接将<strong>dropout</strong>后留下的权重扩大<strong><em>1/p</em></strong>  倍，这样就可以使结果的<strong>scale</strong>保持不变，而在预测的时候也不用做额外的操作了，更方便一些。</p>
+<p>或者更直观的解释</p>
+<p>10个人拉一个10吨车，第一次（训练时），只有5个人出力（有p=0.5的人被dropout了），那么这5个人每个人出力拉2吨。第二次（预测时），10个人都被要求出力，这次每个人出的力就是2*（1-0.5）=1吨了 <a href="https://www.zhihu.com/question/61751133" target="_blank" rel="noopener">该解释转自知乎</a></p>
+<p><strong>keep-prop</strong>的数值，对于不同的层，可以根据需要设置不同大小</p>
+<p><img src="/media/15425968372625.jpg" alt=""></p>
+<p>第二层的权重矩阵w[7×7]，占比最多，为了减少过拟合，可以将第二层<strong>的keep-prop</strong>设置的低一些，在4，5层 可以将<strong>keep_props</strong>设置的高一些。</p>
+<p><strong>总结一下：</strong><br>如果你觉得 某一层相比其它层更容易出现过拟合，那么可以将该层的<strong>keep-prop</strong>设置的低一些，一般不会输入层施加<strong>drop-out</strong>，就算是施加，也尽量是<strong>keep-prop</strong>接近1。</p>
+<p><strong>drop-out</strong>是对神经网络施加正则化的一种手段，它强迫模型不过度依赖于某一个神经元，使得权重在神经元之间平均分散，它可以使权重矩阵的<strong>F范数</strong>变小，但是会导致我们无法debug，因为施加<strong>drop-out</strong>之后，代价函数<strong><em>J</em></strong>便没有了一个确切的定义，我们无法得到一个单调递减的代价函数<strong><em>J</em></strong>，如果在某次迭代中出现了问题，也无法定位，因为每次的模型都是随机产生的。</p>
+<p><strong>drop-out</strong>的作用是为了解决过拟合，所以如果模型不存在过拟合情况，可以不用，一般来说 在计算机视觉领域，<strong>drop-out</strong>会适用的比较频繁，因为CV的输入一般都是图片像素，因为输入太大了，导致数据量相比输入而言总显得过小，很容易出现过拟合的情况，所以<strong>drop-out</strong>在CV领域，基本是一个默认选项。</p>
+<h2 id="dropout的优缺点"><a href="#dropout的优缺点" class="headerlink" title="dropout的优缺点"></a>dropout的优缺点</h2><h3 id="Dropout优点"><a href="#Dropout优点" class="headerlink" title="Dropout优点"></a>Dropout优点</h3><p><strong>计算方便</strong>。训练过程中使用<strong>Dropout</strong>产生 <strong>n</strong> 个随机二进制数与状态相乘即可。每个样本每次更新的时间复杂度： <strong><em>O(n)</em></strong>，空间复杂度： <strong><em>O(n)</em></strong>。<br><strong>适用广</strong>。<strong>Dropout</strong>不怎么限制适用的模型或训练过程，几乎在所有使用分布式表示且可以用随机梯度下降训练的模型上都表现很好。包括：前馈神经网络、概率模型、受限波尔兹曼机、循环神经网络等。<br>相比其他正则化方法（如权重衰减、过滤器约束和稀疏激活）更有效。也可与其他形式的正则化合并，得到进一步提升。</p>
+<h3 id="Dropout缺点"><a href="#Dropout缺点" class="headerlink" title="Dropout缺点"></a>Dropout缺点</h3><p><strong>不适合宽度太窄的网络</strong>。否则大部分网络没有输入到输出的路径。<br><strong>不适合训练数据太小（如小于5000）的网络</strong>。训练数据太小时，Dropout没有其他方法表现好。<br><strong>不适合非常大的数据集</strong>。数据集大的时候正则化效果有限（大数据集本身的泛化误差就很小），使用Dropout的代价可能超过正则化的好处</p>
+<h2 id="其他的正则化方法"><a href="#其他的正则化方法" class="headerlink" title="其他的正则化方法"></a>其他的正则化方法</h2><h3 id="通过处理输入-比如对输入图片进行-翻转-剪裁-对数字进行扭曲-来人为增大数据集-减少误差"><a href="#通过处理输入-比如对输入图片进行-翻转-剪裁-对数字进行扭曲-来人为增大数据集-减少误差" class="headerlink" title="通过处理输入 比如对输入图片进行 翻转 剪裁 对数字进行扭曲 来人为增大数据集 减少误差"></a>通过处理输入 比如对输入图片进行 翻转 剪裁 对数字进行扭曲 来人为增大数据集 减少误差</h3><h3 id="early-stop"><a href="#early-stop" class="headerlink" title="early-stop"></a>early-stop</h3><p>在 testSet的误差开始变大的时候，及时停止</p>
 
         
         </div>
@@ -338,7 +352,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/11/15/吴恩达深度学习课程笔记 第二周/" data-id="cjoifaw2p001g6g0cysqyyniu" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/11/15/吴恩达深度学习课程笔记 第二周/" data-id="cjonrzjm1001gq8fyxlxhn3nn" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
