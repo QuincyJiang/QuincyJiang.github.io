@@ -154,7 +154,7 @@
         </div>
         <div class="article-info profile-block">
             <div class="article-info-block">
-                32
+                33
                 <span>posts</span>
             </div>
             <div class="article-info-block">
@@ -195,6 +195,152 @@
 
             
             <section id="main">
+    <article id="post-线程阻塞和中断的四种方式" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2018/03/13/线程阻塞和中断的四种方式/">线程阻塞和中断的四种方式</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/03/13/线程阻塞和中断的四种方式/">
+            <time datetime="2018-03-13T12:46:25.000Z" itemprop="datePublished">2018-03-13</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/java基础/">java基础</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/java/">java</a>, <a class="tag-link" href="/tags/多线程/">多线程</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h2 id="1、线程阻塞"><a href="#1、线程阻塞" class="headerlink" title="1、线程阻塞"></a>1、线程阻塞</h2><p>一个线程进入阻塞状态可能的原因：</p>
+<h4 id="通过调用sleep-millseconds-使任务进入休眠状态；"><a href="#通过调用sleep-millseconds-使任务进入休眠状态；" class="headerlink" title="通过调用sleep(millseconds)使任务进入休眠状态；"></a>通过调用sleep(millseconds)使任务进入休眠状态；</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Demo1</span> <span class="keyword">implements</span> <span class="title">Runnable</span> <span class="title">throws</span> <span class="title">InterruptedException</span></span>&#123;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123; </span><br><span class="line">          Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br><span class="line">②通过调用wait（）使线程挂起，直到线程获取notify（）/notifyAll（）消息，（或者在Java SE5中java.util.concurrent类库中等价的signal（）/signalAll（）消息），线程才会进入就绪状态；</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Demo2</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">          Thread.await();</span><br><span class="line">          Thread.notify();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="任务在等待某个输入-输出流的完成；"><a href="#任务在等待某个输入-输出流的完成；" class="headerlink" title="任务在等待某个输入 / 输出流的完成；"></a>任务在等待某个输入 / 输出流的完成；</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Demo3</span> <span class="keyword">implements</span> <span class="title">Runnable</span> <span class="title">throws</span> <span class="title">InterruptedException</span></span>&#123;</span><br><span class="line">     <span class="keyword">private</span> InputStream in;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">          in.read();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="任务试图在某个对象上调用其同步控制方法，但是对象锁不可用，因为另一个任务已经获取了该锁；"><a href="#任务试图在某个对象上调用其同步控制方法，但是对象锁不可用，因为另一个任务已经获取了该锁；" class="headerlink" title="任务试图在某个对象上调用其同步控制方法，但是对象锁不可用，因为另一个任务已经获取了该锁；"></a>任务试图在某个对象上调用其同步控制方法，但是对象锁不可用，因为另一个任务已经获取了该锁；</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Demo4</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">method1</span><span class="params">()</span></span>&#123;     &#125;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">method2</span><span class="params">()</span></span>&#123;     &#125;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">          method1();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="2、线程中断的方法"><a href="#2、线程中断的方法" class="headerlink" title="2、线程中断的方法"></a>2、线程中断的方法</h2><p>Thread类包含interrupt（）方法，用于终止阻塞任务；</p>
+<h4 id="1）中断①②类线程休眠，挂起阻塞的方法"><a href="#1）中断①②类线程休眠，挂起阻塞的方法" class="headerlink" title="1）中断①②类线程休眠，挂起阻塞的方法"></a>1）中断①②类线程休眠，挂起阻塞的方法</h4><h5 id="1-直接使用Thread-interrupt"><a href="#1-直接使用Thread-interrupt" class="headerlink" title="1.直接使用Thread.interrupt();"></a>1.直接使用Thread.interrupt();</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">     Thread t = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Demo1());</span><br><span class="line">     t.interrupt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="2-使用Executor线程池，中断线程池中的所有线程；"><a href="#2-使用Executor线程池，中断线程池中的所有线程；" class="headerlink" title="2.使用Executor线程池，中断线程池中的所有线程；"></a>2.使用Executor线程池，中断线程池中的所有线程；</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">     ExecutorService exec = Executors.newCachedThreadPool();</span><br><span class="line">     <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">5</span>;i++)</span><br><span class="line">          exec.execute(<span class="keyword">new</span> Demo1())</span><br><span class="line">     exec.shutdownNow();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="3-使用Executor线程池，中断线程池中单个阻塞的线程；"><a href="#3-使用Executor线程池，中断线程池中单个阻塞的线程；" class="headerlink" title="3.使用Executor线程池，中断线程池中单个阻塞的线程；"></a>3.使用Executor线程池，中断线程池中单个阻塞的线程；</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">     ExecutorService exec = Executors.newCachedThreadPool();</span><br><span class="line">     Futrue&lt;?&gt; f = exec.submit(<span class="keyword">new</span> Demo1());</span><br><span class="line">     f.interrupt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>//中断后的清除代码放置在InterruptedException异常的catch捕获的代码块中</p>
+<h4 id="2）中断③类I-O阻塞的方法"><a href="#2）中断③类I-O阻塞的方法" class="headerlink" title="2）中断③类I/O阻塞的方法"></a>2）中断③类I/O阻塞的方法</h4><p>使用Thread.iterrupt方法无法中断I/O阻塞，这对于基于Web的程序是很不利的；</p>
+<h5 id="有一种解决方法：关闭任务在其上发生阻塞的底层资源；"><a href="#有一种解决方法：关闭任务在其上发生阻塞的底层资源；" class="headerlink" title="有一种解决方法：关闭任务在其上发生阻塞的底层资源；"></a>有一种解决方法：关闭任务在其上发生阻塞的底层资源；</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">     ExecutorService exec = Executors.newCachedThreadPool();</span><br><span class="line">     ServerSocket server = <span class="keyword">new</span> ServerSocket(<span class="number">8080</span>);</span><br><span class="line">     InputStream socketInput = <span class="keyword">new</span> Socket(<span class="string">"localhost"</span>,<span class="number">8080</span>)</span><br><span class="line">     exec.execute(socketInput);</span><br><span class="line">     exec.execute(Sytsem.in);</span><br><span class="line">     <span class="comment">//exec.shutdownNow(); 无法中断2个线程；</span></span><br><span class="line"></span><br><span class="line">     socketInput.close();</span><br><span class="line">     in.close();</span><br><span class="line">     exec.shutdownNow();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="java-nio类库提供了更加人性化的I-O中断，被阻塞的nio通道会自动地响应中断；"><a href="#java-nio类库提供了更加人性化的I-O中断，被阻塞的nio通道会自动地响应中断；" class="headerlink" title="java.nio类库提供了更加人性化的I/O中断，被阻塞的nio通道会自动地响应中断；"></a>java.nio类库提供了更加人性化的I/O中断，被阻塞的nio通道会自动地响应中断；</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Demo</span> <span class="title">impelenets</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">final</span> SocketChannel sc;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="title">Demo</span><span class="params">(SocketChannel sc)</span></span>&#123; <span class="keyword">this</span>.sc = sc;&#125;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">          <span class="keyword">try</span>&#123;</span><br><span class="line">               sc.read(ByteBuffer.allocate(<span class="number">1</span>));</span><br><span class="line">          &#125;<span class="keyword">catch</span>(CloseByInteruptedException e1)&#123;</span><br><span class="line">          &#125;<span class="keyword">catch</span>(AsyncronousCloseException e2)&#123;</span><br><span class="line">          &#125;<span class="keyword">catch</span>(IOException e3)&#123;</span><br><span class="line">          &#125;</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> Test &#123;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">          ExecutorService exec = Executors.newCachedThreadPool();</span><br><span class="line">          ServerSocket server = <span class="keyword">new</span> ServerSocket(<span class="number">8080</span>);</span><br><span class="line">          InetSocketAddress isa = <span class="keyword">new</span> InetSocketAddress(<span class="string">"localhost"</span>,<span class="number">8080</span>);</span><br><span class="line">          SocketChannel sc1 = <span class="keyword">new</span> SocketChannel.open(isa);</span><br><span class="line">          SocketChannel sc2 = <span class="keyword">new</span> SocketChannel.open(isa);</span><br><span class="line">          </span><br><span class="line">          exec.execute(<span class="keyword">new</span> Demo(sc1));</span><br><span class="line">          Future&lt;?&gt; f = exec.submit(<span class="keyword">new</span> Demo(sc2));</span><br><span class="line">          f.cancel(<span class="keyword">true</span>);  <span class="comment">//可以终止sc1通道所在的线程；</span></span><br><span class="line">          exec.shutdownNow();  <span class="comment">//可以终止exec线程池内所有的线程；</span></span><br><span class="line">          sc1.close();</span><br><span class="line">          sc2.close();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="3）中断④类被互斥阻塞的线程"><a href="#3）中断④类被互斥阻塞的线程" class="headerlink" title="3）中断④类被互斥阻塞的线程"></a>3）中断④类被互斥阻塞的线程</h4><p>使用Thread.iterrupt方法无法中断互斥类线程，</p>
+<h5 id="解决方式1：可以使用ReentrantLock显式加锁，在JavaSE5中引入的新特性，ReentrantLock上阻塞的任务可以被中断；"><a href="#解决方式1：可以使用ReentrantLock显式加锁，在JavaSE5中引入的新特性，ReentrantLock上阻塞的任务可以被中断；" class="headerlink" title="解决方式1：可以使用ReentrantLock显式加锁，在JavaSE5中引入的新特性，ReentrantLock上阻塞的任务可以被中断；"></a>解决方式1：可以使用ReentrantLock显式加锁，在JavaSE5中引入的新特性，ReentrantLock上阻塞的任务可以被中断；</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Task</span> <span class="title">imlements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">     <span class="keyword">private</span> Lock lock = <span class="keyword">new</span> ReentrantLock();</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">          lock.lock();</span><br><span class="line">          <span class="keyword">try</span>&#123;</span><br><span class="line">               <span class="keyword">while</span>(<span class="keyword">true</span>)</span><br><span class="line">          &#125;<span class="keyword">catch</span>(InterruptedExcpetion e)&#123;</span><br><span class="line">               System.out.println(<span class="string">"The Task is interrupted!"</span>);</span><br><span class="line">          &#125;<span class="keyword">finally</span>&#123;</span><br><span class="line">               lock.unlock();</span><br><span class="line">          &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">          Thread t = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Task());</span><br><span class="line">          t.start();</span><br><span class="line">          t.interrupt();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="解决方式2：使用一个while（！Thread-interrupted（））包裹同步的代码块"><a href="#解决方式2：使用一个while（！Thread-interrupted（））包裹同步的代码块" class="headerlink" title="解决方式2：使用一个while（！Thread.interrupted（））包裹同步的代码块"></a>解决方式2：使用一个while（！Thread.interrupted（））包裹同步的代码块</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Task</span> <span class="title">impelments</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">     <span class="function"><span class="keyword">private</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">method1</span><span class="params">()</span></span>&#123;     &#125;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">          <span class="keyword">try</span>&#123;</span><br><span class="line">               whlie(!Thread.interrupted())</span><br><span class="line">                    method1();</span><br><span class="line">           &#125;<span class="keyword">catch</span>(InteruptedException e)&#123;  </span><br><span class="line">           &#125;             </span><br><span class="line">     &#125;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">          ExecutorService exec = Executors.newCachedThreadPool();</span><br><span class="line">          exec.execute(<span class="keyword">new</span> Task());</span><br><span class="line">          exec.shutdownNow();  <span class="comment">//线程被打断</span></span><br><span class="line">          <span class="comment">/*或 Thread t = new Thread(new Task());</span></span><br><span class="line"><span class="comment">               t.start();</span></span><br><span class="line"><span class="comment">               t.interrupt(); */</span></span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/" data-id="cjoo7fpjo002hsbfyc9lab0zf" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2018/03/13/线程阻塞和中断的四种方式/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
     <article id="post-mac搭建PyQt5环境" class="article article-type-post" itemscope itemprop="blogPost">
     <div class="article-inner">
         
@@ -262,7 +408,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjoo1bei800118nfyor5zn5dq" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/mac搭建PyQt5环境/" data-id="cjoo7fpj1000tsbfy8x0y7nkh" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -450,7 +596,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjoo1behz000j8nfygf0dhu4z" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/12/11/MQTT相关/" data-id="cjoo7fpj3000vsbfy6rda77hi" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -721,7 +867,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjoo1beia00178nfyn908atmy" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/10/12/view 绘制机制/" data-id="cjoo7fpj9001asbfyrmy88ehm" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -870,7 +1016,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/09/07/Linux 用户空间 内核空间/" data-id="cjoo1bei0000o8nfymtej7ji3" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/09/07/Linux 用户空间 内核空间/" data-id="cjoo7fpit000dsbfyc2su9ml7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1050,7 +1196,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/08/16/webrtc 音频/" data-id="cjoo1bei900138nfyrc3j6gw5" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/08/16/webrtc 音频/" data-id="cjoo7fpj70014sbfy3wjm9aum" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1226,7 +1372,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/" data-id="cjoo1bei7000z8nfyf2hldlwi" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/" data-id="cjoo7fpj60011sbfy2rh77gd5" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1557,7 +1703,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/05/07/MK语法规范/" data-id="cjoo1bei2000p8nfyfotk01lo" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/05/07/MK语法规范/" data-id="cjoo7fpiz000osbfymzboh908" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1775,7 +1921,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/04/11/Binder 进程间通讯机制/" data-id="cjoo1behm00028nfyensi4zkg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/04/11/Binder 进程间通讯机制/" data-id="cjoo7fpif0000sbfycziue7l6" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1981,7 +2127,7 @@ TARGET_PRELINK_MODULES := false
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2017/04/05/编译系统环境初始化过程/" data-id="cjoo1beip002g8nfy3bfe4qxd" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2017/04/05/编译系统环境初始化过程/" data-id="cjoo7fpjq002jsbfyd248ui35" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2059,169 +2205,6 @@ TARGET_PRELINK_MODULES := false
 
 
 
-    <article id="post-添加SE安全策略" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2017/03/15/添加SE安全策略/">添加SE安全策略</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2017/03/15/添加SE安全策略/">
-            <time datetime="2017-03-15T11:10:10.000Z" itemprop="datePublished">2017-03-15</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/AOSP/">AOSP</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/SEAndroid/">SEAndroid</a>, <a class="tag-link" href="/tags/编译/">编译</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <h2 id="一、-问题复现"><a href="#一、-问题复现" class="headerlink" title="一、 问题复现"></a>一、 问题复现</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1.service ro_isn /system/bin/isn.sh </span><br><span class="line">2.class late_start</span><br><span class="line">3.user root</span><br><span class="line">4.oneshot</span><br></pre></td></tr></table></figure>
-<p>kernel log会打印以下log：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Warning!  Service ro_isn needs a SELinux domain defined; please fix!</span><br></pre></td></tr></table></figure>
-<p>这是因为<strong>Service ro_isn</strong>没有在<strong>SELinux</strong>的监控之下，这种情况会提示你定义一个SELinux。<br>在这种情况下，你可以：<br>1.无视该条log，Service功能不受影响。各种权限不受限制。但是这样做会有风险。<br>2.为<strong>Service ro_isn</strong>定义一个<strong>SELinux</strong> <strong>domain</strong>，仅添加需要的权限，未允许的权限操作会被拒绝。具体方法请参照下节。</p>
-<h2 id="二、解决方法"><a href="#二、解决方法" class="headerlink" title="二、解决方法"></a>二、解决方法</h2><h3 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">devices/qcom/sepolicy/common/</span><br></pre></td></tr></table></figure>
-<p>目录下新增<strong>ro_isn.te</strong>文件，内容如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">type ro_isn, domain; </span><br><span class="line">type ro_isn_exec, exec_type, file_type;</span><br></pre></td></tr></table></figure>
-<h2 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h2><p>在<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">devices/qcom/sepolicy/Android.mk</span><br></pre></td></tr></table></figure></p>
-<p>中添加<strong>ro_isn.te</strong>文件，内容如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">BOARD_SEPOLICY_UNION := \</span><br><span class="line">... \</span><br><span class="line">        hostapd.te \</span><br><span class="line">        ro_isn.te</span><br></pre></td></tr></table></figure>
-<h2 id="3"><a href="#3" class="headerlink" title="3."></a>3.</h2><p>在<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">devices/qcom/sepolicy/common/file_contexts</span><br></pre></td></tr></table></figure></p>
-<p>中增加如下内容：</p>
-<p>###################################</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># System files</span><br><span class="line">#</span><br><span class="line">...</span><br><span class="line">/system/vendor/bin/slim_ap_daemon</span><br><span class="line">u:object_r:location_exec:s0</span><br><span class="line">/system/bin/isn.sh</span><br><span class="line">u:object_r:ro_isn_exec:s0</span><br></pre></td></tr></table></figure>
-<h2 id="4"><a href="#4" class="headerlink" title="4."></a>4.</h2><p>在<strong>init.rc</strong>中<strong>service ro_isn</strong>下添加<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">secure context by seclabel </span><br><span class="line">service ro_isn /system/bin/isn.sh </span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">class late_start </span><br><span class="line">user root </span><br><span class="line">oneshot </span><br><span class="line">seclabel u:r:ro_isn:s0</span><br></pre></td></tr></table></figure></p>
-<h2 id="5"><a href="#5" class="headerlink" title="5."></a>5.</h2><p>编译并烧录bootimage</p>
-<h2 id="6"><a href="#6" class="headerlink" title="6."></a>6.</h2><p>如果编译不成功，失败原因如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Error while expanding policy</span><br><span class="line">libsepol.check_assertion_helper: neverallow on line 233 of external/sepolicy/domain.te (or line 5194 of policy.conf) violated by allow ro_isn system_file:file &#123; entrypoint &#125;;</span><br><span class="line">make: *** [out/target/product/msm8226/obj/ETC/sepolicy_intermediates/sepolicy] 错误 1</span><br></pre></td></tr></table></figure>
-<p>这是因为系统在<strong>domain.te</strong>中定义了全局的<strong>neverallow策略</strong>，与<strong>ro_isn.te</strong>中<strong>allow</strong>的策略有冲突：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">allow ro_isn system_file:file &#123; entrypoint &#125;;</span><br><span class="line">neverallow domain &#123; file_type -exec_type &#125;:file entrypoint;</span><br></pre></td></tr></table></figure>
-<p>请确定自己的service有必要需要这个权限。如无必要，请在自己的code中删除掉相关操作；如必要，可以在<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">external/sepolicy/domain.te</span><br></pre></td></tr></table></figure></p>
-<p>中冲突的<strong>neverallow</strong><br>语句中添加自己为例外：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">neverallow &#123;</span><br><span class="line">    domain</span><br><span class="line">    -ro_isn</span><br><span class="line">&#125; &#123; file_type -exec_type &#125;:file entrypoint;</span><br></pre></td></tr></table></figure>
-<h2 id="7"><a href="#7" class="headerlink" title="7."></a>7.</h2><p>在<strong>service ro_isn</strong>运行时，搜索关于“<strong>ro_isn</strong>”的<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">avc: denied log</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;6&gt;[ 13.547188](CPU:0-pid:320:logd.auditd) type=1400 audit(17468992.410:7): avc: denied &#123; entrypoint &#125; for pid=272 comm=&quot;init&quot; path=&quot;/system/bin/isn.sh </span><br><span class="line"></span><br><span class="line">&quot; dev=&quot;mmcblk0p38&quot; ino=631 scontext=u:r:ro_isn:s0 tcontext=u:object_r:system_file:s0 tclass=file</span><br></pre></td></tr></table></figure>
-<h2 id="8"><a href="#8" class="headerlink" title="8."></a>8.</h2><p>按照如下规则在<strong>ro_isn.te</strong>添加权限<br><strong>SELinux</strong>规则语句一般如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">allow  A  B:C  D;</span><br></pre></td></tr></table></figure>
-<p>可以从log中分别获取ABCD四个参数。<br>比如这行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">warning log：</span><br><span class="line">avc: denied &#123; entrypoint &#125; for pid=272 comm=&quot;init&quot; path=&quot;/system/bin/isn.sh </span><br><span class="line"></span><br><span class="line">&quot; dev=&quot;mmcblk0p38&quot; ino=631 scontext=u:r:ro_isn:s0 tcontext=u:object_r:system_file:s0 tclass=file</span><br><span class="line"></span><br><span class="line">avc:  denied  &#123; transition &#125; for  pid=320 comm=&quot;init&quot; path=&quot;/system/xbin/fcgiserver.sh </span><br><span class="line"></span><br><span class="line">&quot; dev=&quot;mmcblk0p21&quot; ino=7873 scontext=u:r:init:s0 tcontext=u:r:fcgiserver:s0 tclass=process permissive=1</span><br></pre></td></tr></table></figure></p>
-<p>那么我们就得出最后的规则是：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">allow qcomsysd  block_device:dir &#123; search &#125;;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">allow ro_isn system_file:file &#123; entrypoint &#125;;</span><br></pre></td></tr></table></figure>
-<p>重复步骤<strong>5-8</strong>,直到没有关于<strong>ro_isn</strong>的<strong>avc: denied log</strong></p>
-
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2017/03/15/添加SE安全策略/" data-id="cjoo1beil00228nfy3s57bhe9" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2017/03/15/添加SE安全策略/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
     <nav id="page-nav">
         <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
     </nav>
@@ -2239,7 +2222,7 @@ TARGET_PRELINK_MODULES := false
                     <li>
                         
                         <div class="item-thumbnail">
-                            <a href="/2018/11/15/吴恩达深度学习课程笔记 第二周/" class="thumbnail">
+                            <a href="/2018/11/19/深度学习课程笔记 第二周 优化算法/" class="thumbnail">
     
     
         <span class="thumbnail-image thumbnail-none"></span>
@@ -2250,7 +2233,26 @@ TARGET_PRELINK_MODULES := false
                         
                         <div class="item-inner">
                             <p class="item-category"><a class="article-category-link" href="/categories/机器学习/">机器学习</a></p>
-                            <p class="item-title"><a href="/2018/11/15/吴恩达深度学习课程笔记 第二周/" class="title">吴恩达深度学习课程笔记 第二周</a></p>
+                            <p class="item-title"><a href="/2018/11/19/深度学习课程笔记 第二周 优化算法/" class="title">深度学习课程笔记 第二周 优化算法</a></p>
+                            <p class="item-date"><time datetime="2018-11-19T11:52:50.000Z" itemprop="datePublished">2018-11-19</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/11/15/深度学习课程笔记 第一周 深度学习的实践层面/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/机器学习/">机器学习</a></p>
+                            <p class="item-title"><a href="/2018/11/15/深度学习课程笔记 第一周 深度学习的实践层面/" class="title">深度学习课程笔记 第一周 深度学习的实践层面</a></p>
                             <p class="item-date"><time datetime="2018-11-15T03:52:50.000Z" itemprop="datePublished">2018-11-15</time></p>
                         </div>
                     </li>
@@ -2312,25 +2314,6 @@ TARGET_PRELINK_MODULES := false
                         </div>
                     </li>
                 
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2018/06/24/从一次native端的IPC流程理解binder/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
-                            <p class="item-title"><a href="/2018/06/24/从一次native端的IPC流程理解binder/" class="title">从一次native端的IPC流程理解binder</a></p>
-                            <p class="item-date"><time datetime="2018-06-24T11:00:50.000Z" itemprop="datePublished">2018-06-24</time></p>
-                        </div>
-                    </li>
-                
             </ul>
         </div>
     </div>
@@ -2340,7 +2323,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">categories</h3>
         <div class="widget">
-            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/学习计划/">学习计划</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/机器学习/">机器学习</a><span class="category-list-count">3</span></li></ul>
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AOSP/">AOSP</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/CoolUI/">CoolUI</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQTT/">MQTT</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/bug记录/">bug记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java基础/">java基础</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/python/">python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/webrtc/">webrtc</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/备忘录/">备忘录</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/学习计划/">学习计划</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/容器技术/">容器技术</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/机器学习/">机器学习</a><span class="category-list-count">4</span></li></ul>
         </div>
     </div>
 
@@ -2349,7 +2332,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2358,7 +2341,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">tags</h3>
         <div class="widget">
-            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tensorflow/">Tensorflow</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/备忘录/">备忘录</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/学习计划/">学习计划</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习/">机器学习</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/现代艺术150年/">现代艺术150年</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/音视频/">音视频</a><span class="tag-list-count">1</span></li></ul>
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AnimatedVectorDrawable/">AnimatedVectorDrawable</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Binder/">Binder</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SEAndroid/">SEAndroid</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tensorflow/">Tensorflow</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/android/">android</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aosp/">aosp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/bugs/">bugs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/">hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/">linux</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux命令/">linux命令</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mk/">mk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mqtt/">mqtt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qt/">qt</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rxjava2/">rxjava2</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/webrtc/">webrtc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄animation/">句柄animation</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/句柄泄露/">句柄泄露</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/垃圾回收/">垃圾回收</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/备忘录/">备忘录</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/多线程/">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/学习计划/">学习计划</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/容器/">容器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/开源框架/">开源框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/抓包/">抓包</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/机器学习/">机器学习</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/现代艺术150年/">现代艺术150年</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编译/">编译</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/设计模式/">设计模式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/音视频/">音视频</a><span class="tag-list-count">1</span></li></ul>
         </div>
     </div>
 
@@ -2367,7 +2350,7 @@ TARGET_PRELINK_MODULES := false
     <div class="widget-wrap">
         <h3 class="widget-title">tag cloud</h3>
         <div class="widget tagcloud">
-            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 17.5px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/Tensorflow/" style="font-size: 15px;">Tensorflow</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 17.5px;">java</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 12.5px;">垃圾回收</a> <a href="/tags/备忘录/" style="font-size: 12.5px;">备忘录</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/学习计划/" style="font-size: 10px;">学习计划</a> <a href="/tags/容器/" style="font-size: 10px;">容器</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/机器学习/" style="font-size: 15px;">机器学习</a> <a href="/tags/现代艺术150年/" style="font-size: 12.5px;">现代艺术150年</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a> <a href="/tags/音视频/" style="font-size: 10px;">音视频</a>
+            <a href="/tags/AnimatedVectorDrawable/" style="font-size: 10px;">AnimatedVectorDrawable</a> <a href="/tags/Binder/" style="font-size: 17.5px;">Binder</a> <a href="/tags/SEAndroid/" style="font-size: 10px;">SEAndroid</a> <a href="/tags/Tensorflow/" style="font-size: 17.5px;">Tensorflow</a> <a href="/tags/android/" style="font-size: 20px;">android</a> <a href="/tags/aosp/" style="font-size: 10px;">aosp</a> <a href="/tags/bugs/" style="font-size: 10px;">bugs</a> <a href="/tags/docker/" style="font-size: 10px;">docker</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/java/" style="font-size: 17.5px;">java</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/linux命令/" style="font-size: 10px;">linux命令</a> <a href="/tags/mk/" style="font-size: 10px;">mk</a> <a href="/tags/mqtt/" style="font-size: 10px;">mqtt</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/qt/" style="font-size: 10px;">qt</a> <a href="/tags/rxjava2/" style="font-size: 10px;">rxjava2</a> <a href="/tags/webrtc/" style="font-size: 10px;">webrtc</a> <a href="/tags/句柄animation/" style="font-size: 10px;">句柄animation</a> <a href="/tags/句柄泄露/" style="font-size: 10px;">句柄泄露</a> <a href="/tags/垃圾回收/" style="font-size: 12.5px;">垃圾回收</a> <a href="/tags/备忘录/" style="font-size: 12.5px;">备忘录</a> <a href="/tags/多线程/" style="font-size: 10px;">多线程</a> <a href="/tags/学习计划/" style="font-size: 10px;">学习计划</a> <a href="/tags/容器/" style="font-size: 10px;">容器</a> <a href="/tags/开源框架/" style="font-size: 10px;">开源框架</a> <a href="/tags/抓包/" style="font-size: 10px;">抓包</a> <a href="/tags/机器学习/" style="font-size: 17.5px;">机器学习</a> <a href="/tags/现代艺术150年/" style="font-size: 12.5px;">现代艺术150年</a> <a href="/tags/编译/" style="font-size: 15px;">编译</a> <a href="/tags/设计模式/" style="font-size: 10px;">设计模式</a> <a href="/tags/音视频/" style="font-size: 10px;">音视频</a>
         </div>
     </div>
 
