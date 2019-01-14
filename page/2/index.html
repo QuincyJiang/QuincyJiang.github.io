@@ -154,7 +154,7 @@
         </div>
         <div class="article-info profile-block">
             <div class="article-info-block">
-                34
+                33
                 <span>posts</span>
             </div>
             <div class="article-info-block">
@@ -195,559 +195,6 @@
 
             
             <section id="main">
-    <article id="post-从驱动角度理解binder" class="article article-type-post" itemscope itemprop="blogPost">
-    <div class="article-inner">
-        
-        
-            <header class="article-header">
-                
-    
-        <h1 itemprop="name">
-            <a class="article-title" href="/2018/06/02/从驱动角度理解binder/">从驱动角度理解binder</a>
-        </h1>
-    
-
-                
-                    <div class="article-meta">
-                        
-    <div class="article-date">
-        <i class="fa fa-calendar"></i>
-        <a href="/2018/06/02/从驱动角度理解binder/">
-            <time datetime="2018-06-02T11:00:50.000Z" itemprop="datePublished">2018-06-02</time>
-        </a>
-    </div>
-
-
-                        
-    <div class="article-category">
-    	<i class="fa fa-folder"></i>
-        <a class="article-category-link" href="/categories/Android/">Android</a>
-    </div>
-
-                        
-    <div class="article-tag">
-        <i class="fa fa-tag"></i>
-        <a class="tag-link" href="/tags/Binder/">Binder</a>, <a class="tag-link" href="/tags/android/">android</a>
-    </div>
-
-                    </div>
-                
-            </header>
-        
-        
-        <div class="article-entry" itemprop="articleBody">
-        
-            
-            <p>一次binder通讯建立的大致流程我们已经了解了，首先是要注册一个serviceManager，server端创建实名binder，向smg注册自己可以提供的服务，以及该实名binder的标签，smg会在svcinfo 链表中缓存该server提供的binder信息，当client需要使用该服务时，只需要向smg中查询服务，获取server端binder的引用就可以了，这其中所有的通讯细节，全部需要binder驱动来实现。<br><img src="/media/15280074117127.jpg" alt=""></p>
-<p>本文主要总结一下对binder驱动的理解，了解驱动设计的细节，以及binder通讯过程中驱动主要做了哪些事情。</p>
-<h1 id="Binder驱动的定义"><a href="#Binder驱动的定义" class="headerlink" title="Binder驱动的定义"></a>Binder驱动的定义</h1><p>Binder驱动其实是一种特殊的字符型驱动，实现方式类似硬件驱动，工作在内核态。<br>如果了解过linux驱动相关知识，应该知道<code>file_operations</code> 结构体的重要性，linux 使用该结构体访问驱动程序的函数，这个结构体的每一个成员的名字都对应一个内核调用。<br>当用户进程利用设备文件（binder对应的设备文件为/dev/test）对文件进行类似<code>read()/write()</code> 操作的时候，系统调用通过设备文件的主设备号找到对应的设备驱动程序，每一个驱动程序在内核中是由一个<code>cdev</code>结构体描述，<code>cdev</code>结构体中又包括一个成员<code>fops</code>结构体，fops便是<code>file_operations</code>类型的，然后读取<code>file_operations</code> 结构体相应的函数指针，接着把控制权交给该函数的linux 设备驱动程序工作。</p>
-<p>下面以binder驱动在内核中的注册流程来分析binder驱动为用户空间定义了哪些可用来调用的函数。</p>
-<h2 id="注册Binder"><a href="#注册Binder" class="headerlink" title="注册Binder"></a>注册Binder</h2><p> 在binder驱动源码中（<a href="https://elixir.bootlin.com/linux/v3.11.4/source/drivers/staging/android/binder.c" target="_blank" rel="noopener">kernel/drivers/staging/android/binder.c</a>），通过调用 <code>ret = misc_register(&amp;binder_msicdev)</code>函数完成向内核注册<code>binder</code>驱动，主设备号为10，次设备号动态分配， 其中传入的参数便是一个<code>miscdev</code>的结构体，<br> 它的定义如下</p>
- <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">miscdevice</span> <span class="title">binder_miscdev</span> = &#123;</span></span><br><span class="line">	.minor = MISC_DYNAMIC_MINOR,</span><br><span class="line">	.name = <span class="string">"binder"</span>,</span><br><span class="line">	.fops = &amp;binder_fops</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>可以看到<code>cdev</code>文件中标注了<code>binder</code>设备的设备名”binder”，以及<code>fops</code>结构体，<code>fops</code>结构体如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">binder_fops</span> = &#123;</span></span><br><span class="line">    .owner = THIS_MODULE,</span><br><span class="line">    .poll = binder_poll,</span><br><span class="line">    .unlocked_ioctl = binder_ioctl,</span><br><span class="line">    .mmap = binder_mmap,</span><br><span class="line">    .open = binder_open,</span><br><span class="line">    .flush = binder_flush,</span><br><span class="line">    .release = binder_release,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>可以看到binder驱动为应用层提供了<code>open()</code>,<code>mmap()</code>,<code>poll()</code>,<code>ioctl()</code>等标准的文件操作【注1】，<code>open()</code>负责打开驱动，<code>mmap()</code>负责对<code>binder</code>做内核空间向用户空间的地址映射，<code>ioctl()</code>负责binder协议的通信。</p>
-<p>我们知道，用户态的引用程序调用<code>kernel</code>驱动程序是会陷入内核态的，进行系统调用，比如我使用 <code>fd = open(&quot;dev/binder&quot;,O_RDWR)</code>，开打开<code>binder</code>驱动时，它会先通过通过系统调用<code>_open()</code>【注1】，通过主次设备号来找到对应的binder驱动程序，即在 <code>cdev</code> 链表中找到binder驱动对应的<br><code>binder_miscdev</code>，找到 <code>binder_fops</code>结构体，找到<code>open()</code>方法对应的 <code>binder_open()</code>函数，实际执行到的便是<code>binder_open（）</code>函数。那么其他的 比如 mmap(),ioctl()方法，他们的执行流程也是类似的。 参考下图<br><img src="/media/15280103450907.jpg" alt=""></p>
-<blockquote>
-<p>注释1： open()为用户空间的方法，_open()为系统调用中对应的处理方法。</p>
-</blockquote>
-<p>打开一次binder通讯，大致分为以下流程：</p>
-<ul>
-<li>1 调用<code>open()</code>方法打开<code>binder</code>驱动 </li>
-<li>2 调用 <code>mmap()</code>方法申请一块内存用来接受通信中的数据，并进行内存映射（binder机制为什么只进行一次拷贝，这里有文章），</li>
-<li>3 调用 <code>ioctl()</code>方法 开启binder通讯。<br>这里每一步中具体都做了些什么，下文会有详细描述，但为了更好理解，需要先要搞清楚binder驱动中的几个关键的数据结构和binder的通讯协议。</li>
-</ul>
-<h2 id="Binder驱动中的结构体"><a href="#Binder驱动中的结构体" class="headerlink" title="Binder驱动中的结构体"></a>Binder驱动中的结构体</h2><p>驱动中的结构体分为两部分，一部分与用户空间共用，这些结构体在Binder通信协议中会用到，被定义在binder.h 头文件中。<br>具体内容见下表：</p>
-<table>
-<thead>
-<tr>
-<th>结构体名</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>flat_binder_object</td>
-<td>binder通讯过程中在client-binderDriver-server之间传递的实际内容，所谓跨进程传递的binder对象，其实传递的就是这个</td>
-</tr>
-<tr>
-<td>binder_wirte_read</td>
-<td>存储对binder驱动进行读写操作的数据，当为写的时候，结构体中的write_size非空，当为读的时候，read_size不为空</td>
-</tr>
-<tr>
-<td>binder_version</td>
-<td>存储binder的版本号</td>
-</tr>
-<tr>
-<td>transaction_flags</td>
-<td>描述一次binder事务的flag，比如是同步还是异步请求</td>
-</tr>
-<tr>
-<td>binder_transcation_data</td>
-<td>存储一次事务的数据</td>
-</tr>
-<tr>
-<td>binder_handle_cookie</td>
-<td>包含一个句柄和一个cookie</td>
-</tr>
-<tr>
-<td>binder_ptr_cookie</td>
-<td>包含一个指针和一个cookie </td>
-</tr>
-<tr>
-<td>binder_pri_dest</td>
-<td>暂未用到 </td>
-</tr>
-<tr>
-<td>binder_pri_ptr_cookie</td>
-<td>暂未用到</td>
-</tr>
-</tbody>
-</table>
-<p>另一部分定义在binder驱动中，是驱动特有的结构体</p>
-<table>
-<thead>
-<tr>
-<th>结构体名</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>binder_node</td>
-<td>描述binder的实体节点，对应一个server，当server通过binder驱动向smg注册时，binder驱动便会在内核中为其创建一个binder实体节点，该实体节点即为binder_node，同时驱动会为server与该节点创建引用关系</td>
-</tr>
-<tr>
-<td>binder_ref</td>
-<td>描述对binder实体节点的引用</td>
-</tr>
-<tr>
-<td>binder_buffer</td>
-<td>描述binder通讯过程中存储数据的buffer</td>
-</tr>
-<tr>
-<td>binder_proc</td>
-<td>描述使用binder的进程</td>
-</tr>
-<tr>
-<td>binder_thread</td>
-<td>描述使用binder的线程</td>
-</tr>
-<tr>
-<td>binder_work</td>
-<td>描述通信过程中的一项任务</td>
-</tr>
-<tr>
-<td>binder_transcation</td>
-<td>描述一次事务的相关信息</td>
-</tr>
-<tr>
-<td>binder_deferred_state</td>
-<td>藐视延迟任务</td>
-</tr>
-<tr>
-<td>binder_ref_death</td>
-<td>描述binder实体的死亡信息</td>
-</tr>
-<tr>
-<td>binder_transcation_log</td>
-<td>debugfs 日志</td>
-</tr>
-<tr>
-<td>binder_transcation_log_entry</td>
-<td>debugfs 日志条目</td>
-</tr>
-</tbody>
-</table>
-<h2 id="binder协议"><a href="#binder协议" class="headerlink" title="binder协议"></a>binder协议</h2><p>Binder协议 可以分为 <strong>控制协议</strong>和<strong>驱动协议</strong>两部分。</p>
-<h3 id="1-控制协议"><a href="#1-控制协议" class="headerlink" title="1.控制协议"></a>1.控制协议</h3><p><strong>控制协议</strong>是进程(client 或server端)通过系统调用（syscall）直接操作binder设备文件，使用<code>ioctl(&#39;dev/binder&#39;)</code>控制binder驱动的协议，该协议包含以下几种命令</p>
-<table>
-<thead>
-<tr>
-<th>命令</th>
-<th>含义</th>
-<th>参数</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>BINDER_WRITE_READ</td>
-<td>该命令想binder写入或者读出数据，参数分为两段，写和度部分，如果write_size不为零，就先将write_buffer中的数据写入binder； 如果read_size不为零，就先从binder中取出数据，写入read_buffer中。 write_consumed和read_consumed 表示操作完成时驱动实际写入和读出的数据个数。</td>
-<td>struct binder_wirte_read{ Singned long write_size;Signed long write_consumed;unsigend long write_buffer;signed long read_size;signed long read_consumed;Unsigned long read_buffer}</td>
-</tr>
-<tr>
-<td>BINDER_SET_MAX_THREADS</td>
-<td>告知binder驱动接收方(server端)，线程池中最大的线程数。（详见下文 驱动线程管理）</td>
-<td>int max_threads</td>
-</tr>
-<tr>
-<td>BINDER_SET_CONEXT_MGR</td>
-<td>将当前进程注册为smg，系统同时只可以出现一个smg，只要当前smg没有调用close关闭binder驱动，就不可能有别的进程可以成为smg</td>
-<td></td>
-</tr>
-<tr>
-<td>BINDER_THREAD_EXIT</td>
-<td>通知binder驱动当前线程退出了，binder会为所有参与binder通信的线程（包括server端线程池中的线程以及client端发出请求的线程）建立相应的数据结构，这些线程在退出时必须显示通知binder释放相应的数据。详见下文 binder驱动的线程控制</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-驱动协议"><a href="#2-驱动协议" class="headerlink" title="2. 驱动协议"></a>2. 驱动协议</h3><p>驱动协议根据具体使用过程，又分为<strong>发送</strong>和<strong>返回</strong>协议。<br><strong>发送协议</strong> 定义在<code>binder.c</code> 中的<br> <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> binder_driver_command_protocol</span><br></pre></td></tr></table></figure></p>
-<p>，<strong>返回协议 </strong> 定义在<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> binder_driver_return_protocol</span><br></pre></td></tr></table></figure></p>
-<p> 根据协议不同，存放的位置也不相同。<br>驱动协议都是封装在控制协议   <code>BINDER_WRITE_READ</code> 命令参数 <code>binder_wirte_read</code> 结构体中，根据发送和返回类型，分别存放在 <code>write_buffer</code>和 <code>read_buffer</code>域所指向的内存空间中。<br><code>binder_write_read</code>结构体的数据结构见下图：<br><img src="/media/15280146752888.jpg" alt=""></p>
-<p>它们的数据格式都是命令 + 数据 的格式，多条命令可以连续存放。数据紧接着放在命令的后面，根据命令不同，执行的操作也不同。</p>
-<h4 id="发送协议："><a href="#发送协议：" class="headerlink" title="发送协议："></a>发送协议：</h4><table>
-<thead>
-<tr>
-<th>命令</th>
-<th>说明</th>
-<th>参数</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>BC_TRANSCATION</td>
-<td>binder事务，client对server的请求</td>
-<td>binder_transction_data</td>
-</tr>
-<tr>
-<td>BC_REPLAY</td>
-<td>事务的回答，server对client的回复</td>
-<td>Binder_transctin_data</td>
-</tr>
-<tr>
-<td>BC_FREE_BUFFER</td>
-<td>通知驱动释放buffer</td>
-<td>Binder_uinptr_t</td>
-</tr>
-<tr>
-<td>BC_ACQUIRE</td>
-<td>强引用计数+1</td>
-<td>_u32</td>
-</tr>
-<tr>
-<td>BC_RELEASE</td>
-<td>强引用计数-1</td>
-<td>_u32</td>
-</tr>
-<tr>
-<td>BC_INCREFS</td>
-<td>弱引用计数+1</td>
-<td>_u32</td>
-</tr>
-<tr>
-<td>BC_DECREFS</td>
-<td>弱引用计数-1</td>
-<td>_u32</td>
-</tr>
-<tr>
-<td>BC_ACQUIRE_DODE</td>
-<td>acquire指令的回复</td>
-<td>Binder_ptr_cookie</td>
-</tr>
-<tr>
-<td>BC_INCREFS_DONE</td>
-<td>increfs指令的回复</td>
-<td>Binder_prt_cookie</td>
-</tr>
-<tr>
-<td>BC_ENTER_LOOPER</td>
-<td>通知驱动主线程ready</td>
-<td>Void</td>
-</tr>
-<tr>
-<td>BC_REGISTER_LOOPER</td>
-<td>通知驱动子线程ready</td>
-<td>Void</td>
-</tr>
-<tr>
-<td>BC_EXIT_LOOPER</td>
-<td>通知驱动线程已退出</td>
-<td>Void</td>
-</tr>
-<tr>
-<td>BC_REQUEST_DEATH_NOTIFICATION</td>
-<td>请求接受死亡通知</td>
-<td>Binder_handle_cookie</td>
-</tr>
-<tr>
-<td>BC_CLEAR_DEATH_NOTIFICATION</td>
-<td>去除接受死亡通知</td>
-<td>Binder_handle_cookie</td>
-</tr>
-<tr>
-<td>BC_DEAD_BINDER_DONE</td>
-<td>已经处理完死亡通知</td>
-<td>Binder_uinptr_t</td>
-</tr>
-<tr>
-<td>BC_ATTEMPT_ACQUIRE</td>
-<td>暂未实现</td>
-<td>-</td>
-</tr>
-<tr>
-<td>BC_ACQUIRE_RESULT</td>
-<td>暂为实现</td>
-<td>-</td>
-</tr>
-</tbody>
-</table>
-<h4 id="返回协议："><a href="#返回协议：" class="headerlink" title="返回协议："></a>返回协议：</h4><table>
-<thead>
-<tr>
-<th>命令</th>
-<th>说明</th>
-<th>参数</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>BR_OK</td>
-<td>操作完成</td>
-<td>void</td>
-</tr>
-<tr>
-<td>BR_NOOP</td>
-<td>操作完成</td>
-<td>void</td>
-</tr>
-<tr>
-<td>BR_ERROR</td>
-<td>发生错误</td>
-<td>_s32</td>
-</tr>
-<tr>
-<td>BR_TRANSCATION</td>
-<td>进程收到一次binder请求 （server端）</td>
-<td>binder_transcation_data</td>
-</tr>
-<tr>
-<td>BR_REPLAY</td>
-<td>进程收到binder请求的回复（client）</td>
-<td>binder_transtaction_data</td>
-</tr>
-<tr>
-<td>BR_TRANSCATION_COMPLETED</td>
-<td>驱动对于接收请求的确认回复</td>
-<td>void</td>
-</tr>
-<tr>
-<td>BR_FAILED_REPLAY</td>
-<td>告知发送方 通信目标不存在</td>
-<td>void</td>
-</tr>
-<tr>
-<td>BR_SPAWN_LOOPER</td>
-<td>通server端创建一个新的进程</td>
-<td>void</td>
-</tr>
-<tr>
-<td>BR_ACQUIRE</td>
-<td>强用用计数+1</td>
-<td>Binder_prt_cookie</td>
-</tr>
-<tr>
-<td>BR_RELEASE</td>
-<td>强引用计数-1</td>
-<td>Binder_prt_cookie</td>
-</tr>
-<tr>
-<td>BR_INCREFS</td>
-<td>弱引用计数+1</td>
-<td>Binder_prt_cookie</td>
-</tr>
-<tr>
-<td>BR_DECREFS</td>
-<td>弱引用计数-1</td>
-<td>Binder_prt_cookie</td>
-</tr>
-<tr>
-<td>BR_DEAD_BINDER</td>
-<td>发送死亡通知</td>
-<td>binder_uintptr_t</td>
-</tr>
-<tr>
-<td>BR_CLEAR_DEATH_NOTIFICATION_DONE</td>
-<td>清除死亡通知完成</td>
-<td>binder_uintptr_t</td>
-</tr>
-<tr>
-<td>BR_DEAD_REPLAY</td>
-<td>改制发送方对方已死亡</td>
-<td>void</td>
-</tr>
-<tr>
-<td>BR_ATTEMPT_ACQUIRE</td>
-<td>暂未实现</td>
-<td>-</td>
-</tr>
-<tr>
-<td>BR_ACQUIRE_RESULT</td>
-<td>暂为实现</td>
-<td>-</td>
-</tr>
-<tr>
-<td>BR_FINISHED</td>
-<td>暂未实现</td>
-<td>-</td>
-</tr>
-</tbody>
-</table>
-<h4 id="binder-请求的过程"><a href="#binder-请求的过程" class="headerlink" title="binder 请求的过程"></a>binder 请求的过程</h4><p>见下图：</p>
-<p><img src="/media/15280173877321.jpg" alt=""></p>
-<p>通过上面的Binder协议的说明中我们看到，Binder协议的通信过程中，不仅仅是发送请求和接受数据这些命令。同时包括了对于引用计数的管理和对于死亡通知的管理（告知一方，通讯的另外一方已经死亡）等功能。</p>
-<p>这些功能的通信过程和上面这幅图是类似的：一方发送<code>BC_XXX</code>，然后由驱动控制通信过程，接着发送对应的<code>BR_XXX</code>命令给通信的另外一方。因为这种相似性，对于这些内容就不再赘述了。</p>
-<h3 id="由驱动角度理解-Binder通讯建立的过程"><a href="#由驱动角度理解-Binder通讯建立的过程" class="headerlink" title="由驱动角度理解 Binder通讯建立的过程"></a>由驱动角度理解 Binder通讯建立的过程</h3><h4 id="1-打开驱动（open-“dev-binder”-）"><a href="#1-打开驱动（open-“dev-binder”-）" class="headerlink" title="1 打开驱动（open(“dev/binder”)）"></a>1 打开驱动（open(“dev/binder”)）</h4><p>任何进程在使用Binder之前，都需要先通过<code>open(&quot;/dev/binder&quot;)</code>打开Binder设备。上文已经提到，用户空间的<code>open</code>系统调用对应了驱动中的<code>binder_open</code>函数。在这个函数，Binder驱动会为调用的进程做一些初始化工作。<code>binder_open</code>函数代码如下所示</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">binder_open</span><span class="params">(struct inode *nodp, struct file *filp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">binder_proc</span> *<span class="title">proc</span>;</span></span><br><span class="line"></span><br><span class="line">   <span class="comment">// 创建进程对应的binder_proc对象 </span></span><br><span class="line">	proc = kzalloc(<span class="keyword">sizeof</span>(*proc), GFP_KERNEL); </span><br><span class="line">	<span class="keyword">if</span> (proc == <span class="literal">NULL</span>)</span><br><span class="line">		<span class="keyword">return</span> -ENOMEM;</span><br><span class="line">	get_task_struct(current);</span><br><span class="line">	proc-&gt;tsk = current;</span><br><span class="line">	<span class="comment">// 初始化binder_proc</span></span><br><span class="line">	INIT_LIST_HEAD(&amp;proc-&gt;todo);</span><br><span class="line">	init_waitqueue_head(&amp;proc-&gt;wait);</span><br><span class="line">	proc-&gt;default_priority = task_nice(current);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 锁保护</span></span><br><span class="line">	binder_lock(__func__);</span><br><span class="line"></span><br><span class="line">	binder_stats_created(BINDER_STAT_PROC);</span><br><span class="line">	<span class="comment">// 添加到全局列表binder_procs中</span></span><br><span class="line">	hlist_add_head(&amp;proc-&gt;proc_node, &amp;binder_procs);</span><br><span class="line">	proc-&gt;pid = current-&gt;group_leader-&gt;pid;</span><br><span class="line">	INIT_LIST_HEAD(&amp;proc-&gt;delivered_death);</span><br><span class="line">	filp-&gt;private_data = proc;</span><br><span class="line"></span><br><span class="line">	binder_unlock(__func__);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到，在打开binder驱动时，<code>binder_procs</code>会将所有打开binder驱动的进程加入到该列表中，上文中提到binder中的几个主要结构体，其实都是通过<code>binder_procs</code>结构体链接在一起的。</p>
-<p><img src="/media/15280179417192.jpg" alt=""></p>
-<h4 id="2-创建内存空间并实现用户空间-内核空间的映射（mmap）"><a href="#2-创建内存空间并实现用户空间-内核空间的映射（mmap）" class="headerlink" title="2. 创建内存空间并实现用户空间 内核空间的映射（mmap）"></a>2. 创建内存空间并实现用户空间 内核空间的映射（mmap）</h4><p>打开binder驱动之后，进程会通过<code>mmap()</code>方法进行内存空间的映射。 </p>
-<p>上文描述过，<code>mmap()</code>对应的<code>binder_mmap()</code>函数，它会先申请一份物理内存，默认<code>PAGE_SIZE</code> 是4k，然后会<strong>同时在 用户空间和 内核空间</strong>映射该物理内存。当client 发送数据给server的时候，只需要将client端的数据，拷贝到server端所指向的 内核中的地址即可，因为server的用户空间和binder对应的内核空间映射的是同一份物理内存，当server取数据的时候，就无需再从内科中拷贝了，server可以直接使用。</p>
-<p><img src="/media/15280184528253.jpg" alt=""></p>
-<p>这幅图的说明如下：</p>
-<p>Server在启动之后，对<code>/dev/binder</code>设备调用<code>mmap</code><br>内核中的<code>binder_mmap</code>函数进行对应的处理：申请一块物理内存，然后在用户空间和内核空间同时进行映射</p>
-<p>Client通过<code>BINDER_WRITE_READ</code>命令发送请求，这个请求将先到驱动中，同时需要将数据从<code>Client</code>进程的用户空间拷贝到内核空间<br>驱动通过<code>BR_TRANSACTION</code>通知Server有人发出请求，Server进行处理。由于这块内存也在用户空间进行了映射，因此Server进程的代码可以直接访问</p>
-<h4 id="3-内存管理（非重点）"><a href="#3-内存管理（非重点）" class="headerlink" title="3. 内存管理（非重点）"></a>3. 内存管理（非重点）</h4><p>上文中，我们看到<code>binder_mmap</code>的时候，会申请一个<code>PAGE_SIZE</code>通常是4K的内存。而实际使用过程中，一个<code>PAGE_SIZE</code>的大小通常是不够的。</p>
-<p>在驱动中，会根据实际的使用情况进行内存的分配。有内存的分配，当然也需要内存的释放。这里我们就来看看Binder驱动中是如何进行内存的管理的。</p>
-<p>首先，我们还是从一次IPC请求说起。</p>
-<p>当一个Client想要对Server发出请求时，它首先将请求发送到Binder设备上，由Binder驱动根据请求的信息找到对应的目标节点，然后将请求数据传递过去。</p>
-<p>进程通过ioctl系统调用来发出请求：<code>ioctl(mProcess-&gt;mDriverFD, BINDER_WRITE_READ, &amp;bwr)</code></p>
-<p>PS：这行代码来自于Framework层的<code>IPCThreadState</code>类。在后文中，我们将看到，<code>IPCThreadState</code>类专门负责与驱动进行通信。</p>
-<p>这里的<code>mProcess-&gt;mDriverFD</code>对应了打开Binder设备时的<code>fd</code>。<code>BINDER_WRITE_READ</code>对应了具体要做的操作码，这个操作码将由Binder驱动解析。<code>bwr</code>存储了请求数据，其类型是<code>binder_write_read</code>。</p>
-<p><code>binder_write_read</code>其实是一个相对外层的数据结构，其内部会包含一个<code>binder_transaction_data</code>结构的数据。<code>binder_transaction_data</code>包含了发出请求者的标识，请求的目标对象以及请求所需要的参数。它们的关系如下图所示：</p>
-<p><img src="/media/15280191293122.jpg" alt=""></p>
-<p><code>binder_ioctl</code>函数对应了<code>ioctl</code>系统调用的处理。这个函数的逻辑比较简单，就是根据<code>ioctl</code>的命令来确定进一步处理的逻辑，具体如下:</p>
-<p>如果命令是<code>BINDER_WRITE_READ</code>，并且<br>如果 <code>bwr.write_size &gt; 0</code>，则调用<code>binder_thread_write</code><br>该方法用于处理Binder协议中的请求码。当<code>binder_buffer</code>存在数据，binder线程的写操作循环执行。对于请求码为<code>BC_TRANSACTION</code>或<code>BC_REPLY</code>时，会执行<code>binder_transaction</code>()方法，这是最为频繁的操作。 对于其他命令则不同。</p>
-<p>如果 <code>bwr.read_size &gt; 0</code>，则调用<code>binder_thread_read</code>，该方法用以处理响应过程，根据不同的<code>binder_work-&gt;type</code>以及不同状态，生成相应的响应码。</p>
-<p>如果命令是<code>BINDER_SET_MAX_THREADS</code>，则设置进程的<code>max_threads</code>，即进程支持的最大线程数<br>如果命令是<code>BINDER_SET_CONTEXT_MGR</code>，则设置当前进程为<code>ServiceManager</code>，见下文<br>如果命令是<code>BINDER_THREAD_EXIT</code>，则调用<code>binder_free_thread</code>，释放<code>binder_thread</code><br>如果命令是<code>BINDER_VERSION</code>，则返回当前的Binder版本号<br>这其中，最关键的就是<code>binder_thread_write</code>方法。当Client请求Server的时候，便会发送一个<code>BINDER_WRITE_READ</code>命令，同时框架会将将实际的数据包装好。此时，<code>binder_transaction_data</code>中的code将是<code>BC_TRANSACTION</code>，由此便会调用到<code>binder_transaction</code>方法，这个方法是对一次Binder事务的处理，这其中会调用<code>binder_alloc_buf</code>函数为此次事务申请一个缓存。<br>调用关系见下图<br><img src="/media/15280210111665.jpg" alt=""></p>
-<p><code>binder_update_page_range</code>这个函数在上文中，我们已经看到过了。其作用就是：进行内存分配并且完成内存的映射。而<code>binder_alloc_buf</code>函数，正如其名称那样的：完成缓存的分配。</p>
-<p>在驱动中，通过<code>binder_buffer</code>结构体描述缓存。一次Binder事务就会对应一个<code>binder_buffer</code>，<br>进程在mmap时，会设定支持的总缓存大小的上限。而进程每当收到<code>BC_TRANSACTION</code>，就会判断已使用缓存加本次申请的和有没有超过上限。如果没有，就考虑进行内存的分配。</p>
-<p>进程的空闲缓存记录在<code>binder_proc</code>的<code>free_buffers</code>中，这是一个以红黑树形式存储的结构。每次尝试分配缓存的时候，会从这里面按大小顺序进行查找，找到最接近需要的一块缓存。找到之后，还要对binder_proc的字段进行更新。</p>
-<p><code>BC_FREE_BUFFER</code>命令是通知驱动进行内存的释放，<code>binder_free_buf</code>函数是真正实现的逻辑，这个函数与<code>binder_alloc_buf</code>是刚好对应的。在这个函数中，所做的事情包括：</p>
-<ul>
-<li>重新计算进程的空闲缓存大小</li>
-<li>通过<code>binder_update_page_range</code>释放内存</li>
-<li>更新<code>binder_proc</code>的<code>buffers</code>，<code>free_buffers</code>，<code>allocated_buffers</code>字段</li>
-</ul>
-<h4 id="4-通讯过程"><a href="#4-通讯过程" class="headerlink" title="4 通讯过程"></a>4 通讯过程</h4><p><code>BINDER_COMMAND_PROTOCOL</code>：binder请求码，以”BC_“开头，简称BC码，用于从IPC层传递到Binder Driver层；<br><code>BINDER_RETURN_PROTOCOL</code> ：binder响应码，以”BR_“开头，简称BR码，用于从Binder Driver层传递到IPC层；</p>
-<p>一次完整的binder通讯流程：<br><img src="/media/15280207692595.jpg" alt=""><strong>Binder IPC通信至少是两个进程的交互</strong>：</p>
-<ul>
-<li>client进程执行<code>binder_thread_write</code>，<code>thread_write</code>根据<code>BC_XXX</code>命令，生成相应的<code>binder_work</code>；</li>
-<li>server进程执行<code>binder_thread_read</code>，<code>thread_read</code>根据<code>binder_work.type</code>类型，生成<code>BR_XXX</code>，发送到用户空间处理。<br><img src="/media/15280214808773.jpg" alt=""></li>
-</ul>
-<p><code>binder_work.type</code> ：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BINDER_WORK_TRANSACTION <span class="comment">//最常见类型</span></span><br><span class="line">BINDER_WORK_TRANSACTION_COMPLETE</span><br><span class="line">BINDER_WORK_NODE</span><br><span class="line">BINDER_WORK_DEAD_BINDER</span><br><span class="line">BINDER_WORK_DEAD_BINDER_AND_CLEAR</span><br><span class="line">BINDER_WORK_CLEAR_DEATH_NOTIFICATION</span><br></pre></td></tr></table></figure></p>
-<p>可以知道，上述通信流程涉及到三种状态码的转换：<br><code>BR_CODE</code> <code>BC_CODE</code>  <code>BW_CODE</code>,<br>他们之间的转换图如下：</p>
-<p><img src="/media/15280221155795.jpg" alt=""></p>
-<p><img src="/media/15280221222039.jpg" alt=""></p>
-<p>图解：(以<code>BC_TRANSACTION</code>为例)</p>
-<p>发起端进程：<code>binder_transaction</code>()过程将<code>BC_TRANSACTION</code>转换为<code>BW_TRANSACTION</code>；<br>接收端进程：<code>binder_thread_read</code>()过程，将<code>BW_TRANSACTION</code>转换为<code>BR_TRANSACTION</code>;<br>接收端进程：<code>IPC.execute()</code>过程，处理<code>BR_TRANSACTION</code>命令</p>
-<p>以gityuan的一张图来总结binder通信的全过程</p>
-<p><img src="/media/15280227943358.jpg" alt=""></p>
-<h4 id="5-通讯过程中-binder实体的传递"><a href="#5-通讯过程中-binder实体的传递" class="headerlink" title="5 通讯过程中 binder实体的传递"></a>5 通讯过程中 binder实体的传递</h4><p>Binder机制淡化了进程的边界，使得跨越进程也能够调用到指定服务的方法，其原因是因为Binder机制在底层处理了在进程间的“对象”传递。</p>
-<p>在Binder驱动中，并不是真的将对象在进程间来回序列化，而是通过特定的标识来进行对象的传递。Binder驱动中，通过<code>flat_binder_object</code>来描述需要跨越进程传递的对象。其定义如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">flat_binder_object</span> &#123;</span></span><br><span class="line">	__u32		type;</span><br><span class="line">	__u32		flags;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">union</span> &#123;</span><br><span class="line">		<span class="keyword">binder_uintptr_t</span>	binder; <span class="comment">/* local object */</span></span><br><span class="line">		__u32			handle;	<span class="comment">/* remote object */</span></span><br><span class="line">	&#125;;</span><br><span class="line">	<span class="keyword">binder_uintptr_t</span>	cookie;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>这其中，type有如下5种类型。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> &#123;</span><br><span class="line">	BINDER_TYPE_BINDER	= B_PACK_CHARS(<span class="string">'s'</span>, <span class="string">'b'</span>, <span class="string">'*'</span>, B_TYPE_LARGE),</span><br><span class="line">	BINDER_TYPE_WEAK_BINDER	= B_PACK_CHARS(<span class="string">'w'</span>, <span class="string">'b'</span>, <span class="string">'*'</span>, B_TYPE_LARGE),</span><br><span class="line">	BINDER_TYPE_HANDLE	= B_PACK_CHARS(<span class="string">'s'</span>, <span class="string">'h'</span>, <span class="string">'*'</span>, B_TYPE_LARGE),</span><br><span class="line">	BINDER_TYPE_WEAK_HANDLE	= B_PACK_CHARS(<span class="string">'w'</span>, <span class="string">'h'</span>, <span class="string">'*'</span>, B_TYPE_LARGE),</span><br><span class="line">	BINDER_TYPE_FD		= B_PACK_CHARS(<span class="string">'f'</span>, <span class="string">'d'</span>, <span class="string">'*'</span>, B_TYPE_LARGE),</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>当对象传递到Binder驱动中的时候，由驱动来进行翻译和解释，然后传递到接收的进程。</p>
-<p>例如当Server把Binder实体传递给Client时，在发送数据流中，<code>flat_binder_object</code>中的type是<code>BINDER_TYPE_BINDER</code>，同时binder字段指向Server进程用户空间地址。但这个地址对于Client进程是没有意义的（Linux中，每个进程的地址空间是互相隔离的），驱动必须对数据流中的<code>flat_binder_object</code>做相应的翻译：将type该成<code>BINDER_TYPE_HANDLE</code>；为这个Binder在接收进程中创建位于内核中的引用并将引用号填入handle中。对于发生数据流中引用类型的Binder也要做同样转换。经过处理后接收进程从数据流中取得的Binder引用才是有效的，才可以将其填入数据包<code>binder_transaction_data</code>的<code>target.handle</code>域，向Binder实体发送请求。<br><img src="/media/15299006076637.jpg" alt=""><br>图 binder对象索引和映射关系<br><code>flat_binder_object</code>就是进程间传递的<code>Binder</code>对象，每一个<code>flat_binder_object</code>对象内核都有一个唯一的<code>binder_node</code>对象，这个对象挂接在<code>binder_proc</code>的一颗二叉树上。对于一个<code>binder_node</code>对象，内核也会有一个唯一的<code>binder_ref</code>对象，可以这么理解，<code>binder_ref</code>的<code>desc</code>唯一的映射到<code>binder_node</code>的<code>ptr</code>和<code>cookie</code>上，同时也唯一的映射到了<code>flat_binder_object</code>的<code>handler</code>上。而<code>binder_ref</code>又按照<code>node</code>和<code>desc</code>两种方式映射到<code>binder_proc</code>对象上，也就是可以通过<code>binder_node</code>对象或者<code>desc</code>两种方式在<code>binder_proc</code>上查找到<code>binder_ref</code>或<code>binder_node</code>。所以，对于<code>flat_binder_object</code>对象来说，它的<code>binder+cookie</code>和<code>handler</code>指向了同一个<code>binder_node</code>对象上，即同一个<code>binder</code>对象。</p>
-<p>由于每个请求和请求的返回都会经历内核的翻译，因此这个过程从进程的角度来看是完全透明的。进程完全不用感知这个过程，就好像对象真的在进程间来回传递一样。</p>
-<h4 id="6-驱动层的线程管理"><a href="#6-驱动层的线程管理" class="headerlink" title="6 驱动层的线程管理"></a>6 驱动层的线程管理</h4><p>上文多次提到，Binder本身是C/S架构。由Server提供服务，被Client使用。既然是C/S架构，就可能存在多个Client会同时访问Server的情况。 在这种情况下，如果Server只有一个线程处理响应，就会导致客户端的请求可能需要排队而导致响应过慢的现象发生。解决这个问题的方法就是引入多线程。</p>
-<p>Binder机制的设计从最底层–驱动层，就考虑到了对于多线程的支持。具体内容如下：</p>
-<ul>
-<li>使用Binder的进程在启动之后，通过<code>BINDER_SET_MAX_THREADS</code>告知驱动其支持的最大线程数量</li>
-<li>驱动会对线程进行管理。在<code>binder_proc</code>结构中，这些字段记录了进程中线程的信息：<code>max_threads，requested_threads，requested_threads_started，ready_threads</code></li>
-<li><code>binder_thread</code>结构对应了Binder进程中的线程</li>
-<li>驱动通过<code>BR_SPAWN_LOOPER</code>命令告知进程需要创建一个新的线程</li>
-<li>进程通过<code>BC_ENTER_LOOPER</code>命令告知驱动其主线程已经ready</li>
-<li>进程通过<code>BC_REGISTER_LOOPER</code>命令告知驱动其子线程（非主线程）已经ready</li>
-<li>进程通过<code>BC_EXIT_LOOPER</code>命令告知驱动其线程将要退出</li>
-<li>在线程退出之后，通过<code>BINDER_THREAD_EXIT</code>告知Binder驱动。驱动将对应的<code>binder_thread</code>对象销毁</li>
-</ul>
-
-        
-        </div>
-        <footer class="article-footer">
-            <div class="share-container">
-
-
-
-</div>
-
-    <a data-url="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/" data-id="cjqvzxbrl001tuifyasrdz23o" class="article-share-link"><i class="fa fa-share"></i>Share</a>
-<script>
-    (function ($) {
-        // Prevent duplicate binding
-        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
-            __SHARE_BUTTON_BINDED__ = true;
-        } else {
-            return;
-        }
-        $('body').on('click', function() {
-            $('.article-share-box.on').removeClass('on');
-        }).on('click', '.article-share-link', function(e) {
-            e.stopPropagation();
-
-            var $this = $(this),
-                url = $this.attr('data-url'),
-                encodedUrl = encodeURIComponent(url),
-                id = 'article-share-box-' + $this.attr('data-id'),
-                offset = $this.offset(),
-                box;
-
-            if ($('#' + id).length) {
-                box = $('#' + id);
-
-                if (box.hasClass('on')){
-                    box.removeClass('on');
-                    return;
-                }
-            } else {
-                var html = [
-                    '<div id="' + id + '" class="article-share-box">',
-                        '<input class="article-share-input" value="' + url + '">',
-                        '<div class="article-share-links">',
-                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
-                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
-                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
-                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
-                        '</div>',
-                    '</div>'
-                ].join('');
-
-              box = $(html);
-
-              $('body').append(box);
-            }
-
-            $('.article-share-box.on').hide();
-
-            box.css({
-                top: offset.top + 25,
-                left: offset.left
-            }).addClass('on');
-
-        }).on('click', '.article-share-box', function (e) {
-            e.stopPropagation();
-        }).on('click', '.article-share-box-input', function () {
-            $(this).select();
-        }).on('click', '.article-share-box-link', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
-        });
-    })(jQuery);
-</script>
-
-            
-    
-        <a href="http://wenyiqingnian.xyz/2018/06/02/从驱动角度理解binder/#comments" class="article-comment-link">Comments</a>
-    
-
-        </footer>
-    </div>
-    
-</article>
-
-
-
     <article id="post-理解Liunx的FD与Inode" class="article article-type-post" itemscope itemprop="blogPost">
     <div class="article-inner">
         
@@ -942,7 +389,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/06/02/理解Liunx的FD与Inode/" data-id="cjqvzxbrw002ouifygcs0gdan" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/06/02/理解Liunx的FD与Inode/" data-id="cjqw00e01002dvtfyc2pxnuy3" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1230,7 +677,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/30/Docker入门/" data-id="cjqvzxbr0000huify7umvpzd2" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/30/Docker入门/" data-id="cjqw00dza0009vtfyi5ml6b3f" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1452,7 +899,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/29/Binder的设计架构/" data-id="cjqvzxbqn0002uifycpv32mny" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/29/Binder的设计架构/" data-id="cjqw00dz70006vtfyuhdm5lz2" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1729,7 +1176,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjqvzxbqx000duifyqfn11bhv" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/23/JAVA的垃圾回收策略（二）/" data-id="cjqw00dzc000dvtfyh02x1x17" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -1904,7 +1351,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjqvzxbqs0008uify3wpvnjeb" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/17/JAVA的垃圾回收策略/" data-id="cjqw00dz90008vtfyfhcxxh98" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2095,7 +1542,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjqvzxbr80010uifyebq0tvqn" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/14/hexo+icarus/" data-id="cjqw00dzl000vvtfy320i8fol" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2358,7 +1805,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjqvzxbrq0028uifyb55d3adk" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/13/六大设计模式/" data-id="cjqw00dzu001nvtfyzcyhgihi" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2569,7 +2016,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjqvzxbqj0000uifyqh2cffo1" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/05/10/AnimatedVectorDrawable 总结/" data-id="cjqw00dz00000vtfy1t012895" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2888,7 +2335,7 @@
 
 </div>
 
-    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjqvzxbrc0018uify2d5gambb" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+    <a data-url="http://wenyiqingnian.xyz/2018/04/12/Rxjava2操作符/" data-id="cjqw00dzi000pvtfyvxeipqeg" class="article-share-link"><i class="fa fa-share"></i>Share</a>
 <script>
     (function ($) {
         // Prevent duplicate binding
@@ -2966,6 +2413,151 @@
 
 
 
+    <article id="post-Socket未释放导致的句柄泄露" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 itemprop="name">
+            <a class="article-title" href="/2018/03/16/Socket未释放导致的句柄泄露/">socket未释放导致句柄泄露</a>
+        </h1>
+    
+
+                
+                    <div class="article-meta">
+                        
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2018/03/16/Socket未释放导致的句柄泄露/">
+            <time datetime="2018-03-16T11:40:50.000Z" itemprop="datePublished">2018-03-16</time>
+        </a>
+    </div>
+
+
+                        
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/bug记录/">bug记录</a>
+    </div>
+
+                        
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/bugs/">bugs</a>, <a class="tag-link" href="/tags/句柄泄露/">句柄泄露</a>
+    </div>
+
+                    </div>
+                
+            </header>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <p>问题描述<br>客户反馈话机的voipsdk demo在运行起来之后 放置不动，几小时过后，应用进行任何操作都会崩溃。<br>通过logcat 报错信息 发现出现了句柄泄露。通过ls -l /proc/<pid>/fd<br>可以查看到在demo进程下，持有的socket数量会规律性上升。</pid></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lrwx------ system   system            2018-03-08 14:11 60 -&gt; socket:[4027431]</span><br><span class="line">lrwx------ system   system            2018-03-08 14:11 61 -&gt; socket:[4025517]</span><br><span class="line">lrwx------ system   system            2018-03-08 14:11 62 -&gt; socket:[4028038]</span><br><span class="line">lrwx------ system   system            2018-03-08 14:11 63 -&gt; socket:[4028322]</span><br><span class="line">lrwx------ system   system            2018-03-08 14:11 64 -&gt; socket:[4026799]</span><br></pre></td></tr></table></figure>
+<p>大概十秒增加一个，一直到超出安卓规定的数量，此时由于已无可用fd句柄，在进行任何操作都会因无可用句柄直接导致崩溃。</p>
+<p>可以看到新增socket的inode号码之后，通过查找/proc/net/tcp(udp对应/proc/net/udp)文件，其中也列出了相应socket的inode号，通过比对此字段，我在/proc/net/tcp下获得此套接口的其他信息，对应的&lt;本地地址：端口号，远端地址：端口号&gt;对，窗口大小，状态等信息。具体字段含义详见net/ipv4/tcp_ipv4.c 中的 tcp4_seq_show 函数。cat /proc/net/tcp 如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">root@TOS_IP:/proc/net # cat tcp6</span><br><span class="line">  sl  local_address                         remote_address                        st tx_queue rx_queue tr tm-&gt;when retrnsmt   uid  timeout inode</span><br><span class="line">   0: 0000000000000000FFFF00007665A8C0:D483 0000000000000000FFFF00009F173379:0050 08 00000000:00000001 00:00000000 00000000 10077        0 3660979 1 00000000 25 4 30 10 -1</span><br><span class="line">   1: 0000000000000000FFFF00007665A8C0:E595 0000000000000000FFFF0000DCD5B276:0050 08 00000000:00000001 00:00000000 00000000 10077        0 3661419 1 00000000 24 4 28 10 -1</span><br><span class="line">   2: 0000000000000000FFFF00007665A8C0:81EC 0000000000000000FFFF00009F173379:0050 08 00000000:00000001 00:00000000 00000000  1000        0 4019721 1 00000000 23 4 30 10 -1</span><br><span class="line">   3: 0000000000000000FFFF00007665A8C0:B885 0000000000000000FFFF0000F28D0D6F:0050 08 00000000:00000001 00:00000000 00000000  1000        0 3659952 1 00000000 26 4 30 10 -1</span><br><span class="line">   4: 0000000000000000FFFF00007665A8C0:8AD0 0000000000000000FFFF00009F173379:0050 08 00000000:00000001 00:00000000 00000000  1000        0 4018811 1 00000000 24 4 30 10 -1</span><br><span class="line">   5: 0000000000000000FFFF00007665A8C0:E83C 0000000000000000FFFF00009F173379:0050 08 00000000:00000001 00:00000000 00000000  1000        0 4018828 1 00000000 23 4 30 10 -1</span><br></pre></td></tr></table></figure>
+<p>将本端16进制端口号转化为10进制可以看到<br>是一个与8080端口在通信的socket。</p>
+<p>目前初步猜测是端口争夺导致demo没有获取到端口，就会隔段时间重试去申请该端口。</p>
+<ol>
+<li>首先去java端排除，全局搜索发现并没有找到对应的8080端口申请情况</li>
+<li>那就只有可能是linphone库里或者webrtc库里做了8080相关的操作了。</li>
+<li>请linphone端的李工排查，发现在一段前离职同事的代码里，有一段申请8080端口的相关操作。查看了一下，发现和猜测的一致，因为要和底层通讯，同事使用了socket并通过8080端口，但是在申请资源后并未释放改socket，当系统自带的拨号服务起来之后，因为系统自带拨号和sdk的demo使用的linphone库是相同的，导致两个进程都在抢占8080，那个进程服务先拿到，另一个进程就拿不到该端口，会隔10s重新发起申请，但是之前创建的socket又没有释放，就会导致句柄泄露。</li>
+</ol>
+<p>我将系统自带的拨号进程彻底杀死，同事运行起demo，然后再将系统拨号运行起来，发现这时候 系统自带拨号也出现了句柄泄露。而demo就没有出现过了。</p>
+<p>应征我之前的猜测。解决这个问题就很简单了，在linphone的代码里将改socket释放。</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/" data-id="cjqw00dzj000tvtfy01o22qzy" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://wenyiqingnian.xyz/2018/03/16/Socket未释放导致的句柄泄露/#comments" class="article-comment-link">Comments</a>
+    
+
+        </footer>
+    </div>
+    
+</article>
+
+
+
     <nav id="page-nav">
         <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
     </nav>
@@ -2979,25 +2571,6 @@
         <h3 class="widget-title">recent</h3>
         <div class="widget">
             <ul id="recent-post" class="">
-                
-                    <li>
-                        
-                        <div class="item-thumbnail">
-                            <a href="/2019/01/14/mac 搭建Go开发环境/" class="thumbnail">
-    
-    
-        <span class="thumbnail-image thumbnail-none"></span>
-    
-</a>
-
-                        </div>
-                        
-                        <div class="item-inner">
-                            <p class="item-category"></p>
-                            <p class="item-title"><a href="/2019/01/14/mac 搭建Go开发环境/" class="title"></a></p>
-                            <p class="item-date"><time datetime="2019-01-14T06:15:42.304Z" itemprop="datePublished">2019-01-14</time></p>
-                        </div>
-                    </li>
                 
                     <li>
                         
@@ -3075,6 +2648,25 @@
                         </div>
                     </li>
                 
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/08/16/一些知识点总结/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/Android/">Android</a></p>
+                            <p class="item-title"><a href="/2018/08/16/一些知识点总结/" class="title">一些知识点总结</a></p>
+                            <p class="item-date"><time datetime="2018-08-16T11:00:50.000Z" itemprop="datePublished">2018-08-16</time></p>
+                        </div>
+                    </li>
+                
             </ul>
         </div>
     </div>
@@ -3093,7 +2685,7 @@
     <div class="widget-wrap">
         <h3 class="widget-title">archives</h3>
         <div class="widget">
-            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">1</span></li></ul>
         </div>
     </div>
 
