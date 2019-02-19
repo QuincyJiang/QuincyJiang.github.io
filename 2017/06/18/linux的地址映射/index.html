@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!-- title -->
+
+
+
+
+<!-- keywords -->
+
+
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" >
+    <meta name="author" content="QuincyJiang">
+    <meta name="renderer" content="webkit">
+    <meta name="copyright" content="QuincyJiang">
+    
+    <meta name="keywords" content="binder,android,江夏秋">
+    
+    <meta name="description" content="">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>linux的地址映射 · 瘟疫青年</title>
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .back-top,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(-45deg, #444 0, #444 80px, #333 80px, #333 160px);
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s infinite;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+</style>
+
+    <link rel="preload" href= "/css/style.css?v=20180824" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="stylesheet" href= "/css/mobile.css?v=20180824" media="(max-width: 980px)">
+    
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    
+    <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+/* This file is meant as a standalone workflow for
+- testing support for link[rel=preload]
+- enabling async CSS loading in browsers that do not support rel=preload
+- applying rel preload css once loaded, whether supported or not.
+*/ -->
+<script>
+(function( w ){
+	"use strict";
+	// rel=preload support test
+	if( !w.loadCSS ){
+		w.loadCSS = function(){};
+	}
+	// define on the loadCSS obj
+	var rp = loadCSS.relpreload = {};
+	// rel=preload feature support test
+	// runs once and returns a function for compat purposes
+	rp.support = (function(){
+		var ret;
+		try {
+			ret = w.document.createElement( "link" ).relList.supports( "preload" );
+		} catch (e) {
+			ret = false;
+		}
+		return function(){
+			return ret;
+		};
+	})();
+
+	// if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+	// then change that media back to its intended value on load
+	rp.bindMediaToggle = function( link ){
+		// remember existing media attr for ultimate state, or default to 'all'
+		var finalMedia = link.media || "all";
+
+		function enableStylesheet(){
+			link.media = finalMedia;
+		}
+
+		// bind load handlers to enable media
+		if( link.addEventListener ){
+			link.addEventListener( "load", enableStylesheet );
+		} else if( link.attachEvent ){
+			link.attachEvent( "onload", enableStylesheet );
+		}
+
+		// Set rel and non-applicable media type to start an async request
+		// note: timeout allows this to happen async to let rendering continue in IE
+		setTimeout(function(){
+			link.rel = "stylesheet";
+			link.media = "only x";
+		});
+		// also enable media after 3 seconds,
+		// which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+		setTimeout( enableStylesheet, 3000 );
+	};
+
+	// loop through link elements in DOM
+	rp.poly = function(){
+		// double check this to prevent external calls from running
+		if( rp.support() ){
+			return;
+		}
+		var links = w.document.getElementsByTagName( "link" );
+		for( var i = 0; i < links.length; i++ ){
+			var link = links[ i ];
+			// qualify links to those with rel=preload and as=style attrs
+			if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+				// prevent rerunning on link
+				link.setAttribute( "data-loadcss", true );
+				// bind listeners to toggle media back
+				rp.bindMediaToggle( link );
+			}
+		}
+	};
+
+	// if unsupported, run the polyfill
+	if( !rp.support() ){
+		// run once at least
+		rp.poly();
+
+		// rerun poly on an interval until onload
+		var run = w.setInterval( rp.poly, 500 );
+		if( w.addEventListener ){
+			w.addEventListener( "load", function(){
+				rp.poly();
+				w.clearInterval( run );
+			} );
+		} else if( w.attachEvent ){
+			w.attachEvent( "onload", function(){
+				rp.poly();
+				w.clearInterval( run );
+			} );
+		}
+	}
+
+
+	// commonjs
+	if( typeof exports !== "undefined" ){
+		exports.loadCSS = loadCSS;
+	}
+	else {
+		w.loadCSS = loadCSS;
+	}
+}( typeof global !== "undefined" ? global : this ) );
+</script>
+
+    <link rel="icon" href= "/images/logo.png" />
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js" as="script" />
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" as="script" />
+    <link rel="preload" href="/scripts/main.js" as="script" />
+    <link rel="preload" as="font" href="/font/Oswald-Regular.ttf" crossorigin>
+    <link rel="preload" as="font" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" crossorigin>
+    
+    <!-- fancybox -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script>
+    <!-- 百度统计  -->
+    
+    <!-- 谷歌统计  -->
+    
+</head>
+
+    
+        <body class="post-body">
+    
+    
+<header class="header">
+
+    <div class="read-progress"></div>
+    <div class="header-sidebar-menu">&#xe775;</div>
+    <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >瘟疫青年</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">linux的地址映射</a>
+            </div>
+    </div>
+    
+    <a class="home-link" href=/>瘟疫青年</a>
+</header>
+    <div class="wrapper">
+        <div class="site-intro" style="
+
+
+
+
+
+
+
+height:50vh;
+">
+    
+    <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
+            
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+            
+            linux的地址映射
+            <!-- 404 -->
+            
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            
+            
+            <!-- 404 -->
+            
+        </p>
+        <!-- 文章页meta -->
+        
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                
+                    <div class= post-intro-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "linux">linux</a>
+    
+</div>
+                
+                
+                    <div class="post-intro-read">
+                        <span>Word count: <span class="post-count word-count">2.4k</span>Reading time: <span class="post-count reading-time">8 min</span></span>
+                    </div>
+                
+                <div class="post-intro-meta">
+                    <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                    <span class="post-intro-time">2017/06/18</span>
+                    
+                    <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                        <span class="iconfont-archer">&#xe602;</span>
+                        <span id="busuanzi_value_page_pv"></span>
+                    </span>
+                    
+                    <span class="shareWrapper">
+                        <span class="iconfont-archer shareIcon">&#xe71d;</span>
+                        <span class="shareText">Share</span>
+                        <ul class="shareList">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        
+    </div>
+</div>
+        <script>
+ 
+  // get user agent
+  var browser = {
+    versions: function () {
+      var u = window.navigator.userAgent;
+      return {
+        userAgent: u,
+        trident: u.indexOf('Trident') > -1, //IE内核
+        presto: u.indexOf('Presto') > -1, //opera内核
+        webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+        mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+        ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+        iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+        iPad: u.indexOf('iPad') > -1, //是否为iPad
+        webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+        weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+        uc: u.indexOf('UCBrowser') > -1 //是否为android下的UC浏览器
+      };
+    }()
+  }
+  console.log("userAgent:" + browser.versions.userAgent);
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded');
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document.getElementsByClassName('intro-title')[0].classList.add('intro-fade-in');
+      document.getElementsByClassName('intro-subtitle')[0].classList.add('intro-fade-in');
+      var postIntros = document.getElementsByClassName('post-intros')[0]
+      if (postIntros) {
+        postIntros.classList.add('post-fade-in');
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb(){
+    if (browser.versions.uc) {
+      console.log("UCBrowser");
+      fontLoaded();
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular']
+        },
+        loading: function () {  //所有字体开始加载
+          // console.log('loading');
+        },
+        active: function () {  //所有字体已渲染
+          fontLoaded();
+        },
+        inactive: function () { //字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout');
+          fontLoaded();
+        },
+        timeout: 5000 // Set the timeout to two seconds
+      });
+    }
+  }
+
+  function asyncErr(){
+    console.warn('script load from CDN failed, will load local script')
+  }
+
+  // load webfont-loader async, and add callback function
+  function async(u, cb, err) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (cb) { o.addEventListener('load', function (e) { cb(null, e); }, false); }
+    if (err) { o.addEventListener('error', function (e) { err(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+
+  var asyncLoadWithFallBack = function(arr, success, reject) {
+      var currReject = function(){
+        reject()
+        arr.shift()
+        if(arr.length)
+          async(arr[0], success, currReject)
+        }
+
+      async(arr[0], success, currReject)
+  }
+
+  asyncLoadWithFallBack([
+    "https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js", 
+    "https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js",
+    "/lib/webfontloader.min.js"
+  ], asyncCb, asyncErr)
+</script>        
+        <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
+        <div class="container container-unloaded">
+            <main class="main post-page">
+    <article class="article-entry">
+        <h1 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h1><h2 id="1-物理内存"><a href="#1-物理内存" class="headerlink" title="1 物理内存"></a>1 物理内存</h2><p>Linux 内存的最小单位为页，一页通常是4K，初始化时，linux 会为每个物理内存建立一个page的管理结构，操作物理内存时 实际上就是操作page。</p>
+<h2 id="2-进程内存"><a href="#2-进程内存" class="headerlink" title="2 进程内存"></a>2 进程内存</h2><p>Linux 进程是通过<code>vma</code>进行管理的，每一个进程都有一个<code>task_struct</code> 结构体进行维护，其中<code>mm_struct</code>结构体管理进程内的所有内存。<br><code>mm_struct</code> 的结构如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">mm_struct</span> &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">vm_area_struct</span> * <span class="title">mmap</span>;</span> <span class="comment">/* list of VMAs */</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> map_count; <span class="comment">/* number of VMAs */</span></span><br></pre></td></tr></table></figure>
+<p>可以看到 <code>mm_struct</code> 中有个<code>vma</code>链表，其中每个<code>vma</code>节点对应一段连续内存，（在进程的虚拟地址空间是连续的，物理空间中不一定）。当使用<code>malloc</code> 申请内存时，内核会给进程增加<code>vma</code>节点。</p>
+<p>对于32位的linux 操作系统，为每一个进程分配的寻址空间都是4g，linux将这4g的虚拟内存分为两部分</p>
+<ol>
+<li>用户空间 0-3g</li>
+<li>内核空间 3-4g</li>
+</ol>
+<h3 id="用户空间和内核空间"><a href="#用户空间和内核空间" class="headerlink" title="用户空间和内核空间"></a>用户空间和内核空间</h3><p>linux将 进程虚拟地址中的0-3g空间 用作用户空间.</p>
+<h4 id="为什么会有用户控件和内核空间的划分"><a href="#为什么会有用户控件和内核空间的划分" class="headerlink" title="为什么会有用户控件和内核空间的划分"></a>为什么会有用户控件和内核空间的划分</h4><p>是为了将用户空间与内核空间区分开，为了访问安全<br>Linux使用两级保护机制：0级供内核使用，3级供用户程序使用。每个进程有各自的私有用户空间（0～3G），这个空间对系统中的其他进程是不可见的。如果要访问内核空间，会有优先级的限制从而在一定程度上保护了内核空间的安全性。</p>
+<h4 id="为什么会按照内核空间1g，用户空间3g来划分。"><a href="#为什么会按照内核空间1g，用户空间3g来划分。" class="headerlink" title="为什么会按照内核空间1g，用户空间3g来划分。"></a>为什么会按照内核空间1g，用户空间3g来划分。</h4><p>这个比例其实并不是固定的，它可以是一个人为设定值，可以通过重新编译linux内核来实现更改。</p>
+<h4 id="进程只分配了4g虚拟内存，如果物理内存大于4g，如何做到访问其余的内存呢"><a href="#进程只分配了4g虚拟内存，如果物理内存大于4g，如何做到访问其余的内存呢" class="headerlink" title="进程只分配了4g虚拟内存，如果物理内存大于4g，如何做到访问其余的内存呢"></a>进程只分配了4g虚拟内存，如果物理内存大于4g，如何做到访问其余的内存呢</h4><p>这里涉及到高端地址的概念了</p>
+<p>当内核模块代码或线程访问内存时，代码中的内存地址都为逻辑地址，而对应到真正的物理内存地址，需要地址一对一的映射，如果将内核空间的1g内存全部做线性映射【注1】，那么当物理内存为8g的时候，剩下的4g内存将无法被访问到。为了解决这个问题，linux将内核空间分为了3部分</p>
+<ul>
+<li><p><code>ZONE_DMA</code>        内存开始的16MB</p>
+</li>
+<li><p><code>ZONE_NORMAL</code>       16MB~896MB</p>
+</li>
+<li><p><code>ZONE_HIGHMEM</code>       896MB ~ 结束<br><img src="/media/15297335067219.jpg" alt=""></p>
+</li>
+</ul>
+<p>可以看到，低dma 和 normal  内存区与物理内存做了线性映射。<br>但是高端内存（最上面的128m）并未与物理内存进行线性映射，事实上，linux正是借助这小块高端内存 才做到了用128m 访问剩余4g物理内存的。</p>
+<p>当内核想访问高于896MB物理地址内存时，从<code>0xF8000000 ~ 0xFFFFFFFF</code>地址空间范围内找一段相应大小空闲的逻辑地址空间，<strong>借用一会</strong>。借用这段逻辑地址空间，建立映射到想访问的那段物理内存（即填充内核PTE页面表），<strong>临时用一会，用完后归还</strong>。这样别人也可以借用这段地址空间访问其他物理内存，实现了使用有限的地址空间，访问所有所有物理内存。如下图。<br><img src="/media/15297337063815.jpg" alt=""></p>
+<p>从上面的描述，我们可以知道高端内存的最基本思想：<strong>借一段地址空间，建立临时地址映射，用完后释放，达到这段地址空间可以循环使用，访问所有物理内存。</strong></p>
+<blockquote>
+<p>注1：线性映射与非线性映射：<br>Linux内核只有1G的空间，通常内核把物理内存与其地址空间做了线性映射，也就是一一映，这样可以提高内存访问速度。<br>当内存超过1G时，线性访问机制就不够用了，只能有1G的内存可以被映射，剩余的内存无法被内核使用。当然无法忍受。<br>为了解决这一问题，linux把内核分为线性区与非线性区两部分。线性区规定最大为896M，剩下的为非线性区。与线性区不同，非线性区不会提前进行内存映射，而是在使用时动态映射。线性区映射的物理内存成为低端内存，剩下的内存被称为高端内存。<br>假设物理内存为2G，则地段的896M为低端内存，通过线性映射给内核使用。其他的1128M内存为高端内存，可以被内核的非线性区使用。由于要使用128M非线性区来管理超过1G的高端内存，所以通常都不会映射，只有使用时才使<code>kmap</code>映射，使用完后要尽快用<code>kunmap</code>释放。<br>对于物理内存为1G的内核，系统不会真的分配896M给线性空间，896M最大限制。下面是一个1.5G物理内存linux系统的真实分配情况，只有721M分配给了低端内存区，如果是1G的linxu系统，分配的就更少了。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MemTotal   1547MB</span><br><span class="line">HighTotal     825MB</span><br><span class="line">LowTotal     721MB</span><br></pre></td></tr></table></figure>
+<p>申请高端内存时，如果高端内存不够了，linux也会去低端内存区申请，反之则不行。</p>
+<h4 id="内核空间被所有进程共享，那么进程里的内核空间都是一样的吗？"><a href="#内核空间被所有进程共享，那么进程里的内核空间都是一样的吗？" class="headerlink" title="内核空间被所有进程共享，那么进程里的内核空间都是一样的吗？"></a>内核空间被所有进程共享，那么进程里的内核空间都是一样的吗？</h4><p>是的，进程里的内核空间都是一样的。<br>Linux启动后，第一个进程是init进程，它的页表与内核页表是一致的，系统中的其他所有进程都是init进程的儿子或后代。Linux中进程创建通过fork()实现，子进程的PGD（进程页目录）与PTE（进程页表项，里面记录了具体的物理地址）是父进程的拷贝此时会把内核进程的页表拷贝到每个进程中。在各个进程的运行过程中，他们的页表可能会发生变化，比如发生缺页异常。如果是进程页表发生改变，则只要改变进程的页表项（0G~3G）就够了，如果是内核页表发生变化，则必须通知到所有进程改变各自维护的一份内核页表（3G~4G）。最简单的方法是每次内核页表改变后，遍历所有进程去改变他们维护的内核页表，显然效率很低。<strong>Linux内核通过page fault机制实现内核页表的一致。</strong><br>内核页表改变时，只改变init进程的内核页表。当进程访问该页时，会发生一个缺页异常，异常处理中通过init进程更新当前进程的内核页表。</p>
+<h4 id="进程的内核空间都是一样的，那为什么要把每个进程的内核空间都拷贝一份，不可以进程的虚拟地址只有进程空间，而所有内核空间单独只维持一份吗？"><a href="#进程的内核空间都是一样的，那为什么要把每个进程的内核空间都拷贝一份，不可以进程的虚拟地址只有进程空间，而所有内核空间单独只维持一份吗？" class="headerlink" title="进程的内核空间都是一样的，那为什么要把每个进程的内核空间都拷贝一份，不可以进程的虚拟地址只有进程空间，而所有内核空间单独只维持一份吗？"></a>进程的内核空间都是一样的，那为什么要把每个进程的内核空间都拷贝一份，不可以进程的虚拟地址只有进程空间，而所有内核空间单独只维持一份吗？</h4><p>目的其实很简单，为了减少内核调用的系统开销。<br>我们常说，切换线程和切换进程相比，进程切换的开销更大，是因为每一个进程都对应着一个进程页表，切换进程会对应页表的切换，线程因为在同一个进程里，很多资源是共享的，切换线程（其实linux里 线程与进程是同一个东西，切换线程也对应页表的切换，只不过页表内容没有变而已）相当于只切换一些上下文。<br>从问题中提出的两个方式来考虑开销问题。</p>
+<ol>
+<li>每个进程使用独立页表 （当前内核的做法）</li>
+<li>所有进程在内核态使用同一页表，但用户态每进程使用独立页表</li>
+</ol>
+<p>考虑两个场景</p>
+<ul>
+<li>场景1：用户态切陷入内核态采用方案1），进程从用户态陷入内核态时（系统调用，中断都可触发），不需要切换页表；采用方案2），用户态陷入内核态时，需要切换页表。并且进入内核态时，根据没有跳板(一段专代码）来完成切换，因为内核地址空间在切换之后根本没有映射。</li>
+<li>场景2：任务切换如果进程跑在用户态，来了中断，陷入内核态，然后任务切换。 方案1）在陷入内核态时有一次页表切换；方案2）在任务切切换有一次页表切换。两者打平手。但通常任务切换之后，新任务也要回到用户态的，那方案1）又会引入一次页切换。在程序的实际运行过程中，程序调用系统调用的次数比任务切换的次数多，所以方案1）远比方案2）有优势。</li>
+</ul>
+<h2 id="地址转换"><a href="#地址转换" class="headerlink" title="地址转换"></a>地址转换</h2><p>一张图解释 用户空间 内核空间  物理地址的转换关系</p>
+<p><img src="/media/15297354836739.jpg" alt=""></p>
+<p>在linux中，物理地址用<code>page</code>结构 表示，物理内存在初始化时已经生成了<code>page</code>结构管理，其他地址空间则需要生成<code>page</code>再进行管理（<code>ioremap</code>）。物理地址可以被映射到内核空间或进程空间，也可以从内核空间或进程用户空间解除物理地址（<code>page</code>）。</p>
+<p>所有转换中，只有<code>mmap</code>可以在进程中使用，其他都是内核函数。即使使用<code>mmap</code>，其内部也是靠内核中使用<code>remap_pfn_range</code>实现的。所有地址空间转换都在内核中实现。</p>
+
+    </article>
+    <!-- license  -->
+    
+        <div class="license-wrapper">
+            <p>Author：<a href="http://wenyiqingnian.xyz">QuincyJiang</a>
+            <p>原文链接：<a href="http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/">http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/</a>
+            <p>发表日期：<a href="http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/">June 18th 2017, 8:30:15 pm</a>
+            <p>更新日期：<a href="http://wenyiqingnian.xyz/2017/06/18/linux的地址映射/">June 24th 2018, 10:47:20 pm</a>
+            <p>版权声明：本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可</p>
+        </div>
+    
+    <!-- paginator  -->
+    <ul class="post-paginator">
+        <li class="next">
+            
+                <div class="nextSlogan">Next Post</div>
+                <a href= "/2017/08/16/webrtc 音频/" title= "webrtc音频总结">
+                    <div class="nextTitle">webrtc音频总结</div>
+                </a>
+            
+        </li>
+        <li class="previous">
+            
+                <div class="prevSlogan">Previous Post</div>
+                <a href= "/2017/05/07/MK语法规范/" title= "MK语法规范">
+                    <div class="prevTitle">MK语法规范</div>
+                </a>
+            
+        </li>
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+    <div id="lv-container" data-id="city" data-uid= MTAyMC8zNjQwMS8xMjkzNg==>
+        <script type="text/javascript">
+            (function (d, s) {
+                var j, e = d.getElementsByTagName(s)[0];
+                if (typeof LivereTower === 'function') { return; }
+                j = d.createElement(s);
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+            })(document, 'script');
+        </script>
+        <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    </div>
+
+<!-- City版安装代码已完成 -->
+    
+    
+    <!-- partial('_partial/comment/changyan') -->
+    <!--PC版-->
+
+
+    
+    
+
+    <!-- 评论 -->
+</main>
+            <!-- profile -->
+            
+        </div>
+        <footer class="footer footer-unloaded">
+    <!-- social  -->
+    
+    <div class="social">
+        
+    
+        
+            
+                <a href="mailto:1083873272@qq.com" class="iconfont-archer email" title=email ></a>
+            
+        
+    
+        
+            
+                <a href="//github.com/QuincyJiang" class="iconfont-archer github" target="_blank" title=github></a>
+            
+        
+    
+        
+            
+                <span class="iconfont-archer wechat" title=wechat>
+                  
+                  <img class="profile-qr" src="/assets/wechat.jpeg" />
+                </span>
+            
+        
+    
+        
+    
+        
+    
+        
+            
+                <a href="https://weibo.com/2425393311/" class="iconfont-archer weibo" target="_blank" title=weibo></a>
+            
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            
+                <a href="http://aquencyua11.lofter.com/" class="iconfont-archer instagram" target="_blank" title=instagram></a>
+            
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+    </div>
+    
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- 不蒜子  -->
+    
+    <div class="busuanzi-container">
+    
+     
+    <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span> :)</span>
+    
+    </div>
+    
+</footer>
+    </div>
+    <!-- toc -->
+    
+    <div class="toc-wrapper" style=
+    
+
+
+
+
+
+
+
+top:50vh;
+
+    >
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#内存管理"><span class="toc-number">1.</span> <span class="toc-text">内存管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-物理内存"><span class="toc-number">1.1.</span> <span class="toc-text">1 物理内存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-进程内存"><span class="toc-number">1.2.</span> <span class="toc-text">2 进程内存</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#用户空间和内核空间"><span class="toc-number">1.2.1.</span> <span class="toc-text">用户空间和内核空间</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#为什么会有用户控件和内核空间的划分"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">为什么会有用户控件和内核空间的划分</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#为什么会按照内核空间1g，用户空间3g来划分。"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">为什么会按照内核空间1g，用户空间3g来划分。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#进程只分配了4g虚拟内存，如果物理内存大于4g，如何做到访问其余的内存呢"><span class="toc-number">1.2.1.3.</span> <span class="toc-text">进程只分配了4g虚拟内存，如果物理内存大于4g，如何做到访问其余的内存呢</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内核空间被所有进程共享，那么进程里的内核空间都是一样的吗？"><span class="toc-number">1.2.1.4.</span> <span class="toc-text">内核空间被所有进程共享，那么进程里的内核空间都是一样的吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#进程的内核空间都是一样的，那为什么要把每个进程的内核空间都拷贝一份，不可以进程的虚拟地址只有进程空间，而所有内核空间单独只维持一份吗？"><span class="toc-number">1.2.1.5.</span> <span class="toc-text">进程的内核空间都是一样的，那为什么要把每个进程的内核空间都拷贝一份，不可以进程的虚拟地址只有进程空间，而所有内核空间单独只维持一份吗？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#地址转换"><span class="toc-number">1.3.</span> <span class="toc-text">地址转换</span></a></li></ol></li></ol>
+    </div>
+    
+    <div class="back-top iconfont-archer">&#xe639;</div>
+    <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+          <div class="sidebar-panel-archives">
+    <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-and-search">
+        <div class="total-archive">
+        Total : 34
+        </div>
+        <!-- search  -->
+        
+    </div>
+    
+    <div class="post-archive">
+    
+    
+    
+    
+    <div class="archive-year"> 2019 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/14</span><a class="archive-post-title" href= "/2019/01/14/mac 搭建Go开发环境/" >mac 搭建Go开发环境</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2018 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/19</span><a class="archive-post-title" href= "/2018/11/19/深度学习课程笔记 第二周 优化算法/" >深度学习课程笔记 第二周 优化算法</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/15</span><a class="archive-post-title" href= "/2018/11/15/深度学习课程笔记 第一周 深度学习的实践层面/" >深度学习课程笔记 第一周 深度学习的实践层面</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/11</span><a class="archive-post-title" href= "/2018/11/11/机器学习算法的演进/" >机器学习算法的演进</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/21</span><a class="archive-post-title" href= "/2018/08/21/八月份学习计划/" >下个阶段的学习计划整理</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span><a class="archive-post-title" href= "/2018/08/16/一些知识点总结/" >一些知识点总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/24</span><a class="archive-post-title" href= "/2018/06/24/从一次native端的IPC流程理解binder/" >从一次native端的IPC流程理解binder</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/16</span><a class="archive-post-title" href= "/2018/06/16/《现代艺术150年》未影印作品2/" >《现代艺术150年》未影印作品2</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/08</span><a class="archive-post-title" href= "/2018/06/08/深度学习1-反向传播/" >深度学习1-反向传播</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span><a class="archive-post-title" href= "/2018/06/02/《现代艺术150年》未影印作品1/" >《现代艺术150年》未影印作品1</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span><a class="archive-post-title" href= "/2018/06/02/从驱动角度理解binder/" >从驱动角度理解binder</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span><a class="archive-post-title" href= "/2018/06/02/理解Liunx的FD与Inode/" >理解Linux的FD与Inode</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/30</span><a class="archive-post-title" href= "/2018/05/30/Docker入门/" >Docker入门</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/Binder的设计架构/" >Binder的设计架构</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/23</span><a class="archive-post-title" href= "/2018/05/23/JAVA的垃圾回收策略（二）/" >JAVA的垃圾回收策略（二）</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/17</span><a class="archive-post-title" href= "/2018/05/17/JAVA的垃圾回收策略/" >JAVA的垃圾回收策略</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/14</span><a class="archive-post-title" href= "/2018/05/14/hexo+icarus/" >hexo+icarus</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/13</span><a class="archive-post-title" href= "/2018/05/13/六大设计模式/" >六大设计模式</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/10</span><a class="archive-post-title" href= "/2018/05/10/AnimatedVectorDrawable 总结/" >AnimatedVectorDrawable总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/12</span><a class="archive-post-title" href= "/2018/04/12/Rxjava2操作符/" >Rxjava2操作符</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/16</span><a class="archive-post-title" href= "/2018/03/16/Socket未释放导致的句柄泄露/" >socket未释放导致句柄泄露</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/13</span><a class="archive-post-title" href= "/2018/03/13/线程阻塞和中断的四种方式/" >线程阻塞和中断的四种方式</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2017 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/mac搭建PyQt5环境/" >mac搭建Pyqt5环境</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/MQTT相关/" >MQTT相关总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/12</span><a class="archive-post-title" href= "/2017/10/12/view 绘制机制/" >view 绘制机制</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/07</span><a class="archive-post-title" href= "/2017/09/07/Linux 用户空间 内核空间/" >linux用户控件、内和空间</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span><a class="archive-post-title" href= "/2017/08/16/webrtc 音频/" >webrtc音频总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/18</span><a class="archive-post-title" href= "/2017/06/18/linux的地址映射/" >linux的地址映射</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/07</span><a class="archive-post-title" href= "/2017/05/07/MK语法规范/" >MK语法规范</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/11</span><a class="archive-post-title" href= "/2017/04/11/Binder 进程间通讯机制/" >Binder通讯机制</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/05</span><a class="archive-post-title" href= "/2017/04/05/编译系统环境初始化过程/" >编译系统环境初始化过程</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/15</span><a class="archive-post-title" href= "/2017/03/15/添加SE安全策略/" >添加SE安全策略</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2016 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/03</span><a class="archive-post-title" href= "/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/" >fiddler抓android数据包</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/04</span><a class="archive-post-title" href= "/2016/07/04/Linux vi命令使用方法/" >Linux vi用法</a>
+        </li>
+    
+    </div>
+  </div>
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+    
+        <span class="sidebar-tag-name" data-tags="句柄animation"><span class="iconfont-archer">&#xe606;</span>句柄animation</span>
+    
+        <span class="sidebar-tag-name" data-tags="AnimatedVectorDrawable"><span class="iconfont-archer">&#xe606;</span>AnimatedVectorDrawable</span>
+    
+        <span class="sidebar-tag-name" data-tags="android"><span class="iconfont-archer">&#xe606;</span>android</span>
+    
+        <span class="sidebar-tag-name" data-tags="Binder"><span class="iconfont-archer">&#xe606;</span>Binder</span>
+    
+        <span class="sidebar-tag-name" data-tags="docker"><span class="iconfont-archer">&#xe606;</span>docker</span>
+    
+        <span class="sidebar-tag-name" data-tags="容器"><span class="iconfont-archer">&#xe606;</span>容器</span>
+    
+        <span class="sidebar-tag-name" data-tags="java"><span class="iconfont-archer">&#xe606;</span>java</span>
+    
+        <span class="sidebar-tag-name" data-tags="垃圾回收"><span class="iconfont-archer">&#xe606;</span>垃圾回收</span>
+    
+        <span class="sidebar-tag-name" data-tags="linux命令"><span class="iconfont-archer">&#xe606;</span>linux命令</span>
+    
+        <span class="sidebar-tag-name" data-tags="linux"><span class="iconfont-archer">&#xe606;</span>linux</span>
+    
+        <span class="sidebar-tag-name" data-tags="编译"><span class="iconfont-archer">&#xe606;</span>编译</span>
+    
+        <span class="sidebar-tag-name" data-tags="mk"><span class="iconfont-archer">&#xe606;</span>mk</span>
+    
+        <span class="sidebar-tag-name" data-tags="mqtt"><span class="iconfont-archer">&#xe606;</span>mqtt</span>
+    
+        <span class="sidebar-tag-name" data-tags="开源框架"><span class="iconfont-archer">&#xe606;</span>开源框架</span>
+    
+        <span class="sidebar-tag-name" data-tags="rxjava2"><span class="iconfont-archer">&#xe606;</span>rxjava2</span>
+    
+        <span class="sidebar-tag-name" data-tags="句柄泄露"><span class="iconfont-archer">&#xe606;</span>句柄泄露</span>
+    
+        <span class="sidebar-tag-name" data-tags="bugs"><span class="iconfont-archer">&#xe606;</span>bugs</span>
+    
+        <span class="sidebar-tag-name" data-tags="hexo"><span class="iconfont-archer">&#xe606;</span>hexo</span>
+    
+        <span class="sidebar-tag-name" data-tags="后端技术"><span class="iconfont-archer">&#xe606;</span>后端技术</span>
+    
+        <span class="sidebar-tag-name" data-tags="go"><span class="iconfont-archer">&#xe606;</span>go</span>
+    
+        <span class="sidebar-tag-name" data-tags="python"><span class="iconfont-archer">&#xe606;</span>python</span>
+    
+        <span class="sidebar-tag-name" data-tags="qt"><span class="iconfont-archer">&#xe606;</span>qt</span>
+    
+        <span class="sidebar-tag-name" data-tags="webrtc"><span class="iconfont-archer">&#xe606;</span>webrtc</span>
+    
+        <span class="sidebar-tag-name" data-tags="现代艺术150年"><span class="iconfont-archer">&#xe606;</span>现代艺术150年</span>
+    
+        <span class="sidebar-tag-name" data-tags="备忘录"><span class="iconfont-archer">&#xe606;</span>备忘录</span>
+    
+        <span class="sidebar-tag-name" data-tags="音视频"><span class="iconfont-archer">&#xe606;</span>音视频</span>
+    
+        <span class="sidebar-tag-name" data-tags="学习计划"><span class="iconfont-archer">&#xe606;</span>学习计划</span>
+    
+        <span class="sidebar-tag-name" data-tags="设计模式"><span class="iconfont-archer">&#xe606;</span>设计模式</span>
+    
+        <span class="sidebar-tag-name" data-tags="抓包"><span class="iconfont-archer">&#xe606;</span>抓包</span>
+    
+        <span class="sidebar-tag-name" data-tags="机器学习"><span class="iconfont-archer">&#xe606;</span>机器学习</span>
+    
+        <span class="sidebar-tag-name" data-tags="Tensorflow"><span class="iconfont-archer">&#xe606;</span>Tensorflow</span>
+    
+        <span class="sidebar-tag-name" data-tags="SEAndroid"><span class="iconfont-archer">&#xe606;</span>SEAndroid</span>
+    
+        <span class="sidebar-tag-name" data-tags="多线程"><span class="iconfont-archer">&#xe606;</span>多线程</span>
+    
+        <span class="sidebar-tag-name" data-tags="aosp"><span class="iconfont-archer">&#xe606;</span>aosp</span>
+    
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+    缺失模块。<br/>
+    1、请确保node版本大于6.2<br/>
+    2、在博客根目录（注意不是archer根目录）执行以下命令：<br/>
+    <span style="color: #f75357; font-size: 1rem; line-height: 2rem;">npm i hexo-generator-json-content --save</span><br/>
+    3、在根目录_config.yml里添加配置：
+    <pre style="color: #787878; font-size: 0.6rem;">
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: true
+    tags: true</pre>
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    
+        <span class="sidebar-category-name" data-categories="CoolUI"><span class="iconfont-archer">&#xe60a;</span>CoolUI</span>
+    
+        <span class="sidebar-category-name" data-categories="Android"><span class="iconfont-archer">&#xe60a;</span>Android</span>
+    
+        <span class="sidebar-category-name" data-categories="容器技术"><span class="iconfont-archer">&#xe60a;</span>容器技术</span>
+    
+        <span class="sidebar-category-name" data-categories="java基础"><span class="iconfont-archer">&#xe60a;</span>java基础</span>
+    
+        <span class="sidebar-category-name" data-categories="Linux"><span class="iconfont-archer">&#xe60a;</span>Linux</span>
+    
+        <span class="sidebar-category-name" data-categories="AOSP"><span class="iconfont-archer">&#xe60a;</span>AOSP</span>
+    
+        <span class="sidebar-category-name" data-categories="MQTT"><span class="iconfont-archer">&#xe60a;</span>MQTT</span>
+    
+        <span class="sidebar-category-name" data-categories="bug记录"><span class="iconfont-archer">&#xe60a;</span>bug记录</span>
+    
+        <span class="sidebar-category-name" data-categories="备忘录"><span class="iconfont-archer">&#xe60a;</span>备忘录</span>
+    
+        <span class="sidebar-category-name" data-categories="后端技术"><span class="iconfont-archer">&#xe60a;</span>后端技术</span>
+    
+        <span class="sidebar-category-name" data-categories="python"><span class="iconfont-archer">&#xe60a;</span>python</span>
+    
+        <span class="sidebar-category-name" data-categories="webrtc"><span class="iconfont-archer">&#xe60a;</span>webrtc</span>
+    
+        <span class="sidebar-category-name" data-categories="学习计划"><span class="iconfont-archer">&#xe60a;</span>学习计划</span>
+    
+        <span class="sidebar-category-name" data-categories="机器学习"><span class="iconfont-archer">&#xe60a;</span>机器学习</span>
+    
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+    </div>
+</div> 
+    <script>
+    var siteMeta = {
+        root: "/",
+        author: "QuincyJiang"
+    }
+</script>
+    <!-- CDN failover -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof window.$ === 'undefined')
+        {
+            console.warn('jquery load from jsdelivr failed, will load local script')
+            document.write('<script src="/lib/jquery.min.js">\x3C/script>')
+        }
+    </script>
+    <script src="/scripts/main.js"></script>
+    <!-- algolia -->
+    
+    <!-- busuanzi  -->
+    
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- CNZZ  -->
+    
+    </div>
+    <!-- async load share.js -->
+    
+        <script src="/scripts/share.js" async></script>    
+     
+    </body>
+</html>
+
+

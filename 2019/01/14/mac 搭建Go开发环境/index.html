@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!-- title -->
+
+
+
+
+<!-- keywords -->
+
+
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" >
+    <meta name="author" content="QuincyJiang">
+    <meta name="renderer" content="webkit">
+    <meta name="copyright" content="QuincyJiang">
+    
+    <meta name="keywords" content="binder,android,江夏秋">
+    
+    <meta name="description" content="">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>mac 搭建Go开发环境 · 瘟疫青年</title>
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .back-top,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(-45deg, #444 0, #444 80px, #333 80px, #333 160px);
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s infinite;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+</style>
+
+    <link rel="preload" href= "/css/style.css?v=20180824" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="stylesheet" href= "/css/mobile.css?v=20180824" media="(max-width: 980px)">
+    
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    
+    <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+/* This file is meant as a standalone workflow for
+- testing support for link[rel=preload]
+- enabling async CSS loading in browsers that do not support rel=preload
+- applying rel preload css once loaded, whether supported or not.
+*/ -->
+<script>
+(function( w ){
+	"use strict";
+	// rel=preload support test
+	if( !w.loadCSS ){
+		w.loadCSS = function(){};
+	}
+	// define on the loadCSS obj
+	var rp = loadCSS.relpreload = {};
+	// rel=preload feature support test
+	// runs once and returns a function for compat purposes
+	rp.support = (function(){
+		var ret;
+		try {
+			ret = w.document.createElement( "link" ).relList.supports( "preload" );
+		} catch (e) {
+			ret = false;
+		}
+		return function(){
+			return ret;
+		};
+	})();
+
+	// if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+	// then change that media back to its intended value on load
+	rp.bindMediaToggle = function( link ){
+		// remember existing media attr for ultimate state, or default to 'all'
+		var finalMedia = link.media || "all";
+
+		function enableStylesheet(){
+			link.media = finalMedia;
+		}
+
+		// bind load handlers to enable media
+		if( link.addEventListener ){
+			link.addEventListener( "load", enableStylesheet );
+		} else if( link.attachEvent ){
+			link.attachEvent( "onload", enableStylesheet );
+		}
+
+		// Set rel and non-applicable media type to start an async request
+		// note: timeout allows this to happen async to let rendering continue in IE
+		setTimeout(function(){
+			link.rel = "stylesheet";
+			link.media = "only x";
+		});
+		// also enable media after 3 seconds,
+		// which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+		setTimeout( enableStylesheet, 3000 );
+	};
+
+	// loop through link elements in DOM
+	rp.poly = function(){
+		// double check this to prevent external calls from running
+		if( rp.support() ){
+			return;
+		}
+		var links = w.document.getElementsByTagName( "link" );
+		for( var i = 0; i < links.length; i++ ){
+			var link = links[ i ];
+			// qualify links to those with rel=preload and as=style attrs
+			if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+				// prevent rerunning on link
+				link.setAttribute( "data-loadcss", true );
+				// bind listeners to toggle media back
+				rp.bindMediaToggle( link );
+			}
+		}
+	};
+
+	// if unsupported, run the polyfill
+	if( !rp.support() ){
+		// run once at least
+		rp.poly();
+
+		// rerun poly on an interval until onload
+		var run = w.setInterval( rp.poly, 500 );
+		if( w.addEventListener ){
+			w.addEventListener( "load", function(){
+				rp.poly();
+				w.clearInterval( run );
+			} );
+		} else if( w.attachEvent ){
+			w.attachEvent( "onload", function(){
+				rp.poly();
+				w.clearInterval( run );
+			} );
+		}
+	}
+
+
+	// commonjs
+	if( typeof exports !== "undefined" ){
+		exports.loadCSS = loadCSS;
+	}
+	else {
+		w.loadCSS = loadCSS;
+	}
+}( typeof global !== "undefined" ? global : this ) );
+</script>
+
+    <link rel="icon" href= "/images/logo.png" />
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js" as="script" />
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" as="script" />
+    <link rel="preload" href="/scripts/main.js" as="script" />
+    <link rel="preload" as="font" href="/font/Oswald-Regular.ttf" crossorigin>
+    <link rel="preload" as="font" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" crossorigin>
+    
+    <!-- fancybox -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script>
+    <!-- 百度统计  -->
+    
+    <!-- 谷歌统计  -->
+    
+</head>
+
+    
+        <body class="post-body">
+    
+    
+<header class="header">
+
+    <div class="read-progress"></div>
+    <div class="header-sidebar-menu">&#xe775;</div>
+    <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >瘟疫青年</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">mac 搭建Go开发环境</a>
+            </div>
+    </div>
+    
+    <a class="home-link" href=/>瘟疫青年</a>
+</header>
+    <div class="wrapper">
+        <div class="site-intro" style="
+
+
+
+
+
+
+
+height:50vh;
+">
+    
+    <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
+            
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+            
+            mac 搭建Go开发环境
+            <!-- 404 -->
+            
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            
+            
+            <!-- 404 -->
+            
+        </p>
+        <!-- 文章页meta -->
+        
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                
+                    <div class= post-intro-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "后端技术">后端技术</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "go">go</a>
+    
+</div>
+                
+                
+                    <div class="post-intro-read">
+                        <span>Word count: <span class="post-count word-count">1.2k</span>Reading time: <span class="post-count reading-time">5 min</span></span>
+                    </div>
+                
+                <div class="post-intro-meta">
+                    <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                    <span class="post-intro-time">2019/01/14</span>
+                    
+                    <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                        <span class="iconfont-archer">&#xe602;</span>
+                        <span id="busuanzi_value_page_pv"></span>
+                    </span>
+                    
+                    <span class="shareWrapper">
+                        <span class="iconfont-archer shareIcon">&#xe71d;</span>
+                        <span class="shareText">Share</span>
+                        <ul class="shareList">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        
+    </div>
+</div>
+        <script>
+ 
+  // get user agent
+  var browser = {
+    versions: function () {
+      var u = window.navigator.userAgent;
+      return {
+        userAgent: u,
+        trident: u.indexOf('Trident') > -1, //IE内核
+        presto: u.indexOf('Presto') > -1, //opera内核
+        webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+        mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+        ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+        iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+        iPad: u.indexOf('iPad') > -1, //是否为iPad
+        webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+        weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+        uc: u.indexOf('UCBrowser') > -1 //是否为android下的UC浏览器
+      };
+    }()
+  }
+  console.log("userAgent:" + browser.versions.userAgent);
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded');
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document.getElementsByClassName('intro-title')[0].classList.add('intro-fade-in');
+      document.getElementsByClassName('intro-subtitle')[0].classList.add('intro-fade-in');
+      var postIntros = document.getElementsByClassName('post-intros')[0]
+      if (postIntros) {
+        postIntros.classList.add('post-fade-in');
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb(){
+    if (browser.versions.uc) {
+      console.log("UCBrowser");
+      fontLoaded();
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular']
+        },
+        loading: function () {  //所有字体开始加载
+          // console.log('loading');
+        },
+        active: function () {  //所有字体已渲染
+          fontLoaded();
+        },
+        inactive: function () { //字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout');
+          fontLoaded();
+        },
+        timeout: 5000 // Set the timeout to two seconds
+      });
+    }
+  }
+
+  function asyncErr(){
+    console.warn('script load from CDN failed, will load local script')
+  }
+
+  // load webfont-loader async, and add callback function
+  function async(u, cb, err) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (cb) { o.addEventListener('load', function (e) { cb(null, e); }, false); }
+    if (err) { o.addEventListener('error', function (e) { err(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+
+  var asyncLoadWithFallBack = function(arr, success, reject) {
+      var currReject = function(){
+        reject()
+        arr.shift()
+        if(arr.length)
+          async(arr[0], success, currReject)
+        }
+
+      async(arr[0], success, currReject)
+  }
+
+  asyncLoadWithFallBack([
+    "https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js", 
+    "https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js",
+    "/lib/webfontloader.min.js"
+  ], asyncCb, asyncErr)
+</script>        
+        <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
+        <div class="container container-unloaded">
+            <main class="main post-page">
+    <article class="article-entry">
+        <p>本文基于macos 10.13.6 ，采用vim+go插件的方式，包括了配置vim语法高亮，自动补全等设置。</p>
+<h1 id="一、安装Golang"><a href="#一、安装Golang" class="headerlink" title="一、安装Golang"></a>一、安装Golang</h1><h3 id="1-官网地址下载pkg文件-双击安装"><a href="#1-官网地址下载pkg文件-双击安装" class="headerlink" title="1.官网地址下载pkg文件 双击安装"></a>1.<a href="https://golang.org/dl/" target="_blank" rel="noopener">官网地址</a>下载pkg文件 双击安装</h3><p>默认安装位置在</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/go/bin</span><br></pre></td></tr></table></figure>
+<h3 id="2-配置环境变量"><a href="#2-配置环境变量" class="headerlink" title="2.配置环境变量"></a>2.配置环境变量</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=$PATH:/usr/local/go/bin</span><br></pre></td></tr></table></figure>
+<h3 id="3-终端输入"><a href="#3-终端输入" class="headerlink" title="3.终端输入"></a>3.终端输入</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">go version</span><br><span class="line">go version go1.11.4 darwin/amd64</span><br></pre></td></tr></table></figure>
+<p>即表示安装成功</p>
+<h1 id="二、配置vim"><a href="#二、配置vim" class="headerlink" title="二、配置vim"></a>二、配置vim</h1><h3 id="1-安装vim-（已安装的可跳过）"><a href="#1-安装vim-（已安装的可跳过）" class="headerlink" title="1.安装vim （已安装的可跳过）"></a>1.安装vim （已安装的可跳过）</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install vim</span><br></pre></td></tr></table></figure>
+<p>mac 默认安装位置在</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/bin/vim</span><br></pre></td></tr></table></figure>
+<p>可以通过</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">which vim</span><br></pre></td></tr></table></figure>
+<p>来查看vim安装路径。</p>
+<h3 id="2-安装vim插件管理工具Vundle"><a href="#2-安装vim插件管理工具Vundle" class="headerlink" title="2.安装vim插件管理工具Vundle"></a>2.安装vim插件管理工具Vundle</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir ~/.vim/bundle</span><br><span class="line"><span class="meta">$</span> git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim</span><br></pre></td></tr></table></figure>
+<h3 id="3-修改vim配置文件"><a href="#3-修改vim配置文件" class="headerlink" title="3.修改vim配置文件"></a>3.修改vim配置文件</h3><p>Vim 的全局配置对所有用户生效。路径一般在</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/etc/vim/vimrc</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/etc/vimrc</span><br></pre></td></tr></table></figure>
+<p>用户个人的配置在</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/.vimrc</span><br></pre></td></tr></table></figure>
+<p>我们修改个人配置即可。如果用户目录不存在，直接</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">touch .vimrc</span><br></pre></td></tr></table></figure>
+<p>新建一个文件，如果存在，使用vim打开</p>
+<h4 id="a-安装vim插件管理工具Vundle"><a href="#a-安装vim插件管理工具Vundle" class="headerlink" title="a. 安装vim插件管理工具Vundle"></a>a. 安装vim插件管理工具Vundle</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> mkdir ~/.vim/bundle</span><br><span class="line"><span class="meta">$</span> git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim</span><br><span class="line"><span class="meta">$</span> vim ~/.vimrc</span><br></pre></td></tr></table></figure>
+<p>文件顶部添加：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">set nocompatible              " be iMproved, required</span><br><span class="line">filetype off                  " required</span><br><span class="line"></span><br><span class="line">" set the runtime path to include Vundle and initialize</span><br><span class="line">set rtp+=~/.vim/bundle/Vundle.vim</span><br><span class="line">call vundle#begin()</span><br><span class="line"></span><br><span class="line">" let Vundle manage Vundle, required</span><br><span class="line">Plugin 'gmarik/Vundle.vim'</span><br><span class="line"></span><br><span class="line">" All of your Plugins must be added before the following line</span><br><span class="line">call vundle#end()            " required</span><br><span class="line">filetype plugin indent on    " required</span><br></pre></td></tr></table></figure>
+<h4 id="b-设置语法高亮及显示行号"><a href="#b-设置语法高亮及显示行号" class="headerlink" title="b. 设置语法高亮及显示行号"></a>b. 设置语法高亮及显示行号</h4><p>文件中增加：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">syntax on</span><br><span class="line">set nu!</span><br></pre></td></tr></table></figure>
+<p>####c. 安装vim-go<br>在<code>vundle#begin</code>和<code>vundle#end</code>间增加如下插件配置</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Plugin 'fatih/vim-go'</span><br></pre></td></tr></table></figure>
+<p>esc进入命令模式，输入 <code>:PluginInstall</code>,成功后提示Done!</p>
+<p>此时vim如下特性被支持：</p>
+<ul>
+<li>语法高亮</li>
+<li>保存时自动format,import</li>
+</ul>
+<h4 id="d-安装go-tools-Binaries"><a href="#d-安装go-tools-Binaries" class="headerlink" title="d. 安装go.tools Binaries"></a>d. 安装go.tools Binaries</h4><p>vim中执行命令<code>:GoInstallBinaries</code>,成功后提示Done!.</p>
+<p>此时vim如下特性被支持：</p>
+<ul>
+<li>新起一行输入fmt.，然后ctrl+x, ctrl+o，Vim 会弹出补齐提示下拉框，不过并非实时跟随的那种补齐，这个补齐是由gocode提供的。</li>
+<li>输入一行代码：time.Sleep(time.Second)，执行:GoImports，Vim会自动导入time包。</li>
+<li>将光标移到Sleep函数上，执行:GoDef或命令模式下敲入gd，Vim会打开$GOROOT/src/time/sleep.go中 的Sleep函数的定义。执行:b 1返回到hellogolang.go。</li>
+<li>执行:GoLint，运行golint在当前Go源文件上。</li>
+<li>执行:GoDoc，打开当前光标对应符号的Go文档。</li>
+<li>执行:GoVet，在当前目录下运行go vet在当前Go源文件上。</li>
+<li>执行:GoRun，编译运行当前main package。</li>
+<li>执行:GoBuild，编译当前包，这取决于你的源文件，GoBuild不产生结果文件。</li>
+<li>执行:GoInstall，安装当前包。</li>
+<li>执行:GoTest，测试你当前路径下地_test.go文件。</li>
+<li>执行:GoCoverage，创建一个测试覆盖结果文件，并打开浏览器展示当前包的情况。</li>
+<li>执行:GoErrCheck，检查当前包种可能的未捕获的errors。</li>
+<li>执行:GoFiles，显示当前包对应的源文件列表。</li>
+<li>执行:GoDeps，显示当前包的依赖包列表。</li>
+<li>执行:GoImplements，显示当前类型实现的interface列表。<br>-安装UltiSnips 执行:GoRename [to]，将当前光标下的符号替换为[to]。</li>
+</ul>
+<h4 id="e-安装YCM-Your-Complete-Me"><a href="#e-安装YCM-Your-Complete-Me" class="headerlink" title="e.安装YCM(Your Complete Me)"></a>e.安装YCM(Your Complete Me)</h4><p>在<code>vundle#begin</code>和<code>vundle#end</code>间增加如下插件配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Plugin 'Valloric/YouCompleteMe'</span><br></pre></td></tr></table></figure>
+<p>在vim内执行<code>:PluginInstall</code>命令，成功后提示Done!.</p>
+<blockquote>
+<p>注： 此步在mac上可能会出现异常，查看4异常处理.</p>
+</blockquote>
+<p> 安装完毕后如下特性被支持：</p>
+<ul>
+<li>逐字的实时补全功能</li>
+</ul>
+<h4 id="f-安装UltiSnips"><a href="#f-安装UltiSnips" class="headerlink" title="f.安装UltiSnips"></a>f.安装UltiSnips</h4><p>在<code>vundle#begin</code>和<code>vundle#end</code>间增加如下插件配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Plugin 'SirVer/ultisnips'</span><br></pre></td></tr></table></figure>
+<p>在vim内执行<code>:PluginInstall</code>命令，成功后提示Done!.</p>
+<h4 id="g-解决YCM与UltiSnips的快捷键冲突："><a href="#g-解决YCM与UltiSnips的快捷键冲突：" class="headerlink" title="g. 解决YCM与UltiSnips的快捷键冲突："></a>g. 解决YCM与UltiSnips的快捷键冲突：</h4><p>文件中增加如下配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">" YCM settings</span><br><span class="line">let g:ycm_key_list_select_completion = ['', '']</span><br><span class="line">let g:ycm_key_list_previous_completion = ['']</span><br><span class="line">let g:ycm_key_invoke_completion = ''</span><br><span class="line">" UltiSnips setting</span><br><span class="line">let g:UltiSnipsExpandTrigger="&lt;Tab&gt;"</span><br><span class="line">let g:UltiSnipsJumpForwardTrigger="&lt;c-j&gt;"</span><br><span class="line">let g:UltiSnipsJumpBackwardTrigger="&lt;c-k&gt;"</span><br></pre></td></tr></table></figure>
+<h4 id="h-安装molokai-theme"><a href="#h-安装molokai-theme" class="headerlink" title="h. 安装molokai theme"></a>h. 安装molokai theme</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> mkdir ~/.vim/colors</span><br><span class="line"><span class="meta">$</span> cd ~/.vim/colors</span><br><span class="line"><span class="meta">$</span> wget https://github.com/fatih/molokai/blob/master/colors/molokai.vim</span><br></pre></td></tr></table></figure>
+<p>打开vimrc文件，增加如下配置</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">colorscheme molokai</span><br></pre></td></tr></table></figure>
+<h4 id="i-自动格式化导包"><a href="#i-自动格式化导包" class="headerlink" title="i. 自动格式化导包"></a>i. 自动格式化导包</h4><p>文件中增加如下配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">" vim-go settings</span><br><span class="line">let g:go_fmt_command = "goimports"</span><br></pre></td></tr></table></figure>
+<h4 id="j-最终vimrc内容"><a href="#j-最终vimrc内容" class="headerlink" title="j.最终vimrc内容"></a>j.最终vimrc内容</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">set nocompatible              " be iMproved, required</span><br><span class="line">filetype off                  " required</span><br><span class="line"></span><br><span class="line">colorscheme molokai</span><br><span class="line"></span><br><span class="line">" set the runtime path to include Vundle and initialize</span><br><span class="line">set rtp+=~/.vim/bundle/Vundle.vim</span><br><span class="line">call vundle#begin()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">" let Vundle manage Vundle, required</span><br><span class="line">Plugin 'gmarik/Vundle.vim'</span><br><span class="line">Plugin 'fatih/vim-go'</span><br><span class="line">Plugin 'Valloric/YouCompleteMe'</span><br><span class="line">Plugin 'SirVer/ultisnips'</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">" All of your Plugins must be added before the following line</span><br><span class="line">call vundle#end()            " required</span><br><span class="line">filetype plugin indent on    " required</span><br><span class="line"></span><br><span class="line">syntax on</span><br><span class="line">set nu!</span><br><span class="line"></span><br><span class="line">" vim-go settings</span><br><span class="line">let g:go_fmt_command = "goimports"</span><br><span class="line">" YCM settings</span><br><span class="line">let g:ycm_key_list_select_completion = ['', '']</span><br><span class="line">let g:ycm_key_list_previous_completion = ['', '']</span><br><span class="line">let g:ycm_key_invoke_completion = ''</span><br><span class="line"></span><br><span class="line">" UltiSnips setting</span><br><span class="line">let g:UltiSnipsExpandTrigger="&lt;Tab&gt;"</span><br><span class="line">let g:UltiSnipsJumpForwardTrigger="&lt;c-j&gt;"</span><br><span class="line">let g:UltiSnipsJumpBackwardTrigger="&lt;c-k&gt;"</span><br></pre></td></tr></table></figure>
+<h3 id="4-异常处理"><a href="#4-异常处理" class="headerlink" title="4.异常处理"></a>4.异常处理</h3><p>在第三部安装YouCompleteMe插件的时候，mac系统可能会爆如下错误</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The ycmd server SHUT DOWN (restart with :YcmRestartServer)</span><br></pre></td></tr></table></figure>
+<p>参考<a href="https://github.com/Valloric/YouCompleteMe/issues/914" target="_blank" rel="noopener">github上这个issue</a><br>解决办法如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">brew install cmake</span><br><span class="line">cd ~/.vim/bundle/youcompleteme</span><br><span class="line">install.py --clang-completer --js-completer</span><br></pre></td></tr></table></figure>
+
+    </article>
+    <!-- license  -->
+    
+        <div class="license-wrapper">
+            <p>Author：<a href="http://wenyiqingnian.xyz">QuincyJiang</a>
+            <p>原文链接：<a href="http://wenyiqingnian.xyz/2019/01/14/mac 搭建Go开发环境/">http://wenyiqingnian.xyz/2019/01/14/mac 搭建Go开发环境/</a>
+            <p>发表日期：<a href="http://wenyiqingnian.xyz/2019/01/14/mac 搭建Go开发环境/">January 14th 2019, 1:18:50 pm</a>
+            <p>更新日期：<a href="http://wenyiqingnian.xyz/2019/01/14/mac 搭建Go开发环境/">January 14th 2019, 3:21:32 pm</a>
+            <p>版权声明：本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可</p>
+        </div>
+    
+    <!-- paginator  -->
+    <ul class="post-paginator">
+        <li class="next">
+            
+        </li>
+        <li class="previous">
+            
+                <div class="prevSlogan">Previous Post</div>
+                <a href= "/2018/11/19/深度学习课程笔记 第二周 优化算法/" title= "深度学习课程笔记 第二周 优化算法">
+                    <div class="prevTitle">深度学习课程笔记 第二周 优化算法</div>
+                </a>
+            
+        </li>
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+    <div id="lv-container" data-id="city" data-uid= MTAyMC8zNjQwMS8xMjkzNg==>
+        <script type="text/javascript">
+            (function (d, s) {
+                var j, e = d.getElementsByTagName(s)[0];
+                if (typeof LivereTower === 'function') { return; }
+                j = d.createElement(s);
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+            })(document, 'script');
+        </script>
+        <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    </div>
+
+<!-- City版安装代码已完成 -->
+    
+    
+    <!-- partial('_partial/comment/changyan') -->
+    <!--PC版-->
+
+
+    
+    
+
+    <!-- 评论 -->
+</main>
+            <!-- profile -->
+            
+        </div>
+        <footer class="footer footer-unloaded">
+    <!-- social  -->
+    
+    <div class="social">
+        
+    
+        
+            
+                <a href="mailto:1083873272@qq.com" class="iconfont-archer email" title=email ></a>
+            
+        
+    
+        
+            
+                <a href="//github.com/QuincyJiang" class="iconfont-archer github" target="_blank" title=github></a>
+            
+        
+    
+        
+            
+                <span class="iconfont-archer wechat" title=wechat>
+                  
+                  <img class="profile-qr" src="/assets/wechat.jpeg" />
+                </span>
+            
+        
+    
+        
+    
+        
+    
+        
+            
+                <a href="https://weibo.com/2425393311/" class="iconfont-archer weibo" target="_blank" title=weibo></a>
+            
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            
+                <a href="http://aquencyua11.lofter.com/" class="iconfont-archer instagram" target="_blank" title=instagram></a>
+            
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+    </div>
+    
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- 不蒜子  -->
+    
+    <div class="busuanzi-container">
+    
+     
+    <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span> :)</span>
+    
+    </div>
+    
+</footer>
+    </div>
+    <!-- toc -->
+    
+    <div class="toc-wrapper" style=
+    
+
+
+
+
+
+
+
+top:50vh;
+
+    >
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一、安装Golang"><span class="toc-number">1.</span> <span class="toc-text">一、安装Golang</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-官网地址下载pkg文件-双击安装"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.官网地址下载pkg文件 双击安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-配置环境变量"><span class="toc-number">1.0.2.</span> <span class="toc-text">2.配置环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-终端输入"><span class="toc-number">1.0.3.</span> <span class="toc-text">3.终端输入</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#二、配置vim"><span class="toc-number">2.</span> <span class="toc-text">二、配置vim</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-安装vim-（已安装的可跳过）"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.安装vim （已安装的可跳过）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-安装vim插件管理工具Vundle"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.安装vim插件管理工具Vundle</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-修改vim配置文件"><span class="toc-number">2.0.3.</span> <span class="toc-text">3.修改vim配置文件</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#a-安装vim插件管理工具Vundle"><span class="toc-number">2.0.3.1.</span> <span class="toc-text">a. 安装vim插件管理工具Vundle</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#b-设置语法高亮及显示行号"><span class="toc-number">2.0.3.2.</span> <span class="toc-text">b. 设置语法高亮及显示行号</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#d-安装go-tools-Binaries"><span class="toc-number">2.0.3.3.</span> <span class="toc-text">d. 安装go.tools Binaries</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#e-安装YCM-Your-Complete-Me"><span class="toc-number">2.0.3.4.</span> <span class="toc-text">e.安装YCM(Your Complete Me)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#f-安装UltiSnips"><span class="toc-number">2.0.3.5.</span> <span class="toc-text">f.安装UltiSnips</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#g-解决YCM与UltiSnips的快捷键冲突："><span class="toc-number">2.0.3.6.</span> <span class="toc-text">g. 解决YCM与UltiSnips的快捷键冲突：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#h-安装molokai-theme"><span class="toc-number">2.0.3.7.</span> <span class="toc-text">h. 安装molokai theme</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#i-自动格式化导包"><span class="toc-number">2.0.3.8.</span> <span class="toc-text">i. 自动格式化导包</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#j-最终vimrc内容"><span class="toc-number">2.0.3.9.</span> <span class="toc-text">j.最终vimrc内容</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-异常处理"><span class="toc-number">2.0.4.</span> <span class="toc-text">4.异常处理</span></a></li></ol></li></ol></li></ol>
+    </div>
+    
+    <div class="back-top iconfont-archer">&#xe639;</div>
+    <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+          <div class="sidebar-panel-archives">
+    <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-and-search">
+        <div class="total-archive">
+        Total : 34
+        </div>
+        <!-- search  -->
+        
+    </div>
+    
+    <div class="post-archive">
+    
+    
+    
+    
+    <div class="archive-year"> 2019 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/14</span><a class="archive-post-title" href= "/2019/01/14/mac 搭建Go开发环境/" >mac 搭建Go开发环境</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2018 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/19</span><a class="archive-post-title" href= "/2018/11/19/深度学习课程笔记 第二周 优化算法/" >深度学习课程笔记 第二周 优化算法</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/15</span><a class="archive-post-title" href= "/2018/11/15/深度学习课程笔记 第一周 深度学习的实践层面/" >深度学习课程笔记 第一周 深度学习的实践层面</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/11</span><a class="archive-post-title" href= "/2018/11/11/机器学习算法的演进/" >机器学习算法的演进</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/21</span><a class="archive-post-title" href= "/2018/08/21/八月份学习计划/" >下个阶段的学习计划整理</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span><a class="archive-post-title" href= "/2018/08/16/一些知识点总结/" >一些知识点总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/24</span><a class="archive-post-title" href= "/2018/06/24/从一次native端的IPC流程理解binder/" >从一次native端的IPC流程理解binder</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/16</span><a class="archive-post-title" href= "/2018/06/16/《现代艺术150年》未影印作品2/" >《现代艺术150年》未影印作品2</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/08</span><a class="archive-post-title" href= "/2018/06/08/深度学习1-反向传播/" >深度学习1-反向传播</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span><a class="archive-post-title" href= "/2018/06/02/《现代艺术150年》未影印作品1/" >《现代艺术150年》未影印作品1</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span><a class="archive-post-title" href= "/2018/06/02/从驱动角度理解binder/" >从驱动角度理解binder</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span><a class="archive-post-title" href= "/2018/06/02/理解Liunx的FD与Inode/" >理解Linux的FD与Inode</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/30</span><a class="archive-post-title" href= "/2018/05/30/Docker入门/" >Docker入门</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/Binder的设计架构/" >Binder的设计架构</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/23</span><a class="archive-post-title" href= "/2018/05/23/JAVA的垃圾回收策略（二）/" >JAVA的垃圾回收策略（二）</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/17</span><a class="archive-post-title" href= "/2018/05/17/JAVA的垃圾回收策略/" >JAVA的垃圾回收策略</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/14</span><a class="archive-post-title" href= "/2018/05/14/hexo+icarus/" >hexo+icarus</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/13</span><a class="archive-post-title" href= "/2018/05/13/六大设计模式/" >六大设计模式</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/10</span><a class="archive-post-title" href= "/2018/05/10/AnimatedVectorDrawable 总结/" >AnimatedVectorDrawable总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/12</span><a class="archive-post-title" href= "/2018/04/12/Rxjava2操作符/" >Rxjava2操作符</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/16</span><a class="archive-post-title" href= "/2018/03/16/Socket未释放导致的句柄泄露/" >socket未释放导致句柄泄露</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/13</span><a class="archive-post-title" href= "/2018/03/13/线程阻塞和中断的四种方式/" >线程阻塞和中断的四种方式</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2017 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/mac搭建PyQt5环境/" >mac搭建Pyqt5环境</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/MQTT相关/" >MQTT相关总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/12</span><a class="archive-post-title" href= "/2017/10/12/view 绘制机制/" >view 绘制机制</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/07</span><a class="archive-post-title" href= "/2017/09/07/Linux 用户空间 内核空间/" >linux用户控件、内和空间</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span><a class="archive-post-title" href= "/2017/08/16/webrtc 音频/" >webrtc音频总结</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/18</span><a class="archive-post-title" href= "/2017/06/18/linux的地址映射/" >linux的地址映射</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/07</span><a class="archive-post-title" href= "/2017/05/07/MK语法规范/" >MK语法规范</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/11</span><a class="archive-post-title" href= "/2017/04/11/Binder 进程间通讯机制/" >Binder通讯机制</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/05</span><a class="archive-post-title" href= "/2017/04/05/编译系统环境初始化过程/" >编译系统环境初始化过程</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/15</span><a class="archive-post-title" href= "/2017/03/15/添加SE安全策略/" >添加SE安全策略</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2016 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/03</span><a class="archive-post-title" href= "/2016/08/03/抓包工具 - Fiddler（如何捕获Android数据包）/" >fiddler抓android数据包</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/04</span><a class="archive-post-title" href= "/2016/07/04/Linux vi命令使用方法/" >Linux vi用法</a>
+        </li>
+    
+    </div>
+  </div>
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+    
+        <span class="sidebar-tag-name" data-tags="句柄animation"><span class="iconfont-archer">&#xe606;</span>句柄animation</span>
+    
+        <span class="sidebar-tag-name" data-tags="AnimatedVectorDrawable"><span class="iconfont-archer">&#xe606;</span>AnimatedVectorDrawable</span>
+    
+        <span class="sidebar-tag-name" data-tags="android"><span class="iconfont-archer">&#xe606;</span>android</span>
+    
+        <span class="sidebar-tag-name" data-tags="Binder"><span class="iconfont-archer">&#xe606;</span>Binder</span>
+    
+        <span class="sidebar-tag-name" data-tags="docker"><span class="iconfont-archer">&#xe606;</span>docker</span>
+    
+        <span class="sidebar-tag-name" data-tags="容器"><span class="iconfont-archer">&#xe606;</span>容器</span>
+    
+        <span class="sidebar-tag-name" data-tags="java"><span class="iconfont-archer">&#xe606;</span>java</span>
+    
+        <span class="sidebar-tag-name" data-tags="垃圾回收"><span class="iconfont-archer">&#xe606;</span>垃圾回收</span>
+    
+        <span class="sidebar-tag-name" data-tags="linux命令"><span class="iconfont-archer">&#xe606;</span>linux命令</span>
+    
+        <span class="sidebar-tag-name" data-tags="linux"><span class="iconfont-archer">&#xe606;</span>linux</span>
+    
+        <span class="sidebar-tag-name" data-tags="编译"><span class="iconfont-archer">&#xe606;</span>编译</span>
+    
+        <span class="sidebar-tag-name" data-tags="mk"><span class="iconfont-archer">&#xe606;</span>mk</span>
+    
+        <span class="sidebar-tag-name" data-tags="mqtt"><span class="iconfont-archer">&#xe606;</span>mqtt</span>
+    
+        <span class="sidebar-tag-name" data-tags="开源框架"><span class="iconfont-archer">&#xe606;</span>开源框架</span>
+    
+        <span class="sidebar-tag-name" data-tags="rxjava2"><span class="iconfont-archer">&#xe606;</span>rxjava2</span>
+    
+        <span class="sidebar-tag-name" data-tags="句柄泄露"><span class="iconfont-archer">&#xe606;</span>句柄泄露</span>
+    
+        <span class="sidebar-tag-name" data-tags="bugs"><span class="iconfont-archer">&#xe606;</span>bugs</span>
+    
+        <span class="sidebar-tag-name" data-tags="hexo"><span class="iconfont-archer">&#xe606;</span>hexo</span>
+    
+        <span class="sidebar-tag-name" data-tags="后端技术"><span class="iconfont-archer">&#xe606;</span>后端技术</span>
+    
+        <span class="sidebar-tag-name" data-tags="go"><span class="iconfont-archer">&#xe606;</span>go</span>
+    
+        <span class="sidebar-tag-name" data-tags="python"><span class="iconfont-archer">&#xe606;</span>python</span>
+    
+        <span class="sidebar-tag-name" data-tags="qt"><span class="iconfont-archer">&#xe606;</span>qt</span>
+    
+        <span class="sidebar-tag-name" data-tags="webrtc"><span class="iconfont-archer">&#xe606;</span>webrtc</span>
+    
+        <span class="sidebar-tag-name" data-tags="现代艺术150年"><span class="iconfont-archer">&#xe606;</span>现代艺术150年</span>
+    
+        <span class="sidebar-tag-name" data-tags="备忘录"><span class="iconfont-archer">&#xe606;</span>备忘录</span>
+    
+        <span class="sidebar-tag-name" data-tags="音视频"><span class="iconfont-archer">&#xe606;</span>音视频</span>
+    
+        <span class="sidebar-tag-name" data-tags="学习计划"><span class="iconfont-archer">&#xe606;</span>学习计划</span>
+    
+        <span class="sidebar-tag-name" data-tags="设计模式"><span class="iconfont-archer">&#xe606;</span>设计模式</span>
+    
+        <span class="sidebar-tag-name" data-tags="抓包"><span class="iconfont-archer">&#xe606;</span>抓包</span>
+    
+        <span class="sidebar-tag-name" data-tags="机器学习"><span class="iconfont-archer">&#xe606;</span>机器学习</span>
+    
+        <span class="sidebar-tag-name" data-tags="Tensorflow"><span class="iconfont-archer">&#xe606;</span>Tensorflow</span>
+    
+        <span class="sidebar-tag-name" data-tags="SEAndroid"><span class="iconfont-archer">&#xe606;</span>SEAndroid</span>
+    
+        <span class="sidebar-tag-name" data-tags="多线程"><span class="iconfont-archer">&#xe606;</span>多线程</span>
+    
+        <span class="sidebar-tag-name" data-tags="aosp"><span class="iconfont-archer">&#xe606;</span>aosp</span>
+    
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+    缺失模块。<br/>
+    1、请确保node版本大于6.2<br/>
+    2、在博客根目录（注意不是archer根目录）执行以下命令：<br/>
+    <span style="color: #f75357; font-size: 1rem; line-height: 2rem;">npm i hexo-generator-json-content --save</span><br/>
+    3、在根目录_config.yml里添加配置：
+    <pre style="color: #787878; font-size: 0.6rem;">
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: true
+    tags: true</pre>
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    
+        <span class="sidebar-category-name" data-categories="CoolUI"><span class="iconfont-archer">&#xe60a;</span>CoolUI</span>
+    
+        <span class="sidebar-category-name" data-categories="Android"><span class="iconfont-archer">&#xe60a;</span>Android</span>
+    
+        <span class="sidebar-category-name" data-categories="容器技术"><span class="iconfont-archer">&#xe60a;</span>容器技术</span>
+    
+        <span class="sidebar-category-name" data-categories="java基础"><span class="iconfont-archer">&#xe60a;</span>java基础</span>
+    
+        <span class="sidebar-category-name" data-categories="Linux"><span class="iconfont-archer">&#xe60a;</span>Linux</span>
+    
+        <span class="sidebar-category-name" data-categories="AOSP"><span class="iconfont-archer">&#xe60a;</span>AOSP</span>
+    
+        <span class="sidebar-category-name" data-categories="MQTT"><span class="iconfont-archer">&#xe60a;</span>MQTT</span>
+    
+        <span class="sidebar-category-name" data-categories="bug记录"><span class="iconfont-archer">&#xe60a;</span>bug记录</span>
+    
+        <span class="sidebar-category-name" data-categories="备忘录"><span class="iconfont-archer">&#xe60a;</span>备忘录</span>
+    
+        <span class="sidebar-category-name" data-categories="后端技术"><span class="iconfont-archer">&#xe60a;</span>后端技术</span>
+    
+        <span class="sidebar-category-name" data-categories="python"><span class="iconfont-archer">&#xe60a;</span>python</span>
+    
+        <span class="sidebar-category-name" data-categories="webrtc"><span class="iconfont-archer">&#xe60a;</span>webrtc</span>
+    
+        <span class="sidebar-category-name" data-categories="学习计划"><span class="iconfont-archer">&#xe60a;</span>学习计划</span>
+    
+        <span class="sidebar-category-name" data-categories="机器学习"><span class="iconfont-archer">&#xe60a;</span>机器学习</span>
+    
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+    </div>
+</div> 
+    <script>
+    var siteMeta = {
+        root: "/",
+        author: "QuincyJiang"
+    }
+</script>
+    <!-- CDN failover -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof window.$ === 'undefined')
+        {
+            console.warn('jquery load from jsdelivr failed, will load local script')
+            document.write('<script src="/lib/jquery.min.js">\x3C/script>')
+        }
+    </script>
+    <script src="/scripts/main.js"></script>
+    <!-- algolia -->
+    
+    <!-- busuanzi  -->
+    
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- CNZZ  -->
+    
+    </div>
+    <!-- async load share.js -->
+    
+        <script src="/scripts/share.js" async></script>    
+     
+    </body>
+</html>
+
+
