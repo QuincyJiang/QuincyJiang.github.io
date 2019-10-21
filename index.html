@@ -359,6 +359,40 @@ height:50vh;
     
     
     <article class="index-post">
+        <a class="abstract-title" href = "/2019/10/21/为何fork两次可以避免僵尸进程/" >
+            
+                <span>为何fork两次可以避免僵尸进程</span>
+        </a>
+        <div class="abstract-content">
+            前言在读apue第八章进程控制时， 看到一段很有意思的代码：
+
+“如果一个进程fork一个子进程，但不要他等待子进程终止，也不希望子进程处于僵死状态知道父进程终止，实现这一要求的诀窍是调用fork两次。”
+
+实例代码如下：
+12345678910111213141516171819202122232425262728#include"apue.h"//通过调用fork()函数两次来解决僵尸进程的出现int main(void)&#123;	pid_t pid;	if((pid=fork())&lt;0)		err_sys("fork error");	else if(pid==0)	&#...
+        </div>
+        <div class="abstract-post-meta">
+            <!-- date  -->
+            <div class="abstract-date">
+                <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2019/10/21</span>
+            </div>
+            <!-- tags  -->
+            
+            <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "linux">linux</a>
+    
+</div>
+            
+        </div>
+    </article>
+    
+    
+    
+    
+    
+    
+    <article class="index-post">
         <a class="abstract-title" href = "/2019/01/14/mac 搭建Go开发环境/" >
             
                 <span>mac 搭建Go开发环境</span>
@@ -681,41 +715,6 @@ Client 获取到Server端的服...
         <a class="post-tag" href="javascript:void(0);" data-tags = "机器学习">机器学习</a>
     
         <a class="post-tag" href="javascript:void(0);" data-tags = "Tensorflow">Tensorflow</a>
-    
-</div>
-            
-        </div>
-    </article>
-    
-    
-    
-    
-    
-    
-    <article class="index-post">
-        <a class="abstract-title" href = "/2018/06/02/《现代艺术150年》未影印作品1/" >
-            
-                <span>《现代艺术150年》未影印作品1</span>
-        </a>
-        <div class="abstract-content">
-            以书中提到的艺术品先后为时序，罗列出书中未影印出的作品。
-ZERO1.Equivalent VIII  等价物 8 1966 （ Carl Andre 卡尔·安德烈） http://www.tate.org.uk/art/artworks/andre-equivalent-viii-t01534
-2.Puppy 小狗 1992 （Jeff Koons，杰夫·昆斯） https://www.guggenheim.org/artwork/48
-
-ONE3.Fountain 泉  1917 （Marcel Duchamp, 马塞尔·杜尚）https://en.wikipedia.org/wik...
-        </div>
-        <div class="abstract-post-meta">
-            <!-- date  -->
-            <div class="abstract-date">
-                <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2018/06/02</span>
-            </div>
-            <!-- tags  -->
-            
-            <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-tags = "现代艺术150年">现代艺术150年</a>
-    
-        <a class="post-tag" href="javascript:void(0);" data-tags = "备忘录">备忘录</a>
     
 </div>
             
@@ -1386,9 +1385,40 @@ ONE3.Fountain 泉  1917 （Marcel Duchamp, 马塞尔·杜尚）https://en.wikipe
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     <div class="total-and-search">
         <div class="total-archive">
-        Total : 34
+        Total : 35
         </div>
         <!-- search  -->
         
@@ -1401,6 +1431,11 @@ ONE3.Fountain 泉  1917 （Marcel Duchamp, 马塞尔·杜尚）https://en.wikipe
     
     <div class="archive-year"> 2019 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/21</span><a class="archive-post-title" href= "/2019/10/21/为何fork两次可以避免僵尸进程/" >为何fork两次可以避免僵尸进程</a>
+        </li>
     
     
         <li class="archive-post-item">
@@ -1612,47 +1647,47 @@ ONE3.Fountain 泉  1917 （Marcel Duchamp, 马塞尔·杜尚）https://en.wikipe
     
         <span class="sidebar-tag-name" data-tags="Binder"><span class="iconfont-archer">&#xe606;</span>Binder</span>
     
-        <span class="sidebar-tag-name" data-tags="docker"><span class="iconfont-archer">&#xe606;</span>docker</span>
-    
-        <span class="sidebar-tag-name" data-tags="容器"><span class="iconfont-archer">&#xe606;</span>容器</span>
-    
         <span class="sidebar-tag-name" data-tags="java"><span class="iconfont-archer">&#xe606;</span>java</span>
     
         <span class="sidebar-tag-name" data-tags="垃圾回收"><span class="iconfont-archer">&#xe606;</span>垃圾回收</span>
     
         <span class="sidebar-tag-name" data-tags="linux命令"><span class="iconfont-archer">&#xe606;</span>linux命令</span>
     
+        <span class="sidebar-tag-name" data-tags="docker"><span class="iconfont-archer">&#xe606;</span>docker</span>
+    
+        <span class="sidebar-tag-name" data-tags="容器"><span class="iconfont-archer">&#xe606;</span>容器</span>
+    
         <span class="sidebar-tag-name" data-tags="linux"><span class="iconfont-archer">&#xe606;</span>linux</span>
     
+        <span class="sidebar-tag-name" data-tags="句柄泄露"><span class="iconfont-archer">&#xe606;</span>句柄泄露</span>
+    
+        <span class="sidebar-tag-name" data-tags="bugs"><span class="iconfont-archer">&#xe606;</span>bugs</span>
+    
         <span class="sidebar-tag-name" data-tags="mqtt"><span class="iconfont-archer">&#xe606;</span>mqtt</span>
-    
-        <span class="sidebar-tag-name" data-tags="编译"><span class="iconfont-archer">&#xe606;</span>编译</span>
-    
-        <span class="sidebar-tag-name" data-tags="mk"><span class="iconfont-archer">&#xe606;</span>mk</span>
-    
-        <span class="sidebar-tag-name" data-tags="开源框架"><span class="iconfont-archer">&#xe606;</span>开源框架</span>
-    
-        <span class="sidebar-tag-name" data-tags="rxjava2"><span class="iconfont-archer">&#xe606;</span>rxjava2</span>
-    
-        <span class="sidebar-tag-name" data-tags="python"><span class="iconfont-archer">&#xe606;</span>python</span>
-    
-        <span class="sidebar-tag-name" data-tags="qt"><span class="iconfont-archer">&#xe606;</span>qt</span>
-    
-        <span class="sidebar-tag-name" data-tags="hexo"><span class="iconfont-archer">&#xe606;</span>hexo</span>
-    
-        <span class="sidebar-tag-name" data-tags="webrtc"><span class="iconfont-archer">&#xe606;</span>webrtc</span>
-    
-        <span class="sidebar-tag-name" data-tags="现代艺术150年"><span class="iconfont-archer">&#xe606;</span>现代艺术150年</span>
-    
-        <span class="sidebar-tag-name" data-tags="备忘录"><span class="iconfont-archer">&#xe606;</span>备忘录</span>
     
         <span class="sidebar-tag-name" data-tags="后端技术"><span class="iconfont-archer">&#xe606;</span>后端技术</span>
     
         <span class="sidebar-tag-name" data-tags="go"><span class="iconfont-archer">&#xe606;</span>go</span>
     
-        <span class="sidebar-tag-name" data-tags="句柄泄露"><span class="iconfont-archer">&#xe606;</span>句柄泄露</span>
+        <span class="sidebar-tag-name" data-tags="python"><span class="iconfont-archer">&#xe606;</span>python</span>
     
-        <span class="sidebar-tag-name" data-tags="bugs"><span class="iconfont-archer">&#xe606;</span>bugs</span>
+        <span class="sidebar-tag-name" data-tags="qt"><span class="iconfont-archer">&#xe606;</span>qt</span>
+    
+        <span class="sidebar-tag-name" data-tags="编译"><span class="iconfont-archer">&#xe606;</span>编译</span>
+    
+        <span class="sidebar-tag-name" data-tags="mk"><span class="iconfont-archer">&#xe606;</span>mk</span>
+    
+        <span class="sidebar-tag-name" data-tags="现代艺术150年"><span class="iconfont-archer">&#xe606;</span>现代艺术150年</span>
+    
+        <span class="sidebar-tag-name" data-tags="备忘录"><span class="iconfont-archer">&#xe606;</span>备忘录</span>
+    
+        <span class="sidebar-tag-name" data-tags="开源框架"><span class="iconfont-archer">&#xe606;</span>开源框架</span>
+    
+        <span class="sidebar-tag-name" data-tags="rxjava2"><span class="iconfont-archer">&#xe606;</span>rxjava2</span>
+    
+        <span class="sidebar-tag-name" data-tags="webrtc"><span class="iconfont-archer">&#xe606;</span>webrtc</span>
+    
+        <span class="sidebar-tag-name" data-tags="hexo"><span class="iconfont-archer">&#xe606;</span>hexo</span>
     
         <span class="sidebar-tag-name" data-tags="音视频"><span class="iconfont-archer">&#xe606;</span>音视频</span>
     
@@ -1664,9 +1699,9 @@ ONE3.Fountain 泉  1917 （Marcel Duchamp, 马塞尔·杜尚）https://en.wikipe
     
         <span class="sidebar-tag-name" data-tags="抓包"><span class="iconfont-archer">&#xe606;</span>抓包</span>
     
-        <span class="sidebar-tag-name" data-tags="设计模式"><span class="iconfont-archer">&#xe606;</span>设计模式</span>
-    
         <span class="sidebar-tag-name" data-tags="SEAndroid"><span class="iconfont-archer">&#xe606;</span>SEAndroid</span>
+    
+        <span class="sidebar-tag-name" data-tags="设计模式"><span class="iconfont-archer">&#xe606;</span>设计模式</span>
     
         <span class="sidebar-tag-name" data-tags="多线程"><span class="iconfont-archer">&#xe606;</span>多线程</span>
     
@@ -1709,25 +1744,25 @@ jsonContent:
     
         <span class="sidebar-category-name" data-categories="Android"><span class="iconfont-archer">&#xe60a;</span>Android</span>
     
-        <span class="sidebar-category-name" data-categories="容器技术"><span class="iconfont-archer">&#xe60a;</span>容器技术</span>
-    
         <span class="sidebar-category-name" data-categories="java基础"><span class="iconfont-archer">&#xe60a;</span>java基础</span>
     
         <span class="sidebar-category-name" data-categories="Linux"><span class="iconfont-archer">&#xe60a;</span>Linux</span>
     
+        <span class="sidebar-category-name" data-categories="容器技术"><span class="iconfont-archer">&#xe60a;</span>容器技术</span>
+    
+        <span class="sidebar-category-name" data-categories="bug记录"><span class="iconfont-archer">&#xe60a;</span>bug记录</span>
+    
         <span class="sidebar-category-name" data-categories="MQTT"><span class="iconfont-archer">&#xe60a;</span>MQTT</span>
     
-        <span class="sidebar-category-name" data-categories="AOSP"><span class="iconfont-archer">&#xe60a;</span>AOSP</span>
+        <span class="sidebar-category-name" data-categories="后端技术"><span class="iconfont-archer">&#xe60a;</span>后端技术</span>
     
         <span class="sidebar-category-name" data-categories="python"><span class="iconfont-archer">&#xe60a;</span>python</span>
+    
+        <span class="sidebar-category-name" data-categories="AOSP"><span class="iconfont-archer">&#xe60a;</span>AOSP</span>
     
         <span class="sidebar-category-name" data-categories="备忘录"><span class="iconfont-archer">&#xe60a;</span>备忘录</span>
     
         <span class="sidebar-category-name" data-categories="webrtc"><span class="iconfont-archer">&#xe60a;</span>webrtc</span>
-    
-        <span class="sidebar-category-name" data-categories="后端技术"><span class="iconfont-archer">&#xe60a;</span>后端技术</span>
-    
-        <span class="sidebar-category-name" data-categories="bug记录"><span class="iconfont-archer">&#xe60a;</span>bug记录</span>
     
         <span class="sidebar-category-name" data-categories="学习计划"><span class="iconfont-archer">&#xe60a;</span>学习计划</span>
     
