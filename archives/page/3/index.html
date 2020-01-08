@@ -346,6 +346,40 @@
     
     
     <article class="index-post">
+        <a class="abstract-title" href = "/2018/05/10/AnimatedVectorDrawable 总结/" >
+            
+                <span>AnimatedVectorDrawable总结</span>
+        </a>
+        <div class="abstract-content">
+            在更新Android N之后 会注意到状态栏上的快捷方式有了新的变化 当我们点击的时候，从开启到关闭状态，会有一个顺滑自然的过渡动画，在学习完AnimatinVectorDrawable的api用法之后，你就会知道该怎么实现这些类似的效果了。
+Vector在开始之前，想先说明一下安卓中的矢量图标文件Vector，我们经常会用到矢量图，将一张SVG的图片通过AS自动生成一个以vector为根节点的xml文件，可以直接通过1R.drawable.xx
+的格式引用它。矢量图形不管我们如何拉伸都不会模糊，因此广受开发者青睐。看一下一个典型的vector文件结构
+12345678910111213...
+        </div>
+        <div class="abstract-post-meta">
+            <!-- date  -->
+            <div class="abstract-date">
+                <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2018/05/10</span>
+            </div>
+            <!-- tags  -->
+            
+            <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "句柄animation">句柄animation</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "AnimatedVectorDrawable">AnimatedVectorDrawable</a>
+    
+</div>
+            
+        </div>
+    </article>
+    
+    
+    
+    
+    
+    
+    <article class="index-post">
         <a class="abstract-title" href = "/2018/04/12/Rxjava2操作符/" >
             
                 <span>Rxjava2操作符</span>
@@ -446,40 +480,6 @@ Createcreate操作符，主要用于产生一个 Obserable 被观察者对象，
     
     
     <article class="index-post">
-        <a class="abstract-title" href = "/2017/12/11/mac搭建PyQt5环境/" >
-            
-                <span>mac搭建Pyqt5环境</span>
-        </a>
-        <div class="abstract-content">
-            1.首先基于virtualenv 搭建一个python3的运行环境virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。
-1. 首先，我们用pip安装virtualenv：1$ pip3 install virtualenv
-2.创建一个pyhton3的运行环境1jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3
-可以通过python=python3来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者pytho...
-        </div>
-        <div class="abstract-post-meta">
-            <!-- date  -->
-            <div class="abstract-date">
-                <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2017/12/11</span>
-            </div>
-            <!-- tags  -->
-            
-            <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-tags = "python">python</a>
-    
-        <a class="post-tag" href="javascript:void(0);" data-tags = "qt">qt</a>
-    
-</div>
-            
-        </div>
-    </article>
-    
-    
-    
-    
-    
-    
-    <article class="index-post">
         <a class="abstract-title" href = "/2017/12/11/MQTT相关/" >
             
                 <span>MQTT相关总结</span>
@@ -505,6 +505,40 @@ JAVA环境:j...
             <div class= abstract-tags >
     
         <a class="post-tag" href="javascript:void(0);" data-tags = "mqtt">mqtt</a>
+    
+</div>
+            
+        </div>
+    </article>
+    
+    
+    
+    
+    
+    
+    <article class="index-post">
+        <a class="abstract-title" href = "/2017/12/11/mac搭建PyQt5环境/" >
+            
+                <span>mac搭建Pyqt5环境</span>
+        </a>
+        <div class="abstract-content">
+            1.首先基于virtualenv 搭建一个python3的运行环境virtualenv是一个十分好用的python工具，可以为不同的软件创建独立的“隔离”的Python运行环境。
+1. 首先，我们用pip安装virtualenv：1$ pip3 install virtualenv
+2.创建一个pyhton3的运行环境1jiangxqdeMBP:~ jiangxq$ virtualenv py3 --python=python3
+可以通过python=python3来指定要安装的python版本，python3是mac的写法，其他linux系统需要制定为python2.7 或者pytho...
+        </div>
+        <div class="abstract-post-meta">
+            <!-- date  -->
+            <div class="abstract-date">
+                <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2017/12/11</span>
+            </div>
+            <!-- tags  -->
+            
+            <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "python">python</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "qt">qt</a>
     
 </div>
             
@@ -633,39 +667,6 @@ nativeCacheDirectBuffe...
             <div class= abstract-tags >
     
         <a class="post-tag" href="javascript:void(0);" data-tags = "linux">linux</a>
-    
-</div>
-            
-        </div>
-    </article>
-    
-    
-    
-    
-    
-    
-    <article class="index-post">
-        <a class="abstract-title" href = "/2017/05/07/MK语法规范/" >
-            
-                <span>MK语法规范</span>
-        </a>
-        <div class="abstract-content">
-            Android.mk文件语法规范及使用模板
-Introduction:Android.mk编译文件是用来向Android NDK描述你的C,C++源代码文件的， 这篇文档描述了它的语法。在阅读下面的内容之前，假定你已经阅读了docs/OVERVIEW.TXT文件，了解了它们的用途。
-概述:一个 Android.mk file用来向编译系统描述你的源代码。具体来说：-该文件是GNU Makefile的一小部分，会被编译系统解析一次或更多次的build系统。因此，您应尽量减少您声明的变量，不要认为某些变量在解析过程中不会被定义。-这个文件的语法允许把你的源代码组织成模块，一个模块属下列类型之...
-        </div>
-        <div class="abstract-post-meta">
-            <!-- date  -->
-            <div class="abstract-date">
-                <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2017/05/07</span>
-            </div>
-            <!-- tags  -->
-            
-            <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-tags = "编译">编译</a>
-    
-        <a class="post-tag" href="javascript:void(0);" data-tags = "mk">mk</a>
     
 </div>
             
@@ -1301,10 +1302,9 @@ Introduction:Android.mk编译文件是用来向Android NDK描述你的C,C++源�
     
     
     
-    
     <div class="total-and-search">
         <div class="total-archive">
-        Total : 35
+        Total : 36
         </div>
         <!-- search  -->
         
@@ -1326,6 +1326,11 @@ Introduction:Android.mk编译文件是用来向Android NDK描述你的C,C++源�
     
         <li class="archive-post-item">
             <span class="archive-post-date">01/14</span><a class="archive-post-title" href= "/2019/01/14/mac 搭建Go开发环境/" >mac 搭建Go开发环境</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/08</span><a class="archive-post-title" href= "/2019/01/08/代码生成插件说明/" >代码生成插件说明</a>
         </li>
     
     
@@ -1453,12 +1458,12 @@ Introduction:Android.mk编译文件是用来向Android NDK描述你的C,C++源�
     
     
         <li class="archive-post-item">
-            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/MQTT相关/" >MQTT相关总结</a>
+            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/mac搭建PyQt5环境/" >mac搭建Pyqt5环境</a>
         </li>
     
     
         <li class="archive-post-item">
-            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/mac搭建PyQt5环境/" >mac搭建Pyqt5环境</a>
+            <span class="archive-post-date">12/11</span><a class="archive-post-title" href= "/2017/12/11/MQTT相关/" >MQTT相关总结</a>
         </li>
     
     
@@ -1543,29 +1548,29 @@ Introduction:Android.mk编译文件是用来向Android NDK描述你的C,C++源�
     
         <span class="sidebar-tag-name" data-tags="linux命令"><span class="iconfont-archer">&#xe606;</span>linux命令</span>
     
-        <span class="sidebar-tag-name" data-tags="mqtt"><span class="iconfont-archer">&#xe606;</span>mqtt</span>
+        <span class="sidebar-tag-name" data-tags="linux"><span class="iconfont-archer">&#xe606;</span>linux</span>
     
         <span class="sidebar-tag-name" data-tags="编译"><span class="iconfont-archer">&#xe606;</span>编译</span>
     
         <span class="sidebar-tag-name" data-tags="mk"><span class="iconfont-archer">&#xe606;</span>mk</span>
     
-        <span class="sidebar-tag-name" data-tags="hexo"><span class="iconfont-archer">&#xe606;</span>hexo</span>
+        <span class="sidebar-tag-name" data-tags="mqtt"><span class="iconfont-archer">&#xe606;</span>mqtt</span>
     
         <span class="sidebar-tag-name" data-tags="开源框架"><span class="iconfont-archer">&#xe606;</span>开源框架</span>
     
         <span class="sidebar-tag-name" data-tags="rxjava2"><span class="iconfont-archer">&#xe606;</span>rxjava2</span>
     
-        <span class="sidebar-tag-name" data-tags="linux"><span class="iconfont-archer">&#xe606;</span>linux</span>
-    
         <span class="sidebar-tag-name" data-tags="句柄泄露"><span class="iconfont-archer">&#xe606;</span>句柄泄露</span>
     
         <span class="sidebar-tag-name" data-tags="bugs"><span class="iconfont-archer">&#xe606;</span>bugs</span>
     
-        <span class="sidebar-tag-name" data-tags="webrtc"><span class="iconfont-archer">&#xe606;</span>webrtc</span>
+        <span class="sidebar-tag-name" data-tags="hexo"><span class="iconfont-archer">&#xe606;</span>hexo</span>
     
         <span class="sidebar-tag-name" data-tags="后端技术"><span class="iconfont-archer">&#xe606;</span>后端技术</span>
     
         <span class="sidebar-tag-name" data-tags="go"><span class="iconfont-archer">&#xe606;</span>go</span>
+    
+        <span class="sidebar-tag-name" data-tags="webrtc"><span class="iconfont-archer">&#xe606;</span>webrtc</span>
     
         <span class="sidebar-tag-name" data-tags="现代艺术150年"><span class="iconfont-archer">&#xe606;</span>现代艺术150年</span>
     
@@ -1575,17 +1580,19 @@ Introduction:Android.mk编译文件是用来向Android NDK描述你的C,C++源�
     
         <span class="sidebar-tag-name" data-tags="qt"><span class="iconfont-archer">&#xe606;</span>qt</span>
     
+        <span class="sidebar-tag-name" data-tags="plugins"><span class="iconfont-archer">&#xe606;</span>plugins</span>
+    
         <span class="sidebar-tag-name" data-tags="音视频"><span class="iconfont-archer">&#xe606;</span>音视频</span>
     
         <span class="sidebar-tag-name" data-tags="学习计划"><span class="iconfont-archer">&#xe606;</span>学习计划</span>
     
         <span class="sidebar-tag-name" data-tags="设计模式"><span class="iconfont-archer">&#xe606;</span>设计模式</span>
     
+        <span class="sidebar-tag-name" data-tags="抓包"><span class="iconfont-archer">&#xe606;</span>抓包</span>
+    
         <span class="sidebar-tag-name" data-tags="机器学习"><span class="iconfont-archer">&#xe606;</span>机器学习</span>
     
         <span class="sidebar-tag-name" data-tags="Tensorflow"><span class="iconfont-archer">&#xe606;</span>Tensorflow</span>
-    
-        <span class="sidebar-tag-name" data-tags="抓包"><span class="iconfont-archer">&#xe606;</span>抓包</span>
     
         <span class="sidebar-tag-name" data-tags="SEAndroid"><span class="iconfont-archer">&#xe606;</span>SEAndroid</span>
     
@@ -1636,19 +1643,21 @@ jsonContent:
     
         <span class="sidebar-category-name" data-categories="Linux"><span class="iconfont-archer">&#xe60a;</span>Linux</span>
     
-        <span class="sidebar-category-name" data-categories="MQTT"><span class="iconfont-archer">&#xe60a;</span>MQTT</span>
-    
         <span class="sidebar-category-name" data-categories="AOSP"><span class="iconfont-archer">&#xe60a;</span>AOSP</span>
     
-        <span class="sidebar-category-name" data-categories="备忘录"><span class="iconfont-archer">&#xe60a;</span>备忘录</span>
+        <span class="sidebar-category-name" data-categories="MQTT"><span class="iconfont-archer">&#xe60a;</span>MQTT</span>
     
         <span class="sidebar-category-name" data-categories="bug记录"><span class="iconfont-archer">&#xe60a;</span>bug记录</span>
     
-        <span class="sidebar-category-name" data-categories="webrtc"><span class="iconfont-archer">&#xe60a;</span>webrtc</span>
+        <span class="sidebar-category-name" data-categories="备忘录"><span class="iconfont-archer">&#xe60a;</span>备忘录</span>
     
         <span class="sidebar-category-name" data-categories="后端技术"><span class="iconfont-archer">&#xe60a;</span>后端技术</span>
     
+        <span class="sidebar-category-name" data-categories="webrtc"><span class="iconfont-archer">&#xe60a;</span>webrtc</span>
+    
         <span class="sidebar-category-name" data-categories="python"><span class="iconfont-archer">&#xe60a;</span>python</span>
+    
+        <span class="sidebar-category-name" data-categories="IDEA"><span class="iconfont-archer">&#xe60a;</span>IDEA</span>
     
         <span class="sidebar-category-name" data-categories="学习计划"><span class="iconfont-archer">&#xe60a;</span>学习计划</span>
     

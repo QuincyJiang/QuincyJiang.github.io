@@ -22,7 +22,7 @@
     <meta name="description" content="">
     <meta http-equiv="Cache-control" content="no-cache">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-    <title>瘟疫青年</title>
+    <title>代码生成插件说明 · 瘟疫青年</title>
     <style type="text/css">
     @font-face {
         font-family: 'Oswald-Regular';
@@ -203,12 +203,23 @@
 </head>
 
     
+        <body class="post-body">
+    
     
 <header class="header">
 
     <div class="read-progress"></div>
     <div class="header-sidebar-menu">&#xe775;</div>
     <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >瘟疫青年</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">代码生成插件说明</a>
+            </div>
+    </div>
     
     <a class="home-link" href=/>瘟疫青年</a>
 </header>
@@ -220,24 +231,76 @@
 
 
 
+
+height:50vh;
 ">
     
     <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
             
     <div class="site-intro-placeholder"></div>
-    <div class="site-intro-img" style="background-image: url(/)"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
     <div class="site-intro-meta">
         <!-- 标题  -->
         <h1 class="intro-title">
             <!-- 主页  -->
+            
+            代码生成插件说明
+            <!-- 404 -->
             
         </h1>
         <!-- 副标题 -->
         <p class="intro-subtitle">
             <!-- 主页副标题  -->
             
+            
+            <!-- 404 -->
+            
         </p>
         <!-- 文章页meta -->
+        
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                
+                    <div class= post-intro-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "linux">linux</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags = "plugins">plugins</a>
+    
+</div>
+                
+                
+                    <div class="post-intro-read">
+                        <span>Word count: <span class="post-count word-count">1.2k</span>Reading time: <span class="post-count reading-time">4 min</span></span>
+                    </div>
+                
+                <div class="post-intro-meta">
+                    <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                    <span class="post-intro-time">2019/01/08</span>
+                    
+                    <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                        <span class="iconfont-archer">&#xe602;</span>
+                        <span id="busuanzi_value_page_pv"></span>
+                    </span>
+                    
+                    <span class="shareWrapper">
+                        <span class="iconfont-archer shareIcon">&#xe71d;</span>
+                        <span class="shareText">Share</span>
+                        <ul class="shareList">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
         
     </div>
 </div>
@@ -338,44 +401,98 @@
 </script>        
         <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
         <div class="container container-unloaded">
-            <main class="main index-page">
-    
-    
-    
-    
-    
-    
-    <article class="index-post">
-        <a class="abstract-title" href = "/2017/08/16/webrtc 音频/" >
-            
-                <span>webrtc音频总结</span>
-        </a>
-        <div class="abstract-content">
-            webrtc/modules/audio_device/android/audio_record_jni.cc
-这个文件，是音频采集jni类文件。
-Android Audio Record 和 JNI 通信接口包括：
-123// java 调用 c++ 接口nativeCacheDirectBufferAddressnativeDataIsRecorded
-123456// c++ 回调 java 接口initRecordingstartRecordingstopRecordingenableBuiltInAECenableBuiltInNS
-nativeCacheDirectBuffe...
-        </div>
-        <div class="abstract-post-meta">
-            <!-- date  -->
-            <div class="abstract-date">
-                <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2017/08/16</span>
-            </div>
-            <!-- tags  -->
-            
-            <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-tags = "webrtc">webrtc</a>
-    
-</div>
-            
-        </div>
+            <main class="main post-page">
+    <article class="article-entry">
+        <p>#Code Generator Plugin for IDEA</p>
+<h2 id="一、概述"><a href="#一、概述" class="headerlink" title="一、概述"></a>一、概述</h2><p>这是一个基于<code>Velocity（VM 模板）</code>语法 和 <code>Groovy</code> 脚本语法，通过自定义脚本文件 和一个抽象的 <code>contextClass</code>概念 来完成模板代码自动生成的 <code>IDEA/AndroidStudio</code> 插件。</p>
+<p>它通过内置的<code>Converter</code>， 将 <code>VirtualFile</code> （IDEA的api提供的对文件系统的抽象）或者是<code>PsiClass</code>（IDEA提供的对class对象的抽象）转化为统一的<code>ClassStruct</code>（一种对<code>Java</code>文件结构的抽象）对象， 这个<code>VirtualFile</code>对象可以是文本文件、excel表格、通过文件选择器选中的一个<code>.java</code>文件， <code>PsiClass</code>则为 鼠标右键选中的当前class对象。</p>
+<p>插件内置了三个 <code>Converter</code>，分别是 <code>Java2ClassConverter</code>, <code>Pb2ClassConverter</code>, <code>Excel2ClassConverter</code>,他们各自通过一定的规则，对<code>java</code>对象，<code>proto</code>文件，<code>excel</code>文件进行了解析并转化为统一的<code>ClassStruct</code>实体。</p>
+<p>解析后的<code>ClassStruct</code>实体包含了模板需要的全部信息。 此时 将该<code>ClassStruct</code>实体 和 模板文件 交给 <code>CodeGenerator</code> 去匹配解析，替换模板中的占位符，输出生成的目标代码。</p>
+<p><code>CodeGenerator</code> 支持解析 <code>Groovy</code> 和 <code>Velocity</code> 两种格式文件，都是非常常见的常用模板语言。</p>
+<h2 id="二、特点："><a href="#二、特点：" class="headerlink" title="二、特点："></a>二、特点：</h2><p>插件的特点是高度的灵活化和丰富的拓展性：</p>
+<h4 id="1-你可以在模板文件中通过contextClass来引用上下文对象的所有属性"><a href="#1-你可以在模板文件中通过contextClass来引用上下文对象的所有属性" class="headerlink" title="1. 你可以在模板文件中通过contextClass来引用上下文对象的所有属性"></a>1. 你可以在模板文件中通过<code>contextClass</code>来引用上下文对象的所有属性</h4><p>包括 </p>
+<ul>
+<li><strong>类属性：</strong><br>类名、类类型、类修饰符、继承和实现类、导包列表、成员变量列表、方法列表</li>
+<li><strong>成员变量属性：</strong><br>变量名、变量类型、变量修饰符</li>
+<li><strong>方法属性：</strong><br>方法名、方法修饰符、方法入参、返回值</li>
+<li><strong>参数属性：</strong><br>参数名、参数类型</li>
+</ul>
+<p>以此定制自己的代码生成规则。</p>
+<h4 id="2-通过自定义模板，可以生成Java、Kotlin、或者更多IDEA支持的语言"><a href="#2-通过自定义模板，可以生成Java、Kotlin、或者更多IDEA支持的语言" class="headerlink" title="2. 通过自定义模板，可以生成Java、Kotlin、或者更多IDEA支持的语言"></a>2. 通过自定义模板，可以生成Java、Kotlin、或者更多IDEA支持的语言</h4><p>语言语法通过模板定义就好了 XD</p>
+<h4 id="2-模板文件支持-Velocity-语法-和-Groovy-语法。"><a href="#2-模板文件支持-Velocity-语法-和-Groovy-语法。" class="headerlink" title="2. 模板文件支持  Velocity 语法 和 Groovy 语法。"></a>2. 模板文件支持  <code>Velocity</code> 语法 和 <code>Groovy</code> 语法。</h4><h4 id="3-可能会支持动态加载自定义转换器"><a href="#3-可能会支持动态加载自定义转换器" class="headerlink" title="3. 可能会支持动态加载自定义转换器"></a>3. 可能会支持动态加载自定义转换器</h4><p>这个当做一个feature去做，通过动态加载jar包应该是可以做到的，目前的设计还未支持。如果可以自定义转换器，插件的灵活性可以大大提升。</p>
+<h2 id="三、usage"><a href="#三、usage" class="headerlink" title="三、usage"></a>三、usage</h2><h3 id="1-模板配置"><a href="#1-模板配置" class="headerlink" title="1.模板配置"></a>1.模板配置</h3><p>1.配置目标代码语言 Kotlin / Java </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="class"><span class="keyword">class</span> <span class="title">CodeLanguage</span></span>&#123;</span><br><span class="line">    Java, Kotlin</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2.模板作用类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模板生成类型 新建文件 还是 生成一个代码块</span></span><br><span class="line"><span class="comment"> * File：根据className 生成一个新的.java文件</span></span><br><span class="line"><span class="comment"> * CodeBlock: 代码块</span></span><br><span class="line"><span class="comment"> * Clipboard： 将代码复制到剪切板</span></span><br><span class="line"><span class="comment"> * */</span></span><br><span class="line"><span class="keyword">enum</span> <span class="class"><span class="keyword">class</span> <span class="title">TemplateType</span> </span>&#123;</span><br><span class="line">    File, CodeBlock, Clipboard</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>3.配置模板文件类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模板文件语法 vm 或 groovy</span></span><br><span class="line"><span class="comment"> * */</span></span><br><span class="line"><span class="keyword">enum</span> <span class="class"><span class="keyword">class</span> <span class="title">TemplateLanguage</span> </span>&#123;</span><br><span class="line">    Vm, Groovy</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-模板书写规则"><a href="#2-模板书写规则" class="headerlink" title="2. 模板书写规则"></a>2. 模板书写规则</h3><h4 id="contextClass通配符"><a href="#contextClass通配符" class="headerlink" title="contextClass通配符"></a>contextClass通配符</h4><p>用来生成模板类的父类，是一个<code>ClassStruct</code>实体</p>
+<p>此处的父类不是<code>java</code>意义上的父类，可以把它理解为一个上下文对象，<br>这个父类 可以是从当前鼠标所在的类右键点击<code>Generate</code>菜单获取的，<br>也可以是通过导入特定格式文件解析出来的抽象，比如解析特定格式的excel文件，然后按照特定规则序列化获取到的抽象）</p>
+<p>可以用该通配符来匹配目标类中的 类名、包名、继承、接口、成员变量、函数<br>用以生成模板类指定格式的代码。</p>
+<p>具体说明如下：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$contextClass.name - 类名</span><br><span class="line">$contextClass.types - 类类型 <span class="comment">// class interface enum</span></span><br><span class="line">$contextClass.packageName - 包名</span><br><span class="line">$contextClass.<span class="keyword">implements</span> - 继承的接口列表</span><br><span class="line">$contextClass.importList - 类导包列表</span><br><span class="line">$contextClass.<span class="keyword">extends</span> - 继承的父类</span><br><span class="line">$contextClass.comments - 类说明</span><br><span class="line">$contextClass.fields - 类成员变量 可使用 <span class="keyword">for</span> field <span class="keyword">in</span> fields 迭代</span><br><span class="line">                |_ $field.<span class="string">type:</span> 变量类型</span><br><span class="line">                |_ $field.<span class="string">name:</span> 变量名</span><br><span class="line">                |_ $field.<span class="string">modifier:</span> 变量访问修饰符 <span class="keyword">public</span> <span class="keyword">static</span></span><br><span class="line">                |_ $field.<span class="string">comment:</span> 变量注释</span><br><span class="line">$contextClass.methods - 类的方法 可使用 <span class="keyword">for</span> methods <span class="keyword">in</span> methods 迭代</span><br><span class="line">                |_ $methods.<span class="string">name:</span> 方法名</span><br><span class="line">                |_ $methods.<span class="string">modifier:</span> 方法访问修饰符</span><br><span class="line">                |_ $methods.<span class="string">returnType:</span> 方法返回类型</span><br><span class="line">                |_ $methods.<span class="string">params:</span> 方法入参</span><br><span class="line">                                |_ $param.<span class="string">name:</span> 方法参数名</span><br><span class="line">                                |_ $param.<span class="string">type:</span> 方法参数类型</span><br><span class="line">                                |_ $param.<span class="string">comment:</span> 方法参数注释</span><br><span class="line">                |_ $methods.<span class="string">paramsStr:</span> 入参列表toString</span><br><span class="line">                |_ $methods.<span class="string">body:</span> 方法体</span><br><span class="line">                |_ $methods.<span class="string">comments:</span> 方法注释 List&lt;String&gt; 可以迭代</span><br></pre></td></tr></table></figure>
+<h3 id="其他通用通配符"><a href="#其他通用通配符" class="headerlink" title="其他通用通配符"></a>其他通用通配符</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$TIME - 返回当前时间 格式为 yyyy-MM-dd</span><br><span class="line">$USER - 返回当前登录用户名 user.name</span><br><span class="line">$ClassName - 当前模板生成的目标java文件名</span><br></pre></td></tr></table></figure>
+<h3 id="Demo-Template-File"><a href="#Demo-Template-File" class="headerlink" title="Demo Template File"></a>Demo Template File</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">package $contextClass.packageName ;</span><br><span class="line"></span><br><span class="line">import com.yymobile.common.core.AbstractBaseCore;</span><br><span class="line">import com.yymobile.common.core.$contextClass.name;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @Date Created: $TIME</span><br><span class="line"> * @Author $USER</span><br><span class="line"> * @Description: $contextClass.comment</span><br><span class="line"> */</span><br><span class="line">public interface $&#123;ClassName&#125; extends AbstractBaseCore implements $&#123;contextClass.name&#125; &#123;</span><br><span class="line">#foreach($method in $contextClass.methods)</span><br><span class="line">#if(!$null.isNull($method.comments) &amp;&amp; $method.comments.size()&gt;0)</span><br><span class="line">/**</span><br><span class="line">#foreach($comment in $method.comments)</span><br><span class="line">* $comment</span><br><span class="line">#end</span><br><span class="line">*/</span><br><span class="line">#end</span><br><span class="line">public $&#123;method.returnType&#125; $&#123;method.name&#125;($method.paramsStr) &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">#end</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
     </article>
+    <!-- license  -->
+    
+        <div class="license-wrapper">
+            <p>Author：<a href="http://wenyiqingnian.xyz">QuincyJiang</a>
+            <p>原文链接：<a href="http://wenyiqingnian.xyz/2019/01/08/代码生成插件说明/">http://wenyiqingnian.xyz/2019/01/08/代码生成插件说明/</a>
+            <p>发表日期：<a href="http://wenyiqingnian.xyz/2019/01/08/代码生成插件说明/">January 8th 2019, 4:30:15 pm</a>
+            <p>更新日期：<a href="http://wenyiqingnian.xyz/2019/01/08/代码生成插件说明/">January 8th 2020, 12:53:56 pm</a>
+            <p>版权声明：本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可</p>
+        </div>
     
     <!-- paginator  -->
+    <ul class="post-paginator">
+        <li class="next">
+            
+                <div class="nextSlogan">Next Post</div>
+                <a href= "/2019/01/14/mac 搭建Go开发环境/" title= "mac 搭建Go开发环境">
+                    <div class="nextTitle">mac 搭建Go开发环境</div>
+                </a>
+            
+        </li>
+        <li class="previous">
+            
+                <div class="prevSlogan">Previous Post</div>
+                <a href= "/2018/11/19/深度学习课程笔记 第二周 优化算法/" title= "深度学习课程笔记 第二周 优化算法">
+                    <div class="prevTitle">深度学习课程笔记 第二周 优化算法</div>
+                </a>
+            
+        </li>
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+    <div id="lv-container" data-id="city" data-uid= MTAyMC8zNjQwMS8xMjkzNg==>
+        <script type="text/javascript">
+            (function (d, s) {
+                var j, e = d.getElementsByTagName(s)[0];
+                if (typeof LivereTower === 'function') { return; }
+                j = d.createElement(s);
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+            })(document, 'script');
+        </script>
+        <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    </div>
+
+<!-- City版安装代码已完成 -->
     
+    
+    <!-- partial('_partial/comment/changyan') -->
+    <!--PC版-->
+
+
+    
+    
+
+    <!-- 评论 -->
 </main>
             <!-- profile -->
             
@@ -468,6 +585,24 @@ nativeCacheDirectBuffe...
 </footer>
     </div>
     <!-- toc -->
+    
+    <div class="toc-wrapper" style=
+    
+
+
+
+
+
+
+
+top:50vh;
+
+    >
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、概述"><span class="toc-number">1.</span> <span class="toc-text">一、概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、特点："><span class="toc-number">2.</span> <span class="toc-text">二、特点：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-你可以在模板文件中通过contextClass来引用上下文对象的所有属性"><span class="toc-number">2.0.1.</span> <span class="toc-text">1. 你可以在模板文件中通过contextClass来引用上下文对象的所有属性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-通过自定义模板，可以生成Java、Kotlin、或者更多IDEA支持的语言"><span class="toc-number">2.0.2.</span> <span class="toc-text">2. 通过自定义模板，可以生成Java、Kotlin、或者更多IDEA支持的语言</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-模板文件支持-Velocity-语法-和-Groovy-语法。"><span class="toc-number">2.0.3.</span> <span class="toc-text">2. 模板文件支持  Velocity 语法 和 Groovy 语法。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-可能会支持动态加载自定义转换器"><span class="toc-number">2.0.4.</span> <span class="toc-text">3. 可能会支持动态加载自定义转换器</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、usage"><span class="toc-number">3.</span> <span class="toc-text">三、usage</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-模板配置"><span class="toc-number">3.1.</span> <span class="toc-text">1.模板配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-模板书写规则"><span class="toc-number">3.2.</span> <span class="toc-text">2. 模板书写规则</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#contextClass通配符"><span class="toc-number">3.2.1.</span> <span class="toc-text">contextClass通配符</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#其他通用通配符"><span class="toc-number">3.3.</span> <span class="toc-text">其他通用通配符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Demo-Template-File"><span class="toc-number">3.4.</span> <span class="toc-text">Demo Template File</span></a></li></ol></li></ol>
+    </div>
     
     <div class="back-top iconfont-archer">&#xe639;</div>
     <div class="sidebar sidebar-hide">
@@ -1392,6 +1527,8 @@ jsonContent:
     
     </div>
     <!-- async load share.js -->
+    
+        <script src="/scripts/share.js" async></script>    
      
     </body>
 </html>
