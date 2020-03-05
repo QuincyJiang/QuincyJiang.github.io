@@ -544,7 +544,7 @@ height:50vh;
 </ol>
 </blockquote>
 <blockquote>
-<p>以我们的例子为例，<code>MediaServer</code> 调用<code>IPCTtreadState</code>，并将mOut通过<code>waitForResponse()</code>里的<code>ioctrl(BINDER_READ_WRITE,&amp;data)</code>发送给驱动的时候，驱动早已经完成步骤1、2了。也就是<code>MediaServer</code> 已经有了一个对应的<code>binder_proc</code> 结构体，而且其携带的的<code>flat_binder_object</code>的<code>handle</code>指向0.注意，这里面的<code>flat_handle_object</code>中的<code>type</code>是<code>handle</code>，同时<code>handle = 0</code>；【注： 见上文 <a href="http://wenyiqingnian.xyz/2018/06/02/%E4%BB%8E%E9%A9%B1%E5%8A%A8%E8%A7%92%E5%BA%A6%E7%90%86%E8%A7%A3binder/">5.通讯过程中的binder实体的传递</a>】并且做了地址映射。<br>.<br>.<br>9.<strong>调用驱动的ioctrl()方法发送BINDER_WRITE_READ</strong>， 在<code>ioctrl</code>()函数的入口处，会执行 <code>thread = binder_get_thread(proc)</code>，该函数首先获取打开驱动的进程的<code>pid</code>号，根据pid号，检查是否可以在<code>threads</code>的红黑树中找到对应的<code>thread</code>对象，有就直接返回，没有就创建对应的<code>Thread</code>对象，加入<code>binder_proc</code>的<code>threads</code>的红黑树中。<br>.<br>.<br>10.现在binder驱动已经有了线程的<code>Thread</code>对象，并加入到<code>binder_proc</code>中的<code>threads</code>红黑树中。并且知道了请求码是<code>BINDER_WRITE_READ</code>，驱动篇讲过，<code>ioctrl</code>的功能就是根据不同请求码调用不同的处理方法。如果命令是<code>BINDER_WRITE_READ</code>，并且 <code>bwr.write_size &gt; 0</code>，则调用<code>binder_thread_write</code>。</p>
+<p>以我们的例子为例，<code>MediaServer</code> 调用<code>IPCTtreadState</code>，并将mOut通过<code>waitForResponse()</code>里的<code>ioctrl(BINDER_READ_WRITE,&amp;data)</code>发送给驱动的时候，驱动早已经完成步骤1、2了。也就是<code>MediaServer</code> 已经有了一个对应的<code>binder_proc</code> 结构体，而且其携带的的<code>flat_binder_object</code>的<code>handle</code>指向0.注意，这里面的<code>flat_handle_object</code>中的<code>type</code>是<code>handle</code>，同时<code>handle = 0</code>；【注： 见上文 <a href="http://wenyiqingnian.xyz/2018/06/02/%E4%BB%8E%E9%A9%B1%E5%8A%A8%E8%A7%92%E5%BA%A6%E7%90%86%E8%A7%A3binder/" target="_blank" rel="noopener">5.通讯过程中的binder实体的传递</a>】并且做了地址映射。<br>.<br>.<br>9.<strong>调用驱动的ioctrl()方法发送BINDER_WRITE_READ</strong>， 在<code>ioctrl</code>()函数的入口处，会执行 <code>thread = binder_get_thread(proc)</code>，该函数首先获取打开驱动的进程的<code>pid</code>号，根据pid号，检查是否可以在<code>threads</code>的红黑树中找到对应的<code>thread</code>对象，有就直接返回，没有就创建对应的<code>Thread</code>对象，加入<code>binder_proc</code>的<code>threads</code>的红黑树中。<br>.<br>.<br>10.现在binder驱动已经有了线程的<code>Thread</code>对象，并加入到<code>binder_proc</code>中的<code>threads</code>红黑树中。并且知道了请求码是<code>BINDER_WRITE_READ</code>，驱动篇讲过，<code>ioctrl</code>的功能就是根据不同请求码调用不同的处理方法。如果命令是<code>BINDER_WRITE_READ</code>，并且 <code>bwr.write_size &gt; 0</code>，则调用<code>binder_thread_write</code>。</p>
 </blockquote>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (cmd) &#123;</span><br><span class="line">	<span class="keyword">case</span> BINDER_WRITE_READ: &#123;</span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">binder_write_read</span> <span class="title">bwr</span>;</span></span><br><span class="line">        ...</span><br><span class="line">		<span class="keyword">if</span> (bwr.write_size &gt; <span class="number">0</span>) &#123;</span><br><span class="line">			ret = binder_thread_write(proc, thread, (<span class="keyword">void</span> __user *)bwr.write_buffer, bwr.write_size, &amp;bwr.write_consumed);</span><br><span class="line">			trace_binder_write_done(ret);</span><br><span class="line">			<span class="keyword">if</span> (ret &lt; <span class="number">0</span>) &#123;</span><br><span class="line">				bwr.read_consumed = <span class="number">0</span>;</span><br><span class="line">				<span class="keyword">if</span> (copy_to_user(ubuf, &amp;bwr, <span class="keyword">sizeof</span>(bwr)))</span><br><span class="line">					ret = -EFAULT;</span><br><span class="line">				<span class="keyword">goto</span> err;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (bwr.read_size &gt; <span class="number">0</span>) &#123;</span><br><span class="line">			ret = binder_thread_read(proc, thread, (<span class="keyword">void</span> __user *)bwr.read_buffer, bwr.read_size, &amp;bwr.read_consumed, filp-&gt;f_flags &amp; O_NONBLOCK);</span><br><span class="line">			trace_binder_read_done(ret);</span><br><span class="line">			<span class="keyword">if</span> (!list_empty(&amp;proc-&gt;todo))</span><br><span class="line">				wake_up_interruptible(&amp;proc-&gt;wait);</span><br><span class="line">			<span class="keyword">if</span> (ret &lt; <span class="number">0</span>) &#123;</span><br><span class="line">				<span class="keyword">if</span> (copy_to_user(ubuf, &amp;bwr, <span class="keyword">sizeof</span>(bwr)))</span><br><span class="line">					ret = -EFAULT;</span><br><span class="line">				<span class="keyword">goto</span> err;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure>
 <blockquote>
@@ -661,10 +661,10 @@ height:50vh;
     <!-- license  -->
     
         <div class="license-wrapper">
-            <p>Author：<a href="http://wenyiqingnian.xyz">QuincyJiang</a>
-            <p>原文链接：<a href="http://wenyiqingnian.xyz/2018/06/24/从一次native端的IPC流程理解binder/">http://wenyiqingnian.xyz/2018/06/24/从一次native端的IPC流程理解binder/</a>
-            <p>发表日期：<a href="http://wenyiqingnian.xyz/2018/06/24/从一次native端的IPC流程理解binder/">June 24th 2018, 7:00:50 pm</a>
-            <p>更新日期：<a href="http://wenyiqingnian.xyz/2018/06/24/从一次native端的IPC流程理解binder/">June 25th 2018, 11:12:13 pm</a>
+            <p>Author：<a href="http://quincyjiang.github.io">QuincyJiang</a>
+            <p>原文链接：<a href="http://quincyjiang.github.io/2018/06/24/从一次native端的IPC流程理解binder/">http://quincyjiang.github.io/2018/06/24/从一次native端的IPC流程理解binder/</a>
+            <p>发表日期：<a href="http://quincyjiang.github.io/2018/06/24/从一次native端的IPC流程理解binder/">June 24th 2018, 7:00:50 pm</a>
+            <p>更新日期：<a href="http://quincyjiang.github.io/2018/06/24/从一次native端的IPC流程理解binder/">June 25th 2018, 11:12:13 pm</a>
             <p>版权声明：本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可</p>
         </div>
     
@@ -837,6 +837,26 @@ top:50vh;
     <div class="sidebar-content sidebar-content-show-archive">
           <div class="sidebar-panel-archives">
     <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1559,10 +1579,6 @@ top:50vh;
         <div class="sidebar-panel-tags">
     <div class="sidebar-tags-name">
     
-        <span class="sidebar-tag-name" data-tags="句柄animation"><span class="iconfont-archer">&#xe606;</span>句柄animation</span>
-    
-        <span class="sidebar-tag-name" data-tags="AnimatedVectorDrawable"><span class="iconfont-archer">&#xe606;</span>AnimatedVectorDrawable</span>
-    
         <span class="sidebar-tag-name" data-tags="android"><span class="iconfont-archer">&#xe606;</span>android</span>
     
         <span class="sidebar-tag-name" data-tags="Binder"><span class="iconfont-archer">&#xe606;</span>Binder</span>
@@ -1575,35 +1591,41 @@ top:50vh;
     
         <span class="sidebar-tag-name" data-tags="容器"><span class="iconfont-archer">&#xe606;</span>容器</span>
     
+        <span class="sidebar-tag-name" data-tags="句柄animation"><span class="iconfont-archer">&#xe606;</span>句柄animation</span>
+    
+        <span class="sidebar-tag-name" data-tags="AnimatedVectorDrawable"><span class="iconfont-archer">&#xe606;</span>AnimatedVectorDrawable</span>
+    
         <span class="sidebar-tag-name" data-tags="linux命令"><span class="iconfont-archer">&#xe606;</span>linux命令</span>
-    
-        <span class="sidebar-tag-name" data-tags="linux"><span class="iconfont-archer">&#xe606;</span>linux</span>
-    
-        <span class="sidebar-tag-name" data-tags="mqtt"><span class="iconfont-archer">&#xe606;</span>mqtt</span>
     
         <span class="sidebar-tag-name" data-tags="句柄泄露"><span class="iconfont-archer">&#xe606;</span>句柄泄露</span>
     
         <span class="sidebar-tag-name" data-tags="bugs"><span class="iconfont-archer">&#xe606;</span>bugs</span>
     
+        <span class="sidebar-tag-name" data-tags="linux"><span class="iconfont-archer">&#xe606;</span>linux</span>
+    
+        <span class="sidebar-tag-name" data-tags="mqtt"><span class="iconfont-archer">&#xe606;</span>mqtt</span>
+    
         <span class="sidebar-tag-name" data-tags="编译"><span class="iconfont-archer">&#xe606;</span>编译</span>
     
         <span class="sidebar-tag-name" data-tags="mk"><span class="iconfont-archer">&#xe606;</span>mk</span>
-    
-        <span class="sidebar-tag-name" data-tags="后端技术"><span class="iconfont-archer">&#xe606;</span>后端技术</span>
-    
-        <span class="sidebar-tag-name" data-tags="go"><span class="iconfont-archer">&#xe606;</span>go</span>
-    
-        <span class="sidebar-tag-name" data-tags="开源框架"><span class="iconfont-archer">&#xe606;</span>开源框架</span>
-    
-        <span class="sidebar-tag-name" data-tags="rxjava2"><span class="iconfont-archer">&#xe606;</span>rxjava2</span>
     
         <span class="sidebar-tag-name" data-tags="python"><span class="iconfont-archer">&#xe606;</span>python</span>
     
         <span class="sidebar-tag-name" data-tags="qt"><span class="iconfont-archer">&#xe606;</span>qt</span>
     
+        <span class="sidebar-tag-name" data-tags="开源框架"><span class="iconfont-archer">&#xe606;</span>开源框架</span>
+    
+        <span class="sidebar-tag-name" data-tags="rxjava2"><span class="iconfont-archer">&#xe606;</span>rxjava2</span>
+    
+        <span class="sidebar-tag-name" data-tags="后端技术"><span class="iconfont-archer">&#xe606;</span>后端技术</span>
+    
+        <span class="sidebar-tag-name" data-tags="go"><span class="iconfont-archer">&#xe606;</span>go</span>
+    
         <span class="sidebar-tag-name" data-tags="hexo"><span class="iconfont-archer">&#xe606;</span>hexo</span>
     
         <span class="sidebar-tag-name" data-tags="webrtc"><span class="iconfont-archer">&#xe606;</span>webrtc</span>
+    
+        <span class="sidebar-tag-name" data-tags="plugins"><span class="iconfont-archer">&#xe606;</span>plugins</span>
     
         <span class="sidebar-tag-name" data-tags="现代艺术150年"><span class="iconfont-archer">&#xe606;</span>现代艺术150年</span>
     
@@ -1613,19 +1635,17 @@ top:50vh;
     
         <span class="sidebar-tag-name" data-tags="学习计划"><span class="iconfont-archer">&#xe606;</span>学习计划</span>
     
-        <span class="sidebar-tag-name" data-tags="抓包"><span class="iconfont-archer">&#xe606;</span>抓包</span>
-    
         <span class="sidebar-tag-name" data-tags="设计模式"><span class="iconfont-archer">&#xe606;</span>设计模式</span>
-    
-        <span class="sidebar-tag-name" data-tags="plugins"><span class="iconfont-archer">&#xe606;</span>plugins</span>
     
         <span class="sidebar-tag-name" data-tags="机器学习"><span class="iconfont-archer">&#xe606;</span>机器学习</span>
     
         <span class="sidebar-tag-name" data-tags="Tensorflow"><span class="iconfont-archer">&#xe606;</span>Tensorflow</span>
     
-        <span class="sidebar-tag-name" data-tags="多线程"><span class="iconfont-archer">&#xe606;</span>多线程</span>
+        <span class="sidebar-tag-name" data-tags="抓包"><span class="iconfont-archer">&#xe606;</span>抓包</span>
     
         <span class="sidebar-tag-name" data-tags="SEAndroid"><span class="iconfont-archer">&#xe606;</span>SEAndroid</span>
+    
+        <span class="sidebar-tag-name" data-tags="多线程"><span class="iconfont-archer">&#xe606;</span>多线程</span>
     
         <span class="sidebar-tag-name" data-tags="aosp"><span class="iconfont-archer">&#xe606;</span>aosp</span>
     
@@ -1662,33 +1682,33 @@ jsonContent:
         <div class="sidebar-panel-categories">
     <div class="sidebar-categories-name">
     
-        <span class="sidebar-category-name" data-categories="CoolUI"><span class="iconfont-archer">&#xe60a;</span>CoolUI</span>
-    
         <span class="sidebar-category-name" data-categories="Android"><span class="iconfont-archer">&#xe60a;</span>Android</span>
     
         <span class="sidebar-category-name" data-categories="java基础"><span class="iconfont-archer">&#xe60a;</span>java基础</span>
     
         <span class="sidebar-category-name" data-categories="容器技术"><span class="iconfont-archer">&#xe60a;</span>容器技术</span>
     
-        <span class="sidebar-category-name" data-categories="Linux"><span class="iconfont-archer">&#xe60a;</span>Linux</span>
+        <span class="sidebar-category-name" data-categories="CoolUI"><span class="iconfont-archer">&#xe60a;</span>CoolUI</span>
     
-        <span class="sidebar-category-name" data-categories="MQTT"><span class="iconfont-archer">&#xe60a;</span>MQTT</span>
+        <span class="sidebar-category-name" data-categories="Linux"><span class="iconfont-archer">&#xe60a;</span>Linux</span>
     
         <span class="sidebar-category-name" data-categories="bug记录"><span class="iconfont-archer">&#xe60a;</span>bug记录</span>
     
+        <span class="sidebar-category-name" data-categories="MQTT"><span class="iconfont-archer">&#xe60a;</span>MQTT</span>
+    
         <span class="sidebar-category-name" data-categories="AOSP"><span class="iconfont-archer">&#xe60a;</span>AOSP</span>
     
-        <span class="sidebar-category-name" data-categories="后端技术"><span class="iconfont-archer">&#xe60a;</span>后端技术</span>
-    
         <span class="sidebar-category-name" data-categories="python"><span class="iconfont-archer">&#xe60a;</span>python</span>
+    
+        <span class="sidebar-category-name" data-categories="后端技术"><span class="iconfont-archer">&#xe60a;</span>后端技术</span>
     
         <span class="sidebar-category-name" data-categories="备忘录"><span class="iconfont-archer">&#xe60a;</span>备忘录</span>
     
         <span class="sidebar-category-name" data-categories="webrtc"><span class="iconfont-archer">&#xe60a;</span>webrtc</span>
     
-        <span class="sidebar-category-name" data-categories="学习计划"><span class="iconfont-archer">&#xe60a;</span>学习计划</span>
-    
         <span class="sidebar-category-name" data-categories="IDEA"><span class="iconfont-archer">&#xe60a;</span>IDEA</span>
+    
+        <span class="sidebar-category-name" data-categories="学习计划"><span class="iconfont-archer">&#xe60a;</span>学习计划</span>
     
         <span class="sidebar-category-name" data-categories="机器学习"><span class="iconfont-archer">&#xe60a;</span>机器学习</span>
     
